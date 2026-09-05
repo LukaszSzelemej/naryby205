@@ -1,0 +1,543 @@
+import speciesJson from "@/data/species.json";
+import managersJson from "@/data/managers.json";
+import type {
+  HostKind,
+  MapFilter,
+  Manager,
+  Species,
+  Water,
+  WaterKind,
+} from "@/lib/types";
+
+export { CUPLINK, INSTAGRAM, SITE_URL, VERSION } from "@/lib/brand";
+
+/** Filled by loadCatalog() during splash — never import the 644KB JSON into the bundle. */
+export const WATERS: Water[] = [];
+export const WATERS_BY_ID: Record<string, Water> = {};
+export const SPECIES = speciesJson as Species[];
+export const SPECIES_BY_ID: Record<string, Species> = Object.fromEntries(
+  SPECIES.map((s) => [s.id, s]),
+);
+
+type ManagersFile = {
+  managers: Record<string, Manager>;
+  okragToManager: Record<string, string>;
+  hostById: Record<string, string>;
+};
+
+const MANAGERS_FILE = managersJson as ManagersFile;
+export const MANAGERS = MANAGERS_FILE.managers;
+export const OKRAG_TO_MANAGER = MANAGERS_FILE.okragToManager;
+export const HOST_BY_ID = MANAGERS_FILE.hostById;
+
+export const BOUNDS = { south: 52.62, west: 14.12, north: 54.58, east: 16.98 };
+export const MAP_CENTER: [number, number] = [53.52, 15.35];
+export const DEFAULT_ZOOM = 8;
+
+export const DISCLAIMER =
+  "Atlas wędkarski ma charakter poglądowy. Przed wyjazdem zawsze sprawdź pozwolenia, regulaminy i zasady u gospodarza wody.";
+
+export const KIND_LABEL: Record<WaterKind, string> = {
+  jezioro: "Jezioro",
+  rzeka: "Rzeka",
+  zalew: "Zalew",
+  morze: "Morze",
+  kanal: "Kanał",
+  staw: "Staw",
+  komercyjne: "Komercyjne",
+};
+
+export const METHOD_LABEL: Record<string, string> = {
+  spławik: "Spławik",
+  grunt: "Grunt",
+  spinning: "Spinning",
+  "method feeder": "Method feeder",
+  mucha: "Mucha",
+  trolling: "Trolling",
+  podlodowe: "Pod lód",
+};
+
+export const KIND_COLOR: Record<WaterKind, string> = {
+  jezioro: "#1b6e66",
+  rzeka: "#2c6280",
+  zalew: "#3a6a7c",
+  morze: "#1a4d6e",
+  kanal: "#2f646c",
+  staw: "#3f6b45",
+  komercyjne: "#8a6418",
+};
+
+export const FILTER_META: Record<
+  MapFilter,
+  { label: string; color: string }
+> = {
+  location: { label: "Lokalizacja", color: "#3d5570" },
+  all: { label: "Wszystkie", color: "#2f6b4a" },
+  specjalne: { label: "Specjalne", color: "#8a3e3a" },
+  pzw: { label: "PZW", color: "#1e5c36" },
+  jezioro: { label: "Jeziora", color: "#1b6e66" },
+  prywatne: { label: "Prywatne", color: "#9a4a22" },
+  zalew: { label: "Zalewy", color: "#3a6a7c" },
+  staw: { label: "Stawy", color: "#3f6b45" },
+  rzeka: { label: "Rzeki", color: "#2c6280" },
+  kanal: { label: "Kanały", color: "#2f646c" },
+  morze: { label: "Morze", color: "#1a4d6e" },
+  komercyjne: { label: "Komercyjne", color: "#8a6418" },
+  ulubione: { label: "Ulubione", color: "#8a6a28" },
+};
+
+export const LIST_CATEGORIES: { id: MapFilter; label: string; color: string }[] =
+  (
+    [
+      "all",
+      "pzw",
+      "specjalne",
+      "jezioro",
+      "staw",
+      "prywatne",
+      "zalew",
+      "rzeka",
+      "kanal",
+      "morze",
+      "komercyjne",
+      "ulubione",
+    ] as MapFilter[]
+  ).map((id) => ({
+    id,
+    label: FILTER_META[id].label,
+    color: FILTER_META[id].color,
+  }));
+
+export const ALPHABET: string[][] = [
+  ["A", "Ą", "B", "C", "Ć", "D", "E", "Ę", "F", "G"],
+  ["H", "I", "J", "K", "L", "Ł", "M", "N", "Ń", "O"],
+  ["Ó", "P", "Q", "R", "S", "Ś", "T", "U", "V", "W"],
+  ["X", "Y", "Z", "Ź", "Ż"],
+];
+export const LETTERS = ALPHABET.flat();
+
+const PREFIX = /^(jezioro|rzeka|stawy|staw|łowisko|zalew|zbiornik|kanały|kanał)\s+/i;
+
+export function sortName(name: string) {
+  return name.replace(PREFIX, "").replace(/^bałtyk\s*[—–-]\s*/i, "").trim();
+}
+
+export function letterOf(name: string) {
+  return sortName(name).charAt(0).toLocaleUpperCase("pl") || "#";
+}
+
+export const SPECIES_LETTERS = new Set(SPECIES.map((s) => letterOf(s.name)));
+
+export function foldPl(s: string) {
+  return s
+    .toLowerCase()
+    .replace(/ą/g, "a")
+    .replace(/ć/g, "c")
+    .replace(/ę/g, "e")
+    .replace(/ł/g, "l")
+    .replace(/ń/g, "n")
+    .replace(/ó/g, "o")
+    .replace(/ś/g, "s")
+    .replace(/ź/g, "z")
+    .replace(/ż/g, "z");
+}
+
+function joinedText(w: Water) {
+  return [w.summary, w.ticket, ...(w.rules ?? [])].filter(Boolean).join(" ");
+}
+
+export function hostKindOf(w: Water): HostKind {
+  const hit = hostKindCache.get(w.id);
+  if (hit) return hit;
+  const k = hostKindUncached(w);
+  hostKindCache.set(w.id, k);
+  return k;
+}
+
+const hostKindCache = new Map<string, HostKind>();
+
+function hostKindUncached(w: Water): HostKind {
+  const t = joinedText(w);
+  if (w.kind === "morze" || w.okrag === "morskie" || w.tenure === "girm") {
+    return "girm";
+  }
+  if (
+    w.tenure === "wody-polskie" ||
+    /\bWIR\b|wody polskie|RZGW Szczecin/i.test(t)
+  ) {
+    return "wir";
+  }
+  const mapped = w.id ? HOST_BY_ID[w.id] : undefined;
+  if (mapped === "modehpolmo") return "modehpolmo";
+  if (mapped === "gr-insko") return "gr-insko";
+  if (mapped === "gr-czaplinek") return "gr-czaplinek";
+  if (mapped === "pr-zlocieniec") return "pr-zlocieniec";
+  if (mapped === "pr-szczecinek") return "pr-szczecinek";
+  if (mapped === "jis-walcz") return "jis-walcz";
+  if (mapped === "ntw") return "ntw";
+  if (mapped === "mtw") return "mtw";
+  if (mapped === "pzw-special") return "pzw-special";
+  if (/modehpolmo/i.test(t)) return "modehpolmo";
+  if (/ntw biały/i.test(t)) return "ntw";
+  if (/mtw myślibórz|myśliborskiego towarzystwa/i.test(t)) return "mtw";
+  if (/gospodarstwa rybackiego ińsko|\bgr ińsko\b|\bICR\b/i.test(t)) {
+    return "gr-insko";
+  }
+  if (/przedsiębiorstw[ao] rybackie(?:go)? złocieniec|\bpr złocieniec\b/i.test(t)) {
+    return "pr-zlocieniec";
+  }
+  if (/gospodarstwo rybackie w czaplinku|\bgr czaplinek\b/i.test(t)) {
+    return "gr-czaplinek";
+  }
+  if (/przedsiębiorstw[ao] rybackie(?:go)? szczecinek|\bpr szczecinek\b/i.test(t)) {
+    return "pr-szczecinek";
+  }
+  if (/jeziora i stawy wałeckie|\bjis wałeckie\b/i.test(t)) return "jis-walcz";
+  if (w.id === "bielinek") return "pzw-special";
+  if (
+    w.kind === "komercyjne" ||
+    w.tenure === "prywatne" ||
+    w.tenure === "specjalne" ||
+    (/karnet gospodarza/i.test(t) && !/PZW/i.test(t)) ||
+    (w.ticket &&
+      /karnet|gospodarz|hodowl/i.test(w.ticket) &&
+      !/PZW/i.test(w.ticket))
+  ) {
+    return "private";
+  }
+  return "pzw";
+}
+
+function catalogBase() {
+  const base = import.meta.env.BASE_URL || "/";
+  return `${base.endsWith("/") ? base : `${base}/`}atlas/waters/`;
+}
+
+let catalogLoading: Promise<void> | null = null;
+
+function fillWaters(rows: Water[]) {
+  if (WATERS.length) return;
+  WATERS.push(...rows);
+  for (const w of rows) WATERS_BY_ID[w.id] = w;
+}
+
+type CatalogIndex = { n: number; shards: string[] };
+
+async function fetchJson<T>(url: string): Promise<T> {
+  const res = await fetch(url, {
+    cache: "no-cache",
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const text = await res.text();
+  if (!text || text.charCodeAt(0) === 0x3c) {
+    throw new Error("Katalog nie jest JSON-em");
+  }
+  return JSON.parse(text) as T;
+}
+
+/** Load fishing catalog from small alphabetical JSON shards. Safe to call twice. */
+export function loadCatalog() {
+  if (typeof window === "undefined") return Promise.resolve();
+  if (WATERS.length) return Promise.resolve();
+  if (catalogLoading) return catalogLoading;
+  catalogLoading = (async () => {
+    const base = catalogBase();
+    const idx = await fetchJson<CatalogIndex>(`${base}index.json`);
+    if (!idx?.shards?.length) throw new Error("Pusty katalog łowisk");
+    const parts = await Promise.all(
+      idx.shards.map((name) => fetchJson<Water[]>(`${base}${name}`)),
+    );
+    const rows = parts.flat();
+    if (rows.length < 10) throw new Error("Pusty katalog łowisk");
+    fillWaters(rows);
+  })().catch((err) => {
+    catalogLoading = null;
+    throw err;
+  });
+  return catalogLoading;
+}
+
+export function managerOf(w: Water): Manager {
+  const k = hostKindOf(w);
+  if (k === "girm") return MANAGERS.girm;
+  if (k === "wir") return MANAGERS["rzgw-szczecin"];
+  if (k === "modehpolmo") return MANAGERS.modehpolmo;
+  if (k === "gr-czaplinek") return MANAGERS["gr-czaplinek"];
+  if (k === "gr-insko") return MANAGERS["gr-insko"];
+  if (k === "pr-zlocieniec") return MANAGERS["pr-zlocieniec"];
+  if (k === "pr-szczecinek") return MANAGERS["pr-szczecinek"];
+  if (k === "jis-walcz") return MANAGERS["jis-walcz"];
+  if (k === "ntw") return MANAGERS["ntw-bialy-bor"];
+  if (k === "mtw") return MANAGERS["mtw-mysliborz"];
+  if (k === "pzw-special") return MANAGERS["pzw-szczecin"];
+  if (k === "private") {
+    return {
+      id: "gospodarz",
+      name: "Gospodarz łowiska",
+      shortName: "Prywatne",
+      permitLabel: "Karnet gospodarza",
+      website: w.website ?? undefined,
+      socialUrl: w.socialUrl ?? undefined,
+      priceNote:
+        w.ticket ?? "Karnet u gospodarza, na miejscu albo przez stronę.",
+    };
+  }
+  const id = OKRAG_TO_MANAGER[w.okrag ?? ""] ?? "pzw-szczecin";
+  return MANAGERS[id] ?? MANAGERS["pzw-szczecin"];
+}
+
+export function isPrivate(w: Water) {
+  const k = hostKindOf(w);
+  return (
+    k === "private" ||
+    k === "ntw" ||
+    k === "mtw" ||
+    k === "modehpolmo" ||
+    k === "gr-czaplinek" ||
+    k === "gr-insko" ||
+    k === "pr-zlocieniec" ||
+    k === "pr-szczecinek" ||
+    k === "jis-walcz" ||
+    w.kind === "komercyjne"
+  );
+}
+
+export function isSpecial(w: Water) {
+  return hostKindOf(w) !== "pzw";
+}
+
+export function isPzw(w: Water) {
+  return hostKindOf(w) === "pzw";
+}
+
+export function categoryTags(w: Water): string[] {
+  const tags = [KIND_LABEL[w.kind] ?? w.kind];
+  const n = hostKindOf(w);
+  if (n === "private") tags.push("Prywatne");
+  else if (n === "pzw-special" || w.id === "bielinek") tags.push("Specjalne");
+  else if (n === "girm") tags.push("GIRM");
+  else if (n === "wir") tags.push("Wody Polskie");
+  else if (n === "modehpolmo") tags.push("Modehpolmo");
+  else if (n === "ntw") tags.push("NTW Biały Bór");
+  else if (n === "mtw") tags.push("MTW Myślibórz");
+  else if (n === "gr-czaplinek") tags.push("GR Czaplinek");
+  else if (n === "gr-insko") tags.push("GR Ińsko");
+  else if (n === "pr-zlocieniec") tags.push("PR Złocieniec");
+  else if (n === "pr-szczecinek") tags.push("PR Szczecinek");
+  else if (n === "jis-walcz") tags.push("JiS Wałeckie");
+  else if (n === "pzw") tags.push(`PZW ${w.okrag ?? ""}`.trim());
+  return tags;
+}
+
+export function matchesFilter(w: Water, f: MapFilter, favIds?: Set<string>) {
+  switch (f) {
+    case "location":
+    case "all":
+      return true;
+    case "specjalne":
+      return isSpecial(w);
+    case "pzw":
+      return isPzw(w);
+    case "prywatne":
+      return isPrivate(w);
+    case "komercyjne":
+      return w.kind === "komercyjne";
+    case "ulubione":
+      return !!favIds?.has(w.id);
+    case "jezioro":
+    case "rzeka":
+    case "zalew":
+    case "staw":
+    case "kanal":
+    case "morze":
+      return w.kind === f;
+    default:
+      return true;
+  }
+}
+
+export function pinColor(w: Water, f: MapFilter) {
+  if (f === "all" || f === "location") return KIND_COLOR[w.kind];
+  return FILTER_META[f]?.color ?? KIND_COLOR[w.kind];
+}
+
+export function sanitizeQuery(raw: string) {
+  return raw
+    .replace(/[\u0000-\u001F<>]/g, "")
+    .replace(/javascript:/gi, "")
+    .replace(/data:/gi, "")
+    .replace(/on\w+=/gi, "")
+    .slice(0, 80);
+}
+
+export function searchWaters(query: string, pool: Water[] = WATERS): Water[] {
+  const n = foldPl(sanitizeQuery(query).trim());
+  if (!n) return pool;
+  const strip = (s: string) =>
+    s.replace(/^(jezioro|rzeka|kanał|kanal|staw|zalew|łowisko)\s+/i, "");
+  return pool
+    .map((w) => {
+      const names = [w.name, ...(w.aliases ?? [])].map((x) => foldPl(x));
+      const hay = foldPl(
+        [w.powiat, w.gmina ?? "", w.okrag, w.kind, ...w.species].join(" "),
+      );
+      let score = 0;
+      if (names.some((x) => x === n)) score = 100;
+      else if (names.some((x) => foldPl(strip(x)) === n)) score = 90;
+      else if (
+        names.some((x) => x.startsWith(n) || foldPl(strip(x)).startsWith(n))
+      )
+        score = 80;
+      else if (names.some((x) => x.includes(n))) score = 60;
+      else if (hay.includes(n)) score = 20;
+      if (w.featured && score >= 60) score += 8;
+      return { w, score };
+    })
+    .filter((x) => x.score > 0)
+    .sort(
+      (a, b) =>
+        b.score - a.score ||
+        (b.w.areaHa ?? 0) - (a.w.areaHa ?? 0) ||
+        a.w.name.localeCompare(b.w.name, "pl"),
+    )
+    .map((x) => x.w);
+}
+
+export function haversineKm(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number,
+) {
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return 12742 * Math.asin(Math.min(1, Math.sqrt(a)));
+}
+
+export function formatDistance(km: number | null | undefined) {
+  if (km == null || !Number.isFinite(km)) return null;
+  if (km < 0.95) return `${Math.max(50, Math.round(km * 20) * 50)} m`;
+  if (km < 10) return `${km.toFixed(1).replace(".", ",")} km`;
+  return `${Math.round(km)} km`;
+}
+
+export function formatSize(w: Water) {
+  if (w.kind === "rzeka" || w.kind === "kanal") {
+    return w.lengthKm ? `${w.lengthKm} km` : null;
+  }
+  if (!w.areaHa) return null;
+  if (w.areaHa >= 1000) return `${(w.areaHa / 100).toFixed(0)} km²`;
+  if (w.areaHa >= 10) return `${w.areaHa.toLocaleString("pl-PL")} ha`;
+  return `${String(w.areaHa).replace(".", ",")} ha`;
+}
+
+export function formatDepth(w: Water) {
+  return w.maxDepthM ? `${String(w.maxDepthM).replace(".", ",")} m` : null;
+}
+
+export function speciesName(id: string) {
+  return SPECIES_BY_ID[id]?.name ?? id;
+}
+
+export function inVoivodeship(lat: number, lng: number) {
+  return (
+    lat >= BOUNDS.south &&
+    lat <= BOUNDS.north &&
+    lng >= BOUNDS.west &&
+    lng <= BOUNDS.east
+  );
+}
+
+export function formatCoords(lat: number, lng: number) {
+  return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+}
+
+export function googleNav(lat: number, lng: number) {
+  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+}
+
+export function googlePin(lat: number, lng: number) {
+  return `https://www.google.com/maps?q=${lat},${lng}`;
+}
+
+export function safeHttpUrl(raw: string | null | undefined) {
+  if (!raw) return null;
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+    return u.toString();
+  } catch {
+    return null;
+  }
+}
+
+export function linkKind(url: string): "facebook" | "instagram" | "youtube" | "tiktok" | "web" {
+  try {
+    const h = new URL(url).hostname.replace(/^www\./, "").toLowerCase();
+    if (h === "facebook.com" || h === "fb.com" || h === "m.facebook.com" || h.endsWith(".facebook.com")) {
+      return "facebook";
+    }
+    if (h === "instagram.com" || h.endsWith(".instagram.com")) return "instagram";
+    if (h === "youtube.com" || h === "youtu.be" || h.endsWith(".youtube.com")) return "youtube";
+    if (h === "tiktok.com" || h.endsWith(".tiktok.com")) return "tiktok";
+  } catch {
+    /* ignore */
+  }
+  return "web";
+}
+
+export function linkLabel(url: string, role: "host" | "social" = "host") {
+  const kind = linkKind(url);
+  if (kind === "facebook") return "Facebook";
+  if (kind === "instagram") return "Instagram";
+  if (kind === "youtube") return "YouTube";
+  if (kind === "tiktok") return "TikTok";
+  return role === "social" ? "Społeczność" : "Strona gospodarza";
+}
+
+export function watersForSpecies(speciesId: string) {
+  return WATERS.filter((w) => w.species.includes(speciesId)).sort((a, b) =>
+    sortName(a.name).localeCompare(sortName(b.name), "pl"),
+  );
+}
+
+export function mdToNum(md: string) {
+  const [m, d] = md.split("-").map(Number);
+  return (m ?? 1) * 100 + (d ?? 1);
+}
+
+export function isClosedNow(
+  from: string,
+  to: string,
+  at: Date = new Date(),
+) {
+  const n = (at.getMonth() + 1) * 100 + at.getDate();
+  const a = mdToNum(from);
+  const b = mdToNum(to);
+  return a <= b ? n >= a && n <= b : n >= a || n <= b;
+}
+
+export function formatPeriod(from: string, to: string) {
+  return `${from.replace("-", ".")} – ${to.replace("-", ".")}`;
+}
+
+export function protectionOf(sp: Species, at: Date = new Date()) {
+  if (!sp.closed.length) {
+    return {
+      hasPeriod: false,
+      active: false,
+      label: "Brak okresu ochronnego",
+    };
+  }
+  const active = sp.closed.some((c) => isClosedNow(c.from, c.to, at));
+  const label = `Okres ochronny: ${sp.closed
+    .map((c) => formatPeriod(c.from, c.to) + (c.note ? ` (${c.note})` : ""))
+    .join(", ")}`;
+  return { hasPeriod: true, active, label };
+}

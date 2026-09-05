@@ -1,0 +1,16 @@
+node_modules/
+.project_id
+.github_repo
+.env
+.env.*
+src/data/waters.json
+src/data/waters.json.gz
+public/data/waters.bin
+.vercel/
+.grok/
+artifacts/
+dist/
+screenshots/*.png
+screenshots/*.jpg
+
+.project_id

@@ -1,0 +1,362 @@
+[
+  {
+    "id": "szczupak",
+    "name": "Szczupak",
+    "latin": "Esox lucius",
+    "minCm": 50,
+    "dailyLimit": 2,
+    "closed": [
+      {
+        "from": "01-01",
+        "to": "04-30"
+      }
+    ],
+    "seaClosed": [
+      {
+        "from": "01-01",
+        "to": "04-30",
+        "note": "Zachód od 15°23′ oraz jez. Dąbie"
+      }
+    ],
+    "predators": true
+  },
+  {
+    "id": "sandacz",
+    "name": "Sandacz",
+    "latin": "Sander lucioperca",
+    "minCm": 50,
+    "dailyLimit": 2,
+    "closed": [
+      {
+        "from": "01-01",
+        "to": "05-31"
+      }
+    ],
+    "seaClosed": [
+      {
+        "from": "03-25",
+        "to": "05-10",
+        "note": "Strefa zachodnia Bałtyku"
+      }
+    ],
+    "predators": true
+  },
+  {
+    "id": "okon",
+    "name": "Okoń",
+    "latin": "Perca fluviatilis",
+    "minCm": null,
+    "dailyLimit": null,
+    "closed": [],
+    "predators": true
+  },
+  {
+    "id": "sum",
+    "name": "Sum",
+    "latin": "Silurus glanis",
+    "minCm": 70,
+    "dailyLimit": 1,
+    "closed": [
+      {
+        "from": "01-01",
+        "to": "05-31"
+      }
+    ],
+    "predators": true
+  },
+  {
+    "id": "wegorz",
+    "name": "Węgorz",
+    "latin": "Anguilla anguilla",
+    "minCm": 50,
+    "dailyLimit": 2,
+    "closed": [],
+    "seaBan": true,
+    "predators": true
+  },
+  {
+    "id": "lin",
+    "name": "Lin",
+    "latin": "Tinca tinca",
+    "minCm": 25,
+    "dailyLimit": null,
+    "closed": []
+  },
+  {
+    "id": "leszcz",
+    "name": "Leszcz",
+    "latin": "Abramis brama",
+    "minCm": 25,
+    "dailyLimit": null,
+    "closed": []
+  },
+  {
+    "id": "ploc",
+    "name": "Płoć",
+    "latin": "Rutilus rutilus",
+    "minCm": null,
+    "dailyLimit": null,
+    "closed": []
+  },
+  {
+    "id": "karas",
+    "name": "Karaś",
+    "latin": "Carassius carassius",
+    "minCm": null,
+    "dailyLimit": null,
+    "closed": []
+  },
+  {
+    "id": "karp",
+    "name": "Karp",
+    "latin": "Cyprinus carpio",
+    "minCm": 30,
+    "dailyLimit": 3,
+    "closed": []
+  },
+  {
+    "id": "amur",
+    "name": "Amur",
+    "latin": "Ctenopharyngodon idella",
+    "minCm": 40,
+    "dailyLimit": 2,
+    "closed": []
+  },
+  {
+    "id": "klen",
+    "name": "Kleń",
+    "latin": "Squalius cephalus",
+    "minCm": 25,
+    "dailyLimit": null,
+    "closed": []
+  },
+  {
+    "id": "jaz",
+    "name": "Jaź",
+    "latin": "Leuciscus idus",
+    "minCm": 25,
+    "dailyLimit": null,
+    "closed": []
+  },
+  {
+    "id": "bolen",
+    "name": "Boleń",
+    "latin": "Leuciscus aspius",
+    "minCm": 40,
+    "dailyLimit": 2,
+    "closed": [
+      {
+        "from": "01-01",
+        "to": "06-30"
+      }
+    ],
+    "predators": true
+  },
+  {
+    "id": "brzana",
+    "name": "Brzana",
+    "latin": "Barbus barbus",
+    "minCm": 40,
+    "dailyLimit": 2,
+    "closed": [
+      {
+        "from": "01-01",
+        "to": "06-30"
+      }
+    ]
+  },
+  {
+    "id": "pstrag-potokowy",
+    "name": "Pstrąg potokowy",
+    "latin": "Salmo trutta fario",
+    "minCm": 30,
+    "dailyLimit": 3,
+    "closed": [
+      {
+        "from": "09-01",
+        "to": "01-31"
+      }
+    ],
+    "predators": true
+  },
+  {
+    "id": "pstrag-teczowy",
+    "name": "Pstrąg tęczowy",
+    "latin": "Oncorhynchus mykiss",
+    "minCm": 30,
+    "dailyLimit": 3,
+    "closed": [],
+    "predators": true
+  },
+  {
+    "id": "lipien",
+    "name": "Lipień",
+    "latin": "Thymallus thymallus",
+    "minCm": 30,
+    "dailyLimit": 3,
+    "closed": [
+      {
+        "from": "03-01",
+        "to": "05-31"
+      }
+    ],
+    "predators": true
+  },
+  {
+    "id": "troc",
+    "name": "Troć wędrowna",
+    "latin": "Salmo trutta trutta",
+    "minCm": 50,
+    "dailyLimit": 1,
+    "closed": [
+      {
+        "from": "10-01",
+        "to": "02-28"
+      }
+    ],
+    "seaClosed": [
+      {
+        "from": "09-15",
+        "to": "11-15",
+        "note": "Pas 4 Mm od brzegu"
+      },
+      {
+        "from": "09-15",
+        "to": "12-31",
+        "note": "Porty: Darłowo, Dźwirzyno, Kołobrzeg, Mrzeżyno oraz jez. Dąbie"
+      }
+    ],
+    "predators": true
+  },
+  {
+    "id": "losos",
+    "name": "Łosoś",
+    "latin": "Salmo salar",
+    "minCm": null,
+    "dailyLimit": 0,
+    "closed": [
+      {
+        "from": "01-01",
+        "to": "12-31",
+        "note": "Zakaz połowu przez cały rok"
+      }
+    ],
+    "seaBan": true,
+    "predators": true
+  },
+  {
+    "id": "mietus",
+    "name": "Miętus",
+    "latin": "Lota lota",
+    "minCm": 25,
+    "dailyLimit": null,
+    "closed": [
+      {
+        "from": "12-01",
+        "to": "02-28"
+      }
+    ],
+    "predators": true
+  },
+  {
+    "id": "sieja",
+    "name": "Sieja",
+    "latin": "Coregonus lavaretus",
+    "minCm": 35,
+    "dailyLimit": 2,
+    "closed": [
+      {
+        "from": "10-15",
+        "to": "12-31"
+      }
+    ]
+  },
+  {
+    "id": "sielawa",
+    "name": "Sielawa",
+    "latin": "Coregonus albula",
+    "minCm": 18,
+    "dailyLimit": null,
+    "closed": [
+      {
+        "from": "10-15",
+        "to": "12-31"
+      }
+    ]
+  },
+  {
+    "id": "certa",
+    "name": "Certa",
+    "latin": "Vimba vimba",
+    "minCm": 30,
+    "dailyLimit": null,
+    "closed": [
+      {
+        "from": "01-01",
+        "to": "06-30"
+      }
+    ]
+  },
+  {
+    "id": "wzdręga",
+    "name": "Wzdręga",
+    "latin": "Scardinius erythrophthalmus",
+    "minCm": null,
+    "dailyLimit": null,
+    "closed": []
+  },
+  {
+    "id": "krap",
+    "name": "Krąp",
+    "latin": "Blicca bjoerkna",
+    "minCm": null,
+    "dailyLimit": null,
+    "closed": []
+  },
+  {
+    "id": "stornia",
+    "name": "Stornia",
+    "latin": "Platichthys flesus",
+    "minCm": 23,
+    "dailyLimit": null,
+    "closed": []
+  },
+  {
+    "id": "sledz",
+    "name": "Śledź",
+    "latin": "Clupea harengus",
+    "minCm": 16,
+    "dailyLimit": null,
+    "closed": []
+  },
+  {
+    "id": "dorsz",
+    "name": "Dorsz",
+    "latin": "Gadus morhua",
+    "minCm": null,
+    "dailyLimit": 0,
+    "closed": [
+      {
+        "from": "01-01",
+        "to": "12-31"
+      }
+    ],
+    "seaBan": true
+  },
+  {
+    "id": "tolpyga",
+    "name": "Tołpyga",
+    "latin": "Hypophthalmichthys",
+    "minCm": 40,
+    "dailyLimit": 2,
+    "closed": []
+  },
+  {
+    "id": "jesiotr",
+    "name": "Jesiotr",
+    "latin": "Acipenser",
+    "minCm": null,
+    "dailyLimit": null,
+    "closed": []
+  }
+]

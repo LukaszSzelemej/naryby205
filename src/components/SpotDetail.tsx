@@ -19,7 +19,7 @@ import {
   WATERS_BY_ID,
 } from "@/lib/catalog";
 import { CoffeeIcon, FishOutline, FishPinSvg, StarGlyph, WeatherGlyph } from "@/components/icons";
-import { ActionBtn, BackBtn, OutLink } from "@/components/Chrome";
+import { ActionBtn, BackBtn, OutLink, PhoneText, TelBtn } from "@/components/Chrome";
 import { fetchWeather, weatherIcon, weatherLabel, windArrow } from "@/lib/weather";
 import {
   biomet,
@@ -32,7 +32,7 @@ import {
 } from "@/lib/feeding";
 import { useAtlas } from "@/lib/store";
 import type { WeatherNow } from "@/lib/types";
-import { cn, copyText, openExternal } from "@/lib/utils";
+import { cn, copyText, openExternal, phonesIn } from "@/lib/utils";
 import { EmptyState, FeedSkeleton, ScreenFrame, useFlash } from "@/components/States";
 
 function toneClass(tone: "ok" | "primary" | "warn" | "danger") {
@@ -166,6 +166,7 @@ export function SpotDetail() {
   const socialBtn = social && social !== web ? social : null;
   const permit = safeHttpUrl(mgr.permitUrl);
   const price = safeHttpUrl(mgr.priceUrl);
+  const phones = phonesIn(w.ticket, w.access, w.parking, w.summary, w.rules, mgr.priceNote);
   const catches = journal.filter((j) => j.waterId === w.id);
   const color = KIND_COLOR[w.kind];
   const score = weather ? feedingScore(weather) : null;
@@ -255,7 +256,11 @@ export function SpotDetail() {
           </Box>
           <Box title="Zarządzający">
             <p className="font-medium">{mgr.name}</p>
-            {mgr.priceNote && <p className="mt-1 text-xs text-muted">{mgr.priceNote}</p>}
+            {mgr.priceNote && (
+              <p className="mt-1 text-xs text-muted">
+                <PhoneText text={mgr.priceNote} />
+              </p>
+            )}
             <div className="mt-3 flex flex-col gap-2 min-[380px]:flex-row">
               {web && (
                 <OutLink href={web} tone="primary">
@@ -268,14 +273,27 @@ export function SpotDetail() {
                 </OutLink>
               )}
             </div>
+            {phones.length > 0 && (
+              <div className="mt-2 flex flex-col gap-2 min-[380px]:flex-row">
+                {phones.map((n) => (
+                  <TelBtn key={n} number={n} />
+                ))}
+              </div>
+            )}
           </Box>
           <Box title="Zasady i zezwolenia">
             <ul className="space-y-1 text-xs text-muted">
               {(w.rules ?? []).map((r) => (
-                <li key={r}>• {r}</li>
+                <li key={r}>
+                  • <PhoneText text={r} />
+                </li>
               ))}
             </ul>
-            {w.ticket && <p className="mt-2 text-xs">{w.ticket}</p>}
+            {w.ticket && (
+              <p className="mt-2 text-xs">
+                <PhoneText text={w.ticket} />
+              </p>
+            )}
             <div className="mt-2 flex flex-wrap gap-2">
               {permit && (
                 <button
@@ -343,8 +361,12 @@ export function SpotDetail() {
             </div>
           </Box>
           <Box title="Dojazd i parking">
-            <p className="text-xs text-muted">{w.access || "Brzeg i dojazd wg mapy."}</p>
-            <p className="mt-1 text-xs text-muted">Parking: {w.parking || "Przy drodze / lesie"}</p>
+            <p className="text-xs text-muted">
+              <PhoneText text={w.access || "Brzeg i dojazd wg mapy."} />
+            </p>
+            <p className="mt-1 text-xs text-muted">
+              Parking: <PhoneText text={w.parking || "Przy drodze / lesie"} />
+            </p>
           </Box>
         </div>
 
@@ -500,7 +522,7 @@ export function SpotDetail() {
               <ActionBtn onClick={copyCoords} aria-label="Kopiuj współrzędne">
                 {copiedCoords ? "Skopiowano" : formatCoords(w.lat, w.lng)}
               </ActionBtn>
-              <ActionBtn onClick={sharePin} aria-label="Kopiuj pinezkę mapy">
+              <ActionBtn onClick={sharePin} tone="primary" aria-label="Kopiuj pinezkę mapy">
                 {copiedPin ? "Skopiowano" : "Pinezka"}
               </ActionBtn>
             </div>

@@ -25,7 +25,7 @@ import { zoomBy, resetView, flyToSpot, flyToUser } from "@/lib/map-api";
 import { useAtlas } from "@/lib/store";
 import type { MapFilter, Screen, Water, WeatherNow } from "@/lib/types";
 import { weatherIcon } from "@/lib/weather";
-import { cn, copyText, openExternal } from "@/lib/utils";
+import { cn, copyText, openExternal, splitPhoneParts, telHref, formatPlPhone } from "@/lib/utils";
 import { Meter, useFlash } from "@/components/States";
 
 const MORE_FILTERS: MapFilter[] = [
@@ -550,7 +550,7 @@ export function CoordsBanner() {
         onClick={share}
         disabled={!geo}
         aria-label="Kopiuj pinezkę mapy"
-        className="tap min-h-9 shrink-0 rounded-full bg-card-2 px-3 py-1.5 font-medium disabled:opacity-40"
+        className="tap min-h-9 shrink-0 rounded-full bg-primary px-3 py-1.5 font-semibold text-primary-foreground disabled:opacity-40"
       >
         {copiedPin ? "Skopiowano" : "Pinezka"}
       </button>
@@ -702,6 +702,50 @@ export function OutLink({
         <path d="M17 13.5V19H5V7h5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </button>
+  );
+}
+
+export function TelBtn({
+  number,
+  label,
+}: {
+  number: string;
+  label?: string;
+}) {
+  const pretty = formatPlPhone(number);
+  return (
+    <a
+      href={telHref(number)}
+      className="tap inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-primary px-4 text-center text-sm font-semibold leading-tight text-primary-foreground"
+      aria-label={`Zadzwoń ${pretty}`}
+    >
+      {label ?? `Zadzwoń ${pretty}`}
+    </a>
+  );
+}
+
+/** Turn "Tel. 664 309 001" in any copy into a tappable call link. */
+export function PhoneText({ text, className }: { text: string; className?: string }) {
+  const parts = splitPhoneParts(text);
+  if (parts.every((p) => !p.tel)) {
+    return <span className={className}>{text}</span>;
+  }
+  return (
+    <span className={className}>
+      {parts.map((p, i) =>
+        p.tel ? (
+          <a
+            key={i}
+            href={p.tel}
+            className="font-semibold text-primary underline decoration-primary/40 underline-offset-2"
+          >
+            {p.t}
+          </a>
+        ) : (
+          <span key={i}>{p.t}</span>
+        ),
+      )}
+    </span>
   );
 }
 

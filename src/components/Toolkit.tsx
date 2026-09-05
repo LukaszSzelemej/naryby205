@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { CoffeeIcon, FishOutline, SearchGlyph } from "@/components/icons";
 import { WaterCard } from "@/components/SpotList";
-import { BackBtn, OutLink } from "@/components/Chrome";
+import { BackBtn, OutLink, PhoneText, TelBtn } from "@/components/Chrome";
 import {
   ALPHABET,
   CUPLINK,
@@ -29,7 +29,7 @@ import {
   ZAPIS_COPY,
 } from "@/lib/content";
 import { useAtlas } from "@/lib/store";
-import { cn, openExternal } from "@/lib/utils";
+import { cn, openExternal, phonesIn } from "@/lib/utils";
 import { clearOffline, downloadOffline, offlineCount } from "@/lib/offline";
 import { EmptyState, Meter, ScreenFrame } from "@/components/States";
 
@@ -236,11 +236,16 @@ export function Toolkit() {
               const social = safeHttpUrl(m.socialUrl);
               const permit = safeHttpUrl(m.permitUrl);
               const socialBtn = social && social !== web ? social : null;
+              const phones = phonesIn(m.priceNote, m.name);
               return (
               <article key={m.id} className="rounded-2xl bg-card p-3 ring-1 ring-border">
                 <p className="font-semibold">{m.shortName}</p>
                 <p className="text-sm text-muted">{m.name}</p>
-                {m.priceNote && <p className="mt-1 text-sm text-faint">{m.priceNote}</p>}
+                {m.priceNote && (
+                  <p className="mt-1 text-sm text-faint">
+                    <PhoneText text={m.priceNote} />
+                  </p>
+                )}
                 <div className="mt-3 flex flex-col gap-2 min-[380px]:flex-row">
                   {web && (
                     <OutLink href={web} tone="primary">
@@ -258,6 +263,13 @@ export function Toolkit() {
                     </OutLink>
                   )}
                 </div>
+                {phones.length > 0 && (
+                  <div className="mt-2 flex flex-col gap-2 min-[380px]:flex-row">
+                    {phones.map((n) => (
+                      <TelBtn key={n} number={n} />
+                    ))}
+                  </div>
+                )}
               </article>
               );
             })}

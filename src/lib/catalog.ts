@@ -224,16 +224,33 @@ function fillWaters(rows: Water[]) {
 type CatalogIndex = { n: number; shards: string[] };
 
 async function fetchJson<T>(url: string): Promise<T> {
-  const res = await fetch(url, {
-    cache: "no-cache",
-    signal: AbortSignal.timeout(8000),
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const text = await res.text();
-  if (!text || text.charCodeAt(0) === 0x3c) {
-    throw new Error("Katalog nie jest JSON-em");
+  const ctrl = new AbortController();
+  const timer = window.setTimeout(() => ctrl.abort(), 10000);
+  try {
+    const res = await fetch(url, { cache: "no-cache", signal: ctrl.signal });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    if (!text || text.charCodeAt(0) === 0x3c) {
+      throw new Error("Katalog nie jest JSON-em");
+    }
+    return JSON.parse(text) as T;
+  } finally {
+    window.clearTimeout(timer);
   }
-  return JSON.parse(text) as T;
+}
+
+async function mapPool<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const out: R[] = new Array(items.length);
+  let cursor = 0;
+  const worker = async () => {
+    while (cursor < items.length) {
+      const i = cursor;
+      cursor += 1;
+      out[i] = await fn(items[i]);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, () => worker()));
+  return out;
 }
 
 /** Load fishing catalog from small alphabetical JSON shards. Safe to call twice. */
@@ -243,11 +260,18 @@ export function loadCatalog() {
   if (catalogLoading) return catalogLoading;
   catalogLoading = (async () => {
     const base = catalogBase();
+    try {
+      const bundled = await fetchJson<Water[]>(`${base}all.json`);
+      if (Array.isArray(bundled) && bundled.length >= 10) {
+        fillWaters(bundled);
+        return;
+      }
+    } catch {
+      /* fall through to shards */
+    }
     const idx = await fetchJson<CatalogIndex>(`${base}index.json`);
     if (!idx?.shards?.length) throw new Error("Pusty katalog łowisk");
-    const parts = await Promise.all(
-      idx.shards.map((name) => fetchJson<Water[]>(`${base}${name}`)),
-    );
+    const parts = await mapPool(idx.shards, 4, (name) => fetchJson<Water[]>(`${base}${name}`));
     const rows = parts.flat();
     if (rows.length < 10) throw new Error("Pusty katalog łowisk");
     fillWaters(rows);

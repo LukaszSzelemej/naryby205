@@ -148,28 +148,48 @@ function catalogStaticPlugin(): Plugin {
     apply: "serve",
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
-        const pathOnly = (req.url ?? "").split("?", 1)[0] ?? "";
+        const raw = (req.url ?? "").split("?", 1)[0] ?? "";
+        const pathOnly = raw.startsWith("/atlas/waters/")
+          ? raw
+          : raw.includes("/atlas/waters/")
+            ? `/${raw.slice(raw.indexOf("atlas/waters/"))}`
+            : "";
         if (!pathOnly.startsWith("/atlas/waters/")) {
           next();
           return;
         }
         const file = pathOnly.slice("/atlas/waters/".length);
+        const dir = join(server.config.root, "public/atlas/waters");
+        const send = (body: string | Buffer, code = 200) => {
+          res.statusCode = code;
+          res.setHeader("content-type", "application/json; charset=utf-8");
+          res.setHeader("cache-control", "no-cache");
+          res.end(body);
+        };
+        if (file === "all.json") {
+          try {
+            const idx = JSON.parse(readFileSync(join(dir, "index.json"), "utf8")) as {
+              shards: string[];
+            };
+            const rows = idx.shards.flatMap((name) =>
+              JSON.parse(readFileSync(join(dir, name), "utf8")),
+            );
+            send(JSON.stringify(rows));
+          } catch {
+            send('{"error":"catalog"}', 500);
+          }
+          return;
+        }
         if (!/^(index|[0-9]{2})\.json$/.test(file)) {
           next();
           return;
         }
-        const fp = join(server.config.root, "public/atlas/waters", file);
+        const fp = join(dir, file);
         if (!existsSync(fp)) {
-          res.statusCode = 404;
-          res.setHeader("content-type", "application/json; charset=utf-8");
-          res.end('{"error":"missing shard"}');
+          send('{"error":"missing shard"}', 404);
           return;
         }
-        const body = readFileSync(fp);
-        res.statusCode = 200;
-        res.setHeader("content-type", "application/json; charset=utf-8");
-        res.setHeader("cache-control", "no-cache");
-        res.end(body);
+        send(readFileSync(fp));
       });
     },
   };

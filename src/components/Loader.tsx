@@ -38,8 +38,10 @@ export function Loader({ online, onDone, replay }: Props) {
     raf = requestAnimationFrame(tick);
 
     const cap = window.setTimeout(() => {
-      if (live && WATERS.length) finish();
-    }, dur + 1600);
+      if (!live) return;
+      if (WATERS.length) finish();
+      else setFail("Nie udało się wczytać katalogu. Spróbuj ponownie.");
+    }, dur + 4000);
 
     void loadCatalog()
       .then(() => {

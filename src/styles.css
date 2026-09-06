@@ -177,6 +177,34 @@
   }
 }
 
+.atlas-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-background);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  animation: atlas-splash-out 0.4s var(--ease-out) 1.15s forwards;
+}
+.atlas-splash.is-out {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+@keyframes atlas-splash-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
 .fish-mark {
   background: #08343c;
   box-shadow:
@@ -873,5 +901,8 @@
     opacity: 1;
     transform: none;
     filter: none;
+  }
+  .atlas-splash {
+    animation-delay: 0.15s;
   }
 }

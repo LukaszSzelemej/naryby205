@@ -1,9 +1,12 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
+import { SplashOverlay } from "@/components/Splash";
 import appCss from "../styles.css?url";
 
 const APP_NAME = "Atlas wędkarski";
+
+const SPLASH_HIDE = `setTimeout(function(){var e=document.getElementById("atlas-splash");if(e)e.classList.add("is-out");},1250);`;
 
 export const Route = createRootRoute({
   head: () => ({
@@ -40,6 +43,8 @@ export const Route = createRootRoute({
         <HeadContent />
       </head>
       <body>
+        <SplashOverlay />
+        <script dangerouslySetInnerHTML={{ __html: SPLASH_HIDE }} />
         <PreviewHostBridge />
         <AuthProvider>
           <Outlet />

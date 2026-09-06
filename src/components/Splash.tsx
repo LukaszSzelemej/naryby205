@@ -1,52 +1,18 @@
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect } from "react";
 import { INSTAGRAM, SITE_URL, VERSION } from "@/lib/brand";
-import { loadCatalog } from "@/lib/catalog";
-import { openExternal } from "@/lib/utils";
 
-type Props = { online: number; onDone: () => void; replay?: boolean };
-
-export function Loader({ online, onDone, replay }: Props) {
-  const reduce =
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const dur = reduce ? 280 : replay ? 800 : 1200;
-  const onDoneRef = useRef(onDone);
-  onDoneRef.current = onDone;
-  const done = useRef(false);
-  const [pct, setPct] = useState(8);
-
-  const finish = () => {
-    if (done.current) return;
-    done.current = true;
-    setPct(100);
-    onDoneRef.current();
-  };
-
-  useEffect(() => {
-    done.current = false;
-    setPct(8);
-    const start = performance.now();
-    let raf = 0;
-    let live = true;
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / dur);
-      setPct(Math.max(8, Math.round(t * 100)));
-      if (t < 1 && live) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    void loadCatalog();
-    const cap = window.setTimeout(() => {
-      if (live) finish();
-    }, dur);
-    return () => {
-      live = false;
-      cancelAnimationFrame(raf);
-      window.clearTimeout(cap);
-    };
-  }, [dur]);
+/** First-paint overlay. CSS hides it even if React never hydrates. */
+export function SplashOverlay() {
+  useLayoutEffect(() => {
+    const el = document.getElementById("atlas-splash");
+    if (!el) return;
+    const hide = () => el.classList.add("is-out");
+    const t = window.setTimeout(hide, 1250);
+    return () => window.clearTimeout(t);
+  }, []);
 
   return (
-    <div className="relative z-40 flex h-full w-full flex-col items-center justify-between bg-background px-6 py-8 text-center">
+    <div id="atlas-splash" className="atlas-splash" role="status" aria-label="Ładowanie">
       <div
         className="pointer-events-none absolute inset-0"
         style={{
@@ -56,9 +22,10 @@ export function Loader({ online, onDone, replay }: Props) {
       />
       <div className="h-6" />
       <div className="splash-stack relative z-10 flex w-full max-w-sm flex-col items-center gap-3">
-        <button
-          type="button"
-          onClick={() => openExternal(INSTAGRAM)}
+        <a
+          href={INSTAGRAM}
+          target="_blank"
+          rel="noreferrer"
           className="seal-glow block size-36 rounded-full"
           aria-label="Instagram Method Feeder Szczecin"
         >
@@ -71,7 +38,7 @@ export function Loader({ online, onDone, replay }: Props) {
             decoding="async"
             fetchPriority="high"
           />
-        </button>
+        </a>
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             Atlas wędkarski
@@ -92,7 +59,7 @@ export function Loader({ online, onDone, replay }: Props) {
         <div className="mt-1 flex items-center gap-2 text-sm text-foreground">
           <span className="online-dot" />
           <span>
-            online: <span className="tabular-nums font-medium">{online}</span>
+            online: <span className="tabular-nums font-medium">1</span>
           </span>
         </div>
       </div>

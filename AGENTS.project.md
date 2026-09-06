@@ -24,8 +24,9 @@ node scripts/patch-water.mjs --id dabie --set lat=53.48
 
 ## Loader / SSR
 
-- Splash is a timer (≤1.2 s). It must **never** wait on `loadCatalog()`, Leaflet, or App import.
-- `loadCatalog()` runs in `useEffect` only (never at module scope).
-- Catalog lives in `public/atlas/waters/*.json` shards. Do **not** preload a bundled `all.json`.
-- After shards load, bump `catalogReady` + `mapNonce` so the map redraws.
-- NEVER write `all.json` to disk.
+- First splash is `#atlas-splash` in `__root.tsx`. CSS hides it after ~1.2 s
+  even if React never hydrates. Do **not** put a percentage number on it.
+- App mounts immediately under the overlay (not gated on catalog).
+- `loadCatalog()` runs in `Boot` `useEffect` only. After shards load, bump
+  `catalogReady` + `mapNonce`.
+- NEVER write `all.json` to disk. NEVER preload a bundled catalog.

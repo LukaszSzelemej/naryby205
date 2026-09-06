@@ -99,7 +99,7 @@ function tabHost(screen: Screen): MapFilter {
 }
 
 export const useAtlas = create<AtlasState>((set, get) => ({
-  booting: true,
+  booting: false,
   bootKey: 0,
   catalogReady: false,
   catalogError: null,

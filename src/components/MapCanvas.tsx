@@ -338,6 +338,11 @@ export function MapCanvas({
       );
       setReady(true);
       requestAnimationFrame(redraw);
+      window.setTimeout(() => {
+        if (cancelled || !map) return;
+        map.invalidateSize({ animate: false });
+        redraw();
+      }, 1300);
     };
 
     const maybeStart = () => {

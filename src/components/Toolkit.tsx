@@ -446,6 +446,7 @@ export function SpeciesWaters() {
   const id = useAtlas((s) => s.selectedSpeciesId);
   const setScreen = useAtlas((s) => s.setScreen);
   const openSpot = useAtlas((s) => s.openSpot);
+  useAtlas((s) => s.catalogReady);
   const sp = SPECIES.find((s) => s.id === id);
   const list = id ? watersForSpecies(id) : [];
   let last = "";

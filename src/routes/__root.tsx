@@ -29,7 +29,6 @@ export const Route = createRootRoute({
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg?v=139" },
       { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png?v=139" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png?v=139" },
-      { rel: "preload", href: "/atlas/waters/all.json", as: "fetch" },
       { rel: "preload", href: "/brand/logo-karp-circle.png", as: "image" },
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },

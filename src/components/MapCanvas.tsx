@@ -186,6 +186,7 @@ export function MapCanvas({
   const geo = useAtlas((s) => s.geo);
   const favs = useAtlas((s) => s.favorites);
   const mapNonce = useAtlas((s) => s.mapNonce);
+  const catalogReady = useAtlas((s) => s.catalogReady);
 
   const redraw = () => {
     const map = mapRef.current;
@@ -426,7 +427,7 @@ export function MapCanvas({
     favRef.current = favSet;
     listRef.current = WATERS.filter((w) => matchesFilter(w, filter, favSet));
     redraw();
-  }, [filter, favs, ready, mapNonce]);
+  }, [filter, favs, ready, mapNonce, catalogReady]);
 
   useEffect(() => {
     const map = mapRef.current;

@@ -21,23 +21,18 @@ export function Boot() {
 
   const onDone = useCallback(() => {
     markLoaderSeen();
+    setAppOn(true);
     setLeaving(true);
-    void Promise.all([
-      import("@/components/App"),
-      new Promise<void>((resolve) => {
-        window.setTimeout(resolve, 160);
-      }),
-    ]).then(() => {
-      setAppOn(true);
+    window.setTimeout(() => {
       finishBoot();
       setLeaving(false);
-    });
+    }, 180);
   }, [finishBoot]);
 
   return (
     <div className="relative h-full">
       {appOn && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<div className="h-full bg-background" />}>
           <App />
         </Suspense>
       )}

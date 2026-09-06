@@ -219,13 +219,20 @@ function fillWaters(rows: Water[]) {
   if (WATERS.length) return;
   WATERS.push(...rows);
   for (const w of rows) WATERS_BY_ID[w.id] = w;
+  void import("@/lib/store").then(({ useAtlas }) => {
+    useAtlas.setState((s) => ({
+      catalogReady: true,
+      catalogError: null,
+      mapNonce: s.mapNonce + 1,
+    }));
+  });
 }
 
 type CatalogIndex = { n: number; shards: string[] };
 
-async function fetchJson<T>(url: string): Promise<T> {
+async function fetchJson<T>(url: string, ms = 6000): Promise<T> {
   const ctrl = new AbortController();
-  const timer = window.setTimeout(() => ctrl.abort(), 10000);
+  const timer = window.setTimeout(() => ctrl.abort(), ms);
   try {
     const res = await fetch(url, { cache: "no-cache", signal: ctrl.signal });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -260,23 +267,19 @@ export function loadCatalog() {
   if (catalogLoading) return catalogLoading;
   catalogLoading = (async () => {
     const base = catalogBase();
-    try {
-      const bundled = await fetchJson<Water[]>(`${base}all.json`);
-      if (Array.isArray(bundled) && bundled.length >= 10) {
-        fillWaters(bundled);
-        return;
-      }
-    } catch {
-      /* fall through to shards */
-    }
-    const idx = await fetchJson<CatalogIndex>(`${base}index.json`);
+    const idx = await fetchJson<CatalogIndex>(`${base}index.json`, 5000);
     if (!idx?.shards?.length) throw new Error("Pusty katalog łowisk");
-    const parts = await mapPool(idx.shards, 4, (name) => fetchJson<Water[]>(`${base}${name}`));
+    const parts = await mapPool(idx.shards, 6, (name) =>
+      fetchJson<Water[]>(`${base}${name}`, 6000),
+    );
     const rows = parts.flat();
     if (rows.length < 10) throw new Error("Pusty katalog łowisk");
     fillWaters(rows);
   })().catch((err) => {
     catalogLoading = null;
+    void import("@/lib/store").then(({ useAtlas }) => {
+      useAtlas.setState({ catalogError: "Nie udało się wczytać katalogu." });
+    });
     throw err;
   });
   return catalogLoading;

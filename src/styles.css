@@ -147,8 +147,18 @@
   background: linear-gradient(90deg, #245c4e, #3d8f78 55%, #5aa58f);
   position: relative;
   overflow: hidden;
+  width: 8%;
   min-width: 1%;
   box-shadow: 0 0 12px #3d8f7873;
+  animation: splash-grow 1.2s var(--ease-out) forwards;
+}
+@keyframes splash-grow {
+  from {
+    width: 6%;
+  }
+  to {
+    width: 100%;
+  }
 }
 .splash-fill:after {
   content: "";

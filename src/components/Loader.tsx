@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { INSTAGRAM, SITE_URL, VERSION } from "@/lib/brand";
-import { loadCatalog, WATERS } from "@/lib/catalog";
+import { loadCatalog } from "@/lib/catalog";
 import { openExternal } from "@/lib/utils";
 
 type Props = { online: number; onDone: () => void; replay?: boolean };
@@ -9,12 +9,11 @@ export function Loader({ online, onDone, replay }: Props) {
   const reduce =
     typeof window !== "undefined" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const dur = reduce ? 280 : replay ? 900 : 1400;
+  const dur = reduce ? 280 : replay ? 800 : 1200;
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
   const done = useRef(false);
-  const [pct, setPct] = useState(1);
-  const [fail, setFail] = useState<string | null>(null);
+  const [pct, setPct] = useState(8);
 
   const finish = () => {
     if (done.current) return;
@@ -25,37 +24,20 @@ export function Loader({ online, onDone, replay }: Props) {
 
   useEffect(() => {
     done.current = false;
-    setPct(1);
-    setFail(null);
+    setPct(8);
     const start = performance.now();
     let raf = 0;
     let live = true;
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / dur);
-      setPct(Math.max(1, Math.min(99, Math.round(t * 100))));
+      setPct(Math.max(8, Math.round(t * 100)));
       if (t < 1 && live) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-
+    void loadCatalog();
     const cap = window.setTimeout(() => {
-      if (!live) return;
-      if (WATERS.length) finish();
-      else setFail("Nie udało się wczytać katalogu. Spróbuj ponownie.");
-    }, dur + 4000);
-
-    void loadCatalog()
-      .then(() => {
-        if (!live) return;
-        const left = Math.max(0, dur - (performance.now() - start));
-        window.setTimeout(() => {
-          if (live) finish();
-        }, left);
-      })
-      .catch(() => {
-        if (!live) return;
-        setFail("Nie udało się wczytać katalogu. Spróbuj ponownie.");
-      });
-
+      if (live) finish();
+    }, dur);
     return () => {
       live = false;
       cancelAnimationFrame(raf);
@@ -111,32 +93,11 @@ export function Loader({ online, onDone, replay }: Props) {
             aria-valuenow={pct}
             aria-label="Postęp ładowania"
           >
-            <div className="splash-fill h-full rounded-full" style={{ width: `${pct}%` }} />
+            <div className="splash-fill h-full rounded-full" />
           </div>
           <p className="mt-1.5 text-xs tabular-nums text-muted" aria-hidden>
             {pct}%
           </p>
-          {fail && (
-            <div className="mt-3 flex flex-col items-center gap-2">
-              <p className="text-xs font-medium text-danger">{fail}</p>
-              <button
-                type="button"
-                className="min-h-10 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground"
-                onClick={() => {
-                  setFail(null);
-                  setPct(1);
-                  done.current = false;
-                  void loadCatalog()
-                    .then(() => finish())
-                    .catch(() =>
-                      setFail("Nie udało się wczytać katalogu. Spróbuj ponownie."),
-                    );
-                }}
-              >
-                Spróbuj ponownie
-              </button>
-            </div>
-          )}
         </div>
         <div className="mt-1 flex items-center gap-2 text-sm text-foreground">
           <span className="online-dot" />

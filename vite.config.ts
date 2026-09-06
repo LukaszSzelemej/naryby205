@@ -210,6 +210,9 @@ export default defineConfig(({ command, isPreview }) => ({
     strictPort: true,
   },
   resolve: { tsconfigPaths: true },
+  optimizeDeps: {
+    include: ["leaflet", "zustand", "clsx", "tailwind-merge"],
+  },
   plugins: [
     pgliteBootstrapPlugin(),
     // Before tanstackStart so /auth/popup never falls through to the SPA.

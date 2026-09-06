@@ -209,9 +209,10 @@ export function SearchField({
 }) {
   const ref = useRef<HTMLInputElement>(null);
   const q = sanitizeQuery(value);
+  const catalogReady = useAtlas((s) => s.catalogReady);
   const hits = useMemo(
     () => (q.trim() ? searchWaters(q, pool).slice(0, 3) : []),
-    [q, pool],
+    [q, pool, catalogReady],
   );
   const emptyQuery = q.trim().length >= 2 && hits.length === 0;
 

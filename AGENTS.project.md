@@ -24,5 +24,8 @@ node scripts/patch-water.mjs --id dabie --set lat=53.48
 
 ## Loader / SSR
 
-`loadCatalog()` must not run at module scope. Call it from `Loader` / `Boot`
-`useEffect` only.
+- Splash is a timer (≤1.2 s). It must **never** wait on `loadCatalog()`, Leaflet, or App import.
+- `loadCatalog()` runs in `useEffect` only (never at module scope).
+- Catalog lives in `public/atlas/waters/*.json` shards. Do **not** preload a bundled `all.json`.
+- After shards load, bump `catalogReady` + `mapNonce` so the map redraws.
+- NEVER write `all.json` to disk.

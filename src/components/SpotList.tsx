@@ -105,6 +105,7 @@ export function SpotList({
   const favs = useAtlas((s) => s.favorites);
   const openSpot = useAtlas((s) => s.openSpot);
   const screen = useAtlas((s) => s.screen);
+  const catalogReady = useAtlas((s) => s.catalogReady);
 
   const tabScope: MapFilter =
     screen === "pzw" ? "pzw" : screen === "specjalne" ? "specjalne" : "all";
@@ -128,7 +129,7 @@ export function SpotList({
   const tabPool = useMemo(() => {
     if (tabScope === "all") return WATERS;
     return WATERS.filter((w) => matchesFilter(w, tabScope, favSet));
-  }, [tabScope, favSet]);
+  }, [tabScope, favSet, catalogReady]);
 
   const catCount = useMemo(() => {
     const m: Partial<Record<MapFilter, number>> = { all: tabPool.length };

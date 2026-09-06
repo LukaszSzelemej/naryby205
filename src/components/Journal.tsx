@@ -167,6 +167,7 @@ export function Journal() {
   const remove = useAtlas((s) => s.removeCatch);
   const openSpot = useAtlas((s) => s.openSpot);
   const selectedId = useAtlas((s) => s.selectedId);
+  useAtlas((s) => s.catalogReady);
   const [open, setOpen] = useState(false);
   const [speciesId, setSpeciesId] = useState(SPECIES[0]?.id ?? "szczupak");
   const [waterId, setWaterId] = useState(() =>

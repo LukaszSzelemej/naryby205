@@ -24,6 +24,8 @@ const KIND_FILTERS = new Set<MapFilter>([
 type AtlasState = {
   booting: boolean;
   bootKey: number;
+  catalogReady: boolean;
+  catalogError: string | null;
   screen: Screen;
   prevScreen: Screen;
   filter: MapFilter;
@@ -99,6 +101,8 @@ function tabHost(screen: Screen): MapFilter {
 export const useAtlas = create<AtlasState>((set, get) => ({
   booting: true,
   bootKey: 0,
+  catalogReady: false,
+  catalogError: null,
   screen: "map",
   prevScreen: "map",
   filter: "all",

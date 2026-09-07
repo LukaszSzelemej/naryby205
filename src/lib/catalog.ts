@@ -219,7 +219,7 @@ function fillWaters(rows: Water[]) {
   if (WATERS.length) return;
   for (const w of rows) {
     if (w.species?.length) w.species = [...new Set(w.species)];
-    w.obwod = parseObwod(w);
+    w.obwod = normObwodList([...(w.obwod ?? []), ...parseObwod(w)]);
   }
   WATERS.push(...rows);
   for (const w of rows) WATERS_BY_ID[w.id] = w;
@@ -519,6 +519,9 @@ const DEAD_HOSTS = new Set([
   "gruba-rybka.pl",
   "karas2015.pl",
   "dolinainy.pl",
+  "icr.com.pl",
+  "zlocryb.hg.pl",
+  "rybactwo.com.pl",
 ]);
 
 export function safeHttpUrl(raw: string | null | undefined) {
@@ -632,6 +635,23 @@ export function obwodLabel(o: string) {
   return Number.isFinite(n) && n > 0 ? `Koło ${n}` : o;
 }
 
+function normObwodList(list: string[]) {
+  const set = new Set<string>();
+  for (const o of list) {
+    if (/^J-/i.test(o)) {
+      const n = Number(o.replace(/\D/g, ""));
+      if (n > 0) set.add(`J-${n}`);
+    } else if (/^R-/i.test(o)) {
+      const n = Number(o.replace(/\D/g, ""));
+      if (n > 0) set.add(`R-${n}`);
+    } else {
+      const n = Number(String(o).replace(/\D/g, ""));
+      if (Number.isFinite(n) && n > 0 && n < 1000) set.add(String(n).padStart(3, "0"));
+    }
+  }
+  return [...set];
+}
+
 function obwodDigits(o: string) {
   const d = String(o).replace(/\D/g, "");
   return d ? String(Number(d)) : "";
@@ -674,6 +694,18 @@ export function allObwody(pool: Water[] = WATERS) {
   const set = new Set<string>();
   for (const w of pool) for (const o of w.obwod ?? []) set.add(o);
   return [...set].sort((a, b) => a.localeCompare(b, "pl", { numeric: true }));
+}
+
+export function plWaters(n: number, here = false) {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  const noun =
+    n === 1
+      ? "łowisko"
+      : mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)
+        ? "łowiska"
+        : "łowisk";
+  return here ? `${n} ${noun} tutaj` : `${n} ${noun}`;
 }
 
 function mdToNum(md: string) {

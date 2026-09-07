@@ -90,7 +90,7 @@ function WaterPicker({
             <input
               value={q}
               onChange={(e) => {
-                setQ(e.target.value);
+                setQ(sanitizeQuery(e.target.value));
                 if (!open) setOpen(true);
               }}
               placeholder="Szukaj nazwy, gminy albo nr koła…"

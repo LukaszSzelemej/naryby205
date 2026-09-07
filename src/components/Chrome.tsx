@@ -425,7 +425,6 @@ export function FilterBar() {
             return;
           }
           setFilter(id);
-          if (id === "all") resetView();
         }}
         className={cn(
           "filter-chip min-h-10 w-full rounded-full px-1 text-xs font-semibold leading-tight text-white ring-1 sm:px-2",

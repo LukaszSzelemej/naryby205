@@ -19,7 +19,7 @@ import { InstallPage, SpeciesWaters, HostWaters, Toolkit } from "@/components/To
 import { WeatherPage } from "@/components/WeatherPage";
 import { ComparePage } from "@/components/Compare";
 import { MapSheet } from "@/components/MapSheet";
-import { MAP_CENTER, nearestTo, retryCatalog } from "@/lib/catalog";
+import { MAP_CENTER, nearestTo, plWaters, retryCatalog } from "@/lib/catalog";
 import { startPresence } from "@/lib/presence";
 import { useAtlas } from "@/lib/store";
 import { fetchWeather } from "@/lib/weather";
@@ -51,6 +51,11 @@ export function App() {
       journal: loadJournal(),
       geo: loadLastGeo(),
     });
+    try {
+      localStorage.removeItem("atlas.recent");
+    } catch {
+      /* ignore */
+    }
     const t = window.setTimeout(() => {
       resetView();
       requestLocation();
@@ -111,12 +116,7 @@ export function App() {
           onCluster={(ids) =>
             openSheet({
               kind: "cluster",
-              title:
-                ids.length === 1
-                  ? "Łowisko"
-                  : ids.length < 5
-                    ? `${ids.length} łowiska tutaj`
-                    : `${ids.length} łowisk tutaj`,
+              title: plWaters(ids.length, true),
               ids,
             })
           }

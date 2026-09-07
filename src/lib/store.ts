@@ -221,7 +221,7 @@ export const useAtlas = create<AtlasState>((set, get) => ({
       mapSpecies: filter === "all" ? [] : s.mapSpecies,
       mapNight: filter === "all" ? false : s.mapNight,
       mapBoats: filter === "all" ? false : s.mapBoats,
-      mapNonce: s.mapNonce + 1,
+      mapNonce: s.filter === filter ? s.mapNonce : s.mapNonce + 1,
     })),
   setMapSpecies: (id) =>
     set((s) => ({

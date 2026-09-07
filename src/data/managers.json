@@ -90,7 +90,6 @@
       "id": "gr-insko",
       "name": "Gospodarstwo Rybackie Ińsko (ICR)",
       "shortName": "GR Ińsko",
-      "website": "http://www.icr.com.pl/",
       "permitUrl": "https://zpw.pl/zezwolenia/zezwolenie-insko/",
       "permitLabel": "Zezwolenie GR Ińsko",
       "priceNote": "Zezwolenie ICR / Gospodarstwa Rybackiego Ińsko. Składka PZW nie obowiązuje."
@@ -99,8 +98,6 @@
       "id": "pr-zlocieniec",
       "name": "Przedsiębiorstwo Rybackie Złocieniec",
       "shortName": "PR Złocieniec",
-      "website": "http://www.zlocryb.hg.pl/",
-      "permitUrl": "http://www.zlocryb.hg.pl/",
       "permitLabel": "Zezwolenie PR Złocieniec",
       "priceNote": "Osobny cennik dzierżawcy. Składka PZW nie obejmuje tych wód."
     },
@@ -108,8 +105,6 @@
       "id": "pr-szczecinek",
       "name": "Przedsiębiorstwo Rybackie Szczecinek",
       "shortName": "PR Szczecinek",
-      "website": "http://www.rybactwo.com.pl/",
-      "permitUrl": "http://www.rybactwo.com.pl/zezwolenia-na-wedkowanie",
       "permitLabel": "Zezwolenie PR Szczecinek",
       "priceNote": "Osobny cennik dzierżawcy. Składka PZW nie obejmuje tych wód."
     },

@@ -9,6 +9,7 @@ import {
   WeatherGlyph,
   PressureGlyph,
   SearchGlyph,
+  CoffeeIcon,
 } from "@/components/icons";
 import {
   CUPLINK,
@@ -203,13 +204,6 @@ export function DownMenu() {
       : null;
   const ctxKind = w ? hostKindOf(w) : null;
 
-  const goPzw = () => {
-    if (ctx && (ctxKind === "pzw" || ctxKind === "pzw-special" || ctx.key.startsWith("pzw:"))) {
-      openHost(ctx.key);
-      return;
-    }
-    openList("pzw");
-  };
   const goSpec = () => {
     if (ctx && ctxKind && ctxKind !== "pzw" && ctxKind !== "pzw-special") {
       openHost(ctx.key);
@@ -246,7 +240,7 @@ export function DownMenu() {
       on:
         screen === "pzw" ||
         (screen === "host-waters" && Boolean(selectedHostKey?.startsWith("pzw:"))),
-      go: goPzw,
+      go: () => openList("pzw"),
     },
     {
       id: "specjalne",
@@ -689,6 +683,7 @@ export function RightMenu({ weather }: { weather: WeatherNow | null }) {
 
   return (
     <div className="map-right-col">
+      <div className="map-right-tools">
       <div className="map-weather-row">
         {trend !== "flat" && (
           <Btn
@@ -770,13 +765,14 @@ export function RightMenu({ weather }: { weather: WeatherNow | null }) {
       >
         <img src="/brand/logo-karp-circle.png" alt="" className="size-full rounded-full object-cover" />
       </button>
+      </div>
       <button
         type="button"
         onClick={() => openExternal(CUPLINK)}
         aria-label="Postaw kawę"
-        className="map-btn map-btn-coffee overflow-hidden p-0"
+        className="map-btn map-btn-coffee"
       >
-        <img src="/brand/cup.png" alt="" className="size-[58%] object-contain brightness-0 invert" />
+        <CoffeeIcon size={18} />
       </button>
     </div>
   );

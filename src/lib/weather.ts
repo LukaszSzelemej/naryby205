@@ -65,7 +65,7 @@ function fallback(lat: number, lng: number): WeatherNow {
     windDir: 270,
     weatherCode: 2,
     humidity: 68,
-    waterTemp: 12.8,
+    waterTemp: null,
     sunrise: rise.toISOString(),
     sunset: set.toISOString(),
     daily,
@@ -90,7 +90,7 @@ export async function fetchWeather(lat: number, lng: number): Promise<WeatherNow
       "wind_speed_10m",
       "wind_direction_10m",
     ].join(","),
-    hourly: "pressure_msl,soil_temperature_0cm",
+    hourly: "pressure_msl",
     daily: [
       "sunrise",
       "sunset",
@@ -114,11 +114,23 @@ export async function fetchWeather(lat: number, lng: number): Promise<WeatherNow
     if (!res.ok) throw new Error("pogoda");
     const a = (await res.json()) as {
       current: Record<string, number>;
-      hourly: { pressure_msl: number[]; soil_temperature_0cm: number[] };
+      hourly: { time: string[]; pressure_msl: number[] };
       daily: Record<string, number[] | string[]>;
     };
-    const o = a.hourly.pressure_msl[0] ?? a.current.pressure_msl;
-    const s = (a.hourly.pressure_msl[3] ?? o) - o;
+    const hours = a.hourly.time ?? [];
+    const now = Date.now();
+    let hi = 0;
+    let best = Infinity;
+    for (let i = 0; i < hours.length; i++) {
+      const d = Math.abs(new Date(hours[i]).getTime() - now);
+      if (d < best) {
+        best = d;
+        hi = i;
+      }
+    }
+    const pNow = a.current.pressure_msl;
+    const pThen = a.hourly.pressure_msl[Math.max(0, hi - 3)] ?? pNow;
+    const s = pNow - pThen;
     const trend: WeatherNow["pressureTrend"] =
       s <= -1.2 ? "down" : s >= 1.2 ? "up" : "flat";
     const times = a.daily.time as string[];
@@ -139,7 +151,7 @@ export async function fetchWeather(lat: number, lng: number): Promise<WeatherNow
       windDir: a.current.wind_direction_10m,
       weatherCode: a.current.weather_code,
       humidity: a.current.relative_humidity_2m,
-      waterTemp: a.hourly.soil_temperature_0cm[0] ?? null,
+      waterTemp: null,
       sunrise: String(a.daily.sunrise[0] ?? ""),
       sunset: String(a.daily.sunset[0] ?? ""),
       daily,

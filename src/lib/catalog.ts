@@ -220,7 +220,7 @@ function fillWaters(rows: Water[]) {
   for (const w of rows) {
     if (w.species?.length) w.species = [...new Set(w.species)];
     w.obwod = normObwodList([...(w.obwod ?? []), ...parseObwod(w)]);
-    w.night = inferNight(w);
+    w.night = Boolean(w.night) || inferNight(w);
   }
   WATERS.push(...rows);
   for (const w of rows) WATERS_BY_ID[w.id] = w;

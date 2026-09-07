@@ -377,6 +377,7 @@ export const useAtlas = create<AtlasState>((set, get) => ({
       sort: get().listSortAuto && get().geo ? "nearest" : get().sort,
       moreOpen: false,
       selectedId: null,
+      selectedHostKey: null,
       spotMapFull: false,
     }),
   openSheet: (sheet) => set({ sheet, nearbyPending: false, screen: "map" }),

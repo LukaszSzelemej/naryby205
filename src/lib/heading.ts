@@ -54,9 +54,10 @@ export async function requestHeadingPermission() {
 export function useCompassHeading() {
   const [mag, setMag] = useState<number | null>(null);
   const [gps, setGps] = useState<number | null>(null);
+  const allowGeo = useAtlas((s) => Boolean(s.consent?.geo));
 
   useEffect(() => {
-    if (typeof window === "undefined" || !navigator.geolocation) return;
+    if (!allowGeo || typeof window === "undefined" || !navigator.geolocation) return;
     const id = navigator.geolocation.watchPosition(
       (p) => {
         const h = p.coords.heading;
@@ -74,7 +75,7 @@ export function useCompassHeading() {
       { enableHighAccuracy: true, maximumAge: 2500, timeout: 12_000 },
     );
     return () => navigator.geolocation.clearWatch(id);
-  }, []);
+  }, [allowGeo]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

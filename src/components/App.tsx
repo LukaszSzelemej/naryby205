@@ -36,6 +36,7 @@ export function App() {
   const nearbyPending = useAtlas((s) => s.nearbyPending);
   const catalogReady = useAtlas((s) => s.catalogReady);
   const geo = useAtlas((s) => s.geo);
+  const consent = useAtlas((s) => s.consent);
   const [online, setOnline] = useState(1);
   const [weather, setWeather] = useState<WeatherNow | null>(null);
   const [vvPad, setVvPad] = useState(0);
@@ -52,11 +53,11 @@ export function App() {
       geo: loadLastGeo(),
       mapDark: loadMapDark(),
     });
-    const t = window.setTimeout(() => {
-      requestLocation();
-    }, 80);
-    return () => window.clearTimeout(t);
   }, []);
+
+  useEffect(() => {
+    if (consent?.geo) requestLocation();
+  }, [consent?.geo]);
 
   useEffect(() => {
     const lat = geo?.lat ?? MAP_CENTER[0];

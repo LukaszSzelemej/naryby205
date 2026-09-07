@@ -58,7 +58,7 @@ export function WeatherPage({ weather }: { weather: WeatherNow | null }) {
   const moon = moonPhase();
   if (!weather) {
     return (
-      <ScreenFrame>
+      <ScreenFrame onBack={back}>
         <div className="mx-auto max-w-lg px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-10">
           <div className="flex items-center gap-2">
             <BackBtn onClick={back} />
@@ -78,7 +78,7 @@ export function WeatherPage({ weather }: { weather: WeatherNow | null }) {
   const feed = days[0];
 
   return (
-    <ScreenFrame>
+    <ScreenFrame onBack={back}>
       <div className="mx-auto max-w-lg px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-10">
         <div className="flex items-center gap-2">
           <BackBtn onClick={back} />

@@ -18,12 +18,13 @@ import { Journal } from "@/components/Journal";
 import { InstallPage, SpeciesWaters, HostWaters, Toolkit } from "@/components/Toolkit";
 import { WeatherPage } from "@/components/WeatherPage";
 import { ComparePage } from "@/components/Compare";
-import { MAP_CENTER, retryCatalog } from "@/lib/catalog";
+import { MapSheet } from "@/components/MapSheet";
+import { MAP_CENTER, nearestTo, retryCatalog } from "@/lib/catalog";
 import { startPresence } from "@/lib/presence";
 import { useAtlas } from "@/lib/store";
 import { fetchWeather } from "@/lib/weather";
 import type { WeatherNow } from "@/lib/types";
-import { loadConsent, loadFavorites, loadJournal, loadLastGeo } from "@/lib/storage";
+import { loadConsent, loadFavorites, loadJournal, loadLastGeo, loadRecent } from "@/lib/storage";
 import { resetView } from "@/lib/map-api";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,8 @@ export function App() {
   const filter = useAtlas((s) => s.filter);
   const catalogError = useAtlas((s) => s.catalogError);
   const openSpot = useAtlas((s) => s.openSpot);
+  const openSheet = useAtlas((s) => s.openSheet);
+  const nearbyPending = useAtlas((s) => s.nearbyPending);
   const geo = useAtlas((s) => s.geo);
   const [online, setOnline] = useState(1);
   const [weather, setWeather] = useState<WeatherNow | null>(null);
@@ -47,6 +50,7 @@ export function App() {
       favorites: loadFavorites(),
       journal: loadJournal(),
       geo: loadLastGeo(),
+      recentIds: loadRecent(),
     });
     const t = window.setTimeout(() => {
       resetView();
@@ -66,6 +70,12 @@ export function App() {
       live = false;
     };
   }, [geo?.lat, geo?.lng]);
+
+  useEffect(() => {
+    if (!nearbyPending || !geo) return;
+    const ids = nearestTo(geo.lat, geo.lng, 5).map((w) => w.id);
+    openSheet({ kind: "nearby", title: "Najbliższe", ids });
+  }, [nearbyPending, geo, openSheet]);
 
   useEffect(() => {
     const vv = window.visualViewport;
@@ -96,11 +106,27 @@ export function App() {
           !showMap && "invisible pointer-events-none",
         )}
       >
-        <MapCanvas filter={filter} onOpen={(id) => openSpot(id, "map")} visible={showMap} />
+        <MapCanvas
+          filter={filter}
+          onOpen={(id) => openSpot(id, "map")}
+          onCluster={(ids) =>
+            openSheet({
+              kind: "cluster",
+              title:
+                ids.length === 1
+                  ? "Łowisko"
+                  : ids.length < 5
+                    ? `${ids.length} łowiska tutaj`
+                    : `${ids.length} łowisk tutaj`,
+              ids,
+            })
+          }
+          visible={showMap}
+        />
       </div>
 
       {catalogError && (
-        <div className="absolute top-[max(3.5rem,env(safe-area-inset-top))] left-3 right-3 z-40 rounded-2xl bg-card p-3 ring-1 ring-danger/40">
+        <div className="absolute top-[max(3.5rem,env(safe-area-inset-top))] left-3 right-3 z-50 rounded-2xl bg-card p-3 ring-1 ring-danger/40">
           <p className="text-sm font-medium">{catalogError}</p>
           <button
             type="button"
@@ -115,7 +141,7 @@ export function App() {
         <>
           <div className="chrome-in">
             <FishFab />
-            <OnlinePill n={online} />
+            <OnlinePill n={online} weather={weather} />
           </div>
           <div className="map-chrome chrome-in">
             <div className="map-chrome-left">
@@ -129,6 +155,7 @@ export function App() {
               <RightMenu weather={weather} />
             </div>
           </div>
+          <MapSheet />
         </>
       )}
 

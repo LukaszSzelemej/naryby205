@@ -57,6 +57,7 @@ function tabId(): "gatunki" | "dokumenty" | "etykieta" | "poradnik" | "offline" 
 export function Toolkit() {
   const tab = useAtlas((s) => s.kitTab) ?? "gatunki";
   const setTab = useAtlas((s) => s.setKitTab);
+  const setScreen = useAtlas((s) => s.setScreen);
   const letter = useAtlas((s) => s.letter);
   const setLetter = useAtlas((s) => s.setLetter);
   const setSpecies = (id: string) => {
@@ -82,7 +83,7 @@ export function Toolkit() {
   let last = "";
 
   return (
-    <ScreenFrame>
+    <ScreenFrame onBack={() => setScreen("map")}>
       <div className="mx-auto max-w-lg px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-10">
         <header className="flex items-center justify-between">
           <h1 className="text-lg font-semibold">Niezbędnik</h1>
@@ -472,7 +473,7 @@ export function SpeciesWaters() {
   const list = id ? watersForSpecies(id) : [];
   let last = "";
   return (
-    <ScreenFrame>
+    <ScreenFrame onBack={() => setScreen("kit")}>
       <div className="mx-auto max-w-lg px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-10">
         <header className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
@@ -534,7 +535,7 @@ export function HostWaters() {
   const label = list[0] ? hostGroupOf(list[0]).label : "Gospodarz";
   let last = "";
   return (
-    <ScreenFrame>
+    <ScreenFrame onBack={back}>
       <div className="mx-auto max-w-lg px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-10">
         <header className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
@@ -592,8 +593,8 @@ function TarloNotify() {
       <h2 className="font-semibold">Powiadomienie o tarle</h2>
       <p className="mt-2 text-sm leading-relaxed text-muted">
         Gdy okres ochronny kończy się dziś albo jutro, atlas wysyła powiadomienie.
-        Na iPhonie: zapisz na ekranie początkowym (Safari → Udostępnij), włącz zgody —
-        wtedy działa Web Push bez otwartej karty. Na Androidzie Chrome też w tle.
+        Na iPhonie: zapisz na ekranie początkowym (Safari → Udostępnij), włącz zgody.
+        Serwer dopina Web Push rano (cron) — karta nie musi być otwarta.
       </p>
       <button
         type="button"
@@ -652,7 +653,7 @@ function LicensesBlock({ className }: { className?: string }) {
 export function InstallPage() {
   const back = useAtlas((s) => s.back);
   return (
-    <ScreenFrame>
+    <ScreenFrame onBack={back}>
       <div className="mx-auto max-w-lg px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-10">
         <div className="flex min-w-0 items-center gap-2">
           <BackBtn onClick={back} />

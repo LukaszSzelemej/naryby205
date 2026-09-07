@@ -3,8 +3,8 @@ import type { JournalEntry } from "@/lib/types";
 const FAV = "atlas.fav";
 const JOURNAL = "atlas.journal";
 const CONSENT = "atlas.consent";
-const LOADER = "atlas.loader";
 const GEO = "atlas.geo";
+const RECENT = "atlas.recent";
 
 function readJson<T>(key: string, fallback: T): T {
   try {
@@ -47,18 +47,6 @@ export function saveConsent(c: ConsentState) {
   else localStorage.setItem(CONSENT, JSON.stringify(c));
 }
 
-export function markLoaderSeen() {
-  sessionStorage.setItem(LOADER, "1");
-}
-
-export function hasLoaderSeen() {
-  try {
-    return sessionStorage.getItem(LOADER) === "1";
-  } catch {
-    return false;
-  }
-}
-
 export function saveLastGeo(lat: number, lng: number) {
   sessionStorage.setItem(GEO, JSON.stringify({ lat, lng }));
 }
@@ -73,4 +61,12 @@ export function loadLastGeo(): { lat: number; lng: number } | null {
   } catch {
     return null;
   }
+}
+
+export function loadRecent(): string[] {
+  return readJson<string[]>(RECENT, []).filter((id) => typeof id === "string").slice(0, 5);
+}
+
+export function saveRecent(ids: string[]) {
+  localStorage.setItem(RECENT, JSON.stringify(ids.slice(0, 5)));
 }

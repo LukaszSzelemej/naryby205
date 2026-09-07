@@ -136,11 +136,15 @@ export function SpotDetail() {
   const openHost = useAtlas((s) => s.openHost);
   const openCompare = useAtlas((s) => s.openCompare);
   const openSpot = useAtlas((s) => s.openSpot);
+  const setScreen = useAtlas((s) => s.setScreen);
+  const setListFilter = useAtlas((s) => s.setListFilter);
+  const setListObwod = useAtlas((s) => s.setListObwod);
   const w = id ? WATERS_BY_ID[id] : undefined;
   const [weather, setWeather] = useState<WeatherNow | null>(null);
   const [hydro, setHydro] = useState<HydroRow[] | null>(null);
   const [copiedCoords, flashCoords] = useFlash(1400);
   const [copiedPin, flashPin] = useFlash(1400);
+  const [shareFail, flashShareFail] = useFlash(1800);
 
   useEffect(() => {
     if (!w) return;
@@ -162,7 +166,7 @@ export function SpotDetail() {
 
   if (!w) {
     return (
-      <ScreenFrame>
+      <ScreenFrame onBack={close}>
         <div className="mx-auto max-w-lg px-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <BackBtn onClick={close} />
           <EmptyState
@@ -221,7 +225,7 @@ export function SpotDetail() {
   );
 
   return (
-    <ScreenFrame>
+    <ScreenFrame onBack={close}>
       {full && (
         <div className="fixed inset-0 z-[80] bg-background">
           <MiniMap lat={w.lat} lng={w.lng} full color={color} />
@@ -360,6 +364,27 @@ export function SpotDetail() {
               </div>
             )}
           </Box>
+          {w.obwod && w.obwod.length > 0 && (
+            <Box title="Obwód PZW">
+              <div className="flex flex-wrap gap-1.5">
+                {w.obwod.map((o) => (
+                  <button
+                    key={o}
+                    type="button"
+                    onClick={() => {
+                      setListFilter("all");
+                      setListObwod(o);
+                      setScreen("list");
+                    }}
+                    className="tap min-h-9 rounded-full bg-card-2 px-3 text-xs font-semibold tabular-nums ring-1 ring-border"
+                  >
+                    {o}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-1.5 text-[11px] text-faint">Numer obwodu z regulaminu — otwiera listę.</p>
+            </Box>
+          )}
           <Box title="Zasady i zezwolenia">
             <ul className="space-y-1 text-xs text-muted">
               {(w.rules ?? []).map((r) => (
@@ -625,10 +650,12 @@ export function SpotDetail() {
             </div>
             <button
               type="button"
-              onClick={() => void shareWaterCard(w)}
+              onClick={() => {
+                void shareWaterCard(w).catch(() => flashShareFail());
+              }}
               className="tap mt-2 min-h-11 w-full rounded-full bg-card-2 text-sm font-semibold ring-1 ring-border"
             >
-              Udostępnij kartę
+              {shareFail ? "Nie udało się udostępnić" : "Udostępnij kartę"}
             </button>
           </Box>
           <Box title="Porównaj">

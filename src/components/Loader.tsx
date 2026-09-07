@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import { INSTAGRAM, SITE_URL, VERSION } from "@/lib/brand";
-import { loadCatalog } from "@/lib/catalog";
 import { openExternal } from "@/lib/utils";
 
 type Props = { online: number; onDone: () => void; replay?: boolean };
@@ -22,7 +21,6 @@ export function Loader({ online, onDone, replay }: Props) {
 
   useEffect(() => {
     done.current = false;
-    void loadCatalog();
     const cap = window.setTimeout(finish, dur);
     return () => window.clearTimeout(cap);
   }, [dur]);

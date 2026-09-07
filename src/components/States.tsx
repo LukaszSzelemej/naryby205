@@ -10,10 +10,42 @@ import { cn } from "@/lib/utils";
 
 export const ScreenFrame = forwardRef<
   HTMLDivElement,
-  { children: ReactNode; className?: string }
->(function ScreenFrame({ children, className }, ref) {
+  { children: ReactNode; className?: string; onBack?: () => void }
+>(function ScreenFrame({ children, className, onBack }, ref) {
+  const startX = useRef(0);
+  const startY = useRef(0);
+  const tracking = useRef(false);
   return (
-    <div ref={ref} className={cn("page-scroll bg-background page-enter", className)}>
+    <div
+      ref={ref}
+      className={cn("page-scroll bg-background page-enter", className)}
+      onTouchStart={
+        onBack
+          ? (e) => {
+              const t = e.changedTouches[0];
+              if (t.clientX > 36) {
+                tracking.current = false;
+                return;
+              }
+              tracking.current = true;
+              startX.current = t.clientX;
+              startY.current = t.clientY;
+            }
+          : undefined
+      }
+      onTouchEnd={
+        onBack
+          ? (e) => {
+              if (!tracking.current) return;
+              tracking.current = false;
+              const t = e.changedTouches[0];
+              const dx = t.clientX - startX.current;
+              const dy = t.clientY - startY.current;
+              if (dx > 72 && Math.abs(dy) < 80) onBack();
+            }
+          : undefined
+      }
+    >
       {children}
     </div>
   );

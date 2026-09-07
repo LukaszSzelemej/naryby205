@@ -16,12 +16,14 @@ import {
   formatCoords,
   formatProtect,
   googlePin,
+  hostGroupOf,
+  hostKindOf,
   INSTAGRAM,
   MAP_SPECIES,
+  nearestTo,
   protectHint,
   sanitizeQuery,
   searchWaters,
-  DISCLAIMER,
   SPECIES,
   SPECIES_BY_ID,
   speciesName,
@@ -31,7 +33,7 @@ import {
 import { zoomBy, resetView, flyToSpot, flyToUser } from "@/lib/map-api";
 import { useAtlas } from "@/lib/store";
 import type { MapFilter, Screen, Water, WeatherNow } from "@/lib/types";
-import { weatherIcon } from "@/lib/weather";
+import { weatherIcon, windArrow } from "@/lib/weather";
 import { cn, copyText, openExternal, splitPhoneParts, telHref, formatPlPhone } from "@/lib/utils";
 import { Meter, useFlash } from "@/components/States";
 
@@ -79,13 +81,33 @@ function locateOnMap() {
   requestLocation({ reveal: true });
 }
 
-export function OnlinePill({ n }: { n: number }) {
+export function OnlinePill({
+  n,
+  weather,
+}: {
+  n: number;
+  weather: WeatherNow | null;
+}) {
+  const setScreen = useAtlas((s) => s.setScreen);
   return (
-    <div className="pointer-events-none absolute top-[max(0.55rem,env(safe-area-inset-top))] left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-background/75 px-3 py-1 text-xs font-medium text-foreground ring-1 ring-border backdrop-blur-sm">
-      <span className="online-dot" />
-      <span>
-        Online: <span className="tabular-nums">{n}</span>
-      </span>
+    <div className="pointer-events-none absolute top-[max(0.55rem,env(safe-area-inset-top))] left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-1">
+      <div className="flex items-center gap-1.5 rounded-full bg-background/75 px-3 py-1 text-xs font-medium text-foreground ring-1 ring-border backdrop-blur-sm">
+        <span className="online-dot" />
+        <span>
+          Online: <span className="tabular-nums">{n}</span>
+        </span>
+      </div>
+      {weather && (
+        <button
+          type="button"
+          onClick={() => setScreen("weather")}
+          className="pointer-events-auto tap flex min-h-8 items-center gap-1.5 rounded-full bg-background/75 px-3 py-1 text-xs font-medium text-foreground ring-1 ring-border backdrop-blur-sm"
+          aria-label={`Wiatr ${windArrow(weather.windDir)} ${Math.round(weather.wind)} kilometrów na godzinę`}
+        >
+          <span aria-hidden>{windArrow(weather.windDir)}</span>
+          <span className="tabular-nums">{Math.round(weather.wind)} km/h</span>
+        </button>
+      )}
     </div>
   );
 }
@@ -116,8 +138,36 @@ export function FishFab() {
 export function DownMenu() {
   const screen = useAtlas((s) => s.screen);
   const setScreen = useAtlas((s) => s.setScreen);
-  const setFilter = useAtlas((s) => s.setFilter);
   const openList = useAtlas((s) => s.openList);
+  const openHost = useAtlas((s) => s.openHost);
+  const selectedId = useAtlas((s) => s.selectedId);
+  const selectedHostKey = useAtlas((s) => s.selectedHostKey);
+  const w = selectedId ? WATERS_BY_ID[selectedId] : null;
+  const ctx = w
+    ? hostGroupOf(w)
+    : selectedHostKey
+      ? { key: selectedHostKey, label: "" }
+      : null;
+  const ctxKind = w ? hostKindOf(w) : null;
+
+  const goPzw = () => {
+    if (ctx && (ctxKind === "pzw" || ctxKind === "pzw-special" || ctx.key.startsWith("pzw:"))) {
+      openHost(ctx.key);
+      return;
+    }
+    openList("pzw");
+  };
+  const goSpec = () => {
+    if (ctx && ctxKind && ctxKind !== "pzw" && ctxKind !== "pzw-special") {
+      openHost(ctx.key);
+      return;
+    }
+    if (ctx?.key && !ctx.key.startsWith("pzw:") && screen === "host-waters") {
+      openHost(ctx.key);
+      return;
+    }
+    openList("specjalne");
+  };
 
   const items: { id: Screen | "map"; label: string; icon: ReactNode; on: boolean; go: () => void }[] = [
     {
@@ -126,31 +176,33 @@ export function DownMenu() {
       icon: <MapGlyph size={18} />,
       on: screen === "map",
       go: () => {
-        setFilter("all");
         setScreen("map");
-        resetView();
       },
     },
     {
       id: "list",
       label: "Łowiska",
       icon: <ListGlyph size={18} />,
-      on: screen === "list" || screen === "host-waters" || screen === "compare",
+      on: screen === "list" || screen === "compare",
       go: () => openList("list"),
     },
     {
       id: "pzw",
       label: "PZW",
       icon: <BadgeGlyph size={18} />,
-      on: screen === "pzw",
-      go: () => openList("pzw"),
+      on:
+        screen === "pzw" ||
+        (screen === "host-waters" && Boolean(selectedHostKey?.startsWith("pzw:"))),
+      go: goPzw,
     },
     {
       id: "specjalne",
       label: "Specjalne",
       icon: <StarGlyph size={18} />,
-      on: screen === "specjalne",
-      go: () => openList("specjalne"),
+      on:
+        screen === "specjalne" ||
+        (screen === "host-waters" && Boolean(selectedHostKey && !selectedHostKey.startsWith("pzw:"))),
+      go: goSpec,
     },
     {
       id: "journal",
@@ -300,11 +352,11 @@ export function SearchField({
           ))}
         </ul>
       )}
-      {emptyQuery && dropUp && (
+      {emptyQuery && (
         <div
           className={cn(
             "search-panel rounded-2xl px-4 py-3 text-sm ring-1 shadow-lg",
-            "search-hits-kb",
+            dropUp ? "search-hits-kb" : "absolute top-[calc(100%+6px)] right-0 left-0 z-40",
             dark ? "bg-card text-muted ring-border" : "bg-white text-neutral-500 ring-black/10",
           )}
         >
@@ -319,7 +371,6 @@ export function MapSearch() {
   const q = useAtlas((s) => s.mapQuery);
   const setQ = useAtlas((s) => s.setMapQuery);
   const openSpot = useAtlas((s) => s.openSpot);
-  const setOpen = useAtlas((s) => s.setMapSearchOpen);
   const setScreen = useAtlas((s) => s.setScreen);
   return (
     <div className="relative z-30 w-full">
@@ -327,7 +378,6 @@ export function MapSearch() {
         value={q}
         onChange={(v) => {
           setQ(v);
-          setOpen(v.length > 0);
         }}
         onPick={(id) => {
           const w = WATERS_BY_ID[id];
@@ -413,7 +463,7 @@ export function FilterBar() {
           <div className="grid grid-cols-3 gap-1.5 pb-1.5 min-[420px]:grid-cols-4">
             {MAP_SPECIES.map((id) => {
               const sp = SPECIES_BY_ID[id];
-              const on = mapSpecies === id;
+              const on = mapSpecies.includes(id);
               return (
                 <button
                   key={id}
@@ -435,6 +485,9 @@ export function FilterBar() {
               );
             })}
           </div>
+          <p className="pb-1.5 text-[11px] text-muted">
+            Kilka gatunków naraz = łowisko ma wszystkie (AND).
+          </p>
         </div>
       </div>
       <div className="grid grid-cols-3 gap-1.5">
@@ -481,16 +534,46 @@ export function FilterBar() {
           {more ? "Mniej" : "Więcej"}
         </button>
       </div>
-      {(mapSpecies || mapNight || mapBoats) && (
-        <p className="text-[11px] text-muted">
-          Mapa: {[
-            mapSpecies ? SPECIES_BY_ID[mapSpecies]?.name ?? mapSpecies : null,
-            mapNight ? "noc" : null,
-            mapBoats ? "łodzie" : null,
-          ]
-            .filter(Boolean)
-            .join(" · ")}
-        </p>
+      {(filter !== "all" || mapSpecies.length > 0 || mapNight || mapBoats) && (
+        <div className="flex flex-wrap gap-1">
+          {filter !== "all" && (
+            <button
+              type="button"
+              onClick={() => setFilter("all")}
+              className="tap min-h-7 rounded-full bg-card px-2.5 text-[11px] font-semibold ring-1 ring-border"
+            >
+              {FILTER_META[filter].label} ×
+            </button>
+          )}
+          {mapSpecies.map((id) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setMapSpecies(id)}
+              className="tap min-h-7 rounded-full bg-card px-2.5 text-[11px] font-semibold ring-1 ring-border"
+            >
+              {SPECIES_BY_ID[id]?.name ?? id} ×
+            </button>
+          ))}
+          {mapNight && (
+            <button
+              type="button"
+              onClick={setMapNight}
+              className="tap min-h-7 rounded-full bg-card px-2.5 text-[11px] font-semibold ring-1 ring-border"
+            >
+              Noc ×
+            </button>
+          )}
+          {mapBoats && (
+            <button
+              type="button"
+              onClick={setMapBoats}
+              className="tap min-h-7 rounded-full bg-card px-2.5 text-[11px] font-semibold ring-1 ring-border"
+            >
+              Łodzie ×
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
@@ -503,10 +586,23 @@ export function RightMenu({ weather }: { weather: WeatherNow | null }) {
   const setOfflineOpen = useAtlas((s) => s.setOfflineOpen);
   const startBoot = useAtlas((s) => s.startBoot);
   const filter = useAtlas((s) => s.filter);
+  const sheet = useAtlas((s) => s.sheet);
+  const sheetOn = sheet?.kind === "nearby";
   const trend = weather?.pressureTrend ?? "flat";
   const scoreTone =
     !weather ? "wait" : weather.weatherCode >= 80 ? "bad" : weather.weatherCode >= 3 || weather.precipitation > 1 ? "mid" : "good";
   const icon = weather ? weatherIcon(weather.weatherCode) : "partly";
+
+  const showNearby = () => {
+    const geo = useAtlas.getState().geo;
+    if (!geo) {
+      useAtlas.getState().setNearbyPending(true);
+      locateOnMap();
+      return;
+    }
+    const ids = nearestTo(geo.lat, geo.lng, 5).map((w) => w.id);
+    useAtlas.getState().openSheet({ kind: "nearby", title: "Najbliższe", ids });
+  };
 
   const Btn = ({
     children,
@@ -561,6 +657,17 @@ export function RightMenu({ weather }: { weather: WeatherNow | null }) {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
           <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
           <path d="M12 3v3M12 18v3M3 12h3M18 12h3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+      </Btn>
+      <Btn
+        label="Najbliższe łowiska"
+        className={sheetOn ? "is-on" : ""}
+        onClick={showNearby}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <circle cx="12" cy="12" r="7" stroke="currentColor" strokeWidth="1.7" />
+          <circle cx="12" cy="12" r="2.2" fill="currentColor" />
+          <path d="M12 5v2M12 17v2M5 12h2M17 12h2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
         </svg>
       </Btn>
       <Btn label="Warstwa mapy" className={satellite ? "is-on" : ""} onClick={toggleSatellite}>

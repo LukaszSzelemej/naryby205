@@ -25,6 +25,7 @@ import {
   speciesName,
   waterTitle,
   WATERS,
+  WATERS_BY_ID,
 } from "@/lib/catalog";
 import { useAtlas } from "@/lib/store";
 import type { MapFilter, SortMode, Water } from "@/lib/types";
@@ -88,13 +89,7 @@ function passes(w: Water, host: MapFilter, kind: MapFilter, favOnly: boolean, fa
   return true;
 }
 
-export function SpotList({
-  title,
-  fixedFilter,
-}: {
-  title?: string;
-  fixedFilter?: MapFilter;
-}) {
+export function SpotList() {
   const listHost = useAtlas((s) => s.listHost);
   const listKind = useAtlas((s) => s.listKind);
   const listFavOnly = useAtlas((s) => s.listFavOnly);
@@ -117,13 +112,13 @@ export function SpotList({
   const favs = useAtlas((s) => s.favorites);
   const openSpot = useAtlas((s) => s.openSpot);
   const screen = useAtlas((s) => s.screen);
+  const setScreen = useAtlas((s) => s.setScreen);
   const catalogReady = useAtlas((s) => s.catalogReady);
+  const recentIds = useAtlas((s) => s.recentIds);
 
   const tabScope: MapFilter =
     screen === "pzw" ? "pzw" : screen === "specjalne" ? "specjalne" : "all";
   const host: MapFilter = tabScope !== "all" ? tabScope : listHost;
-  void title;
-  void fixedFilter;
   const favSet = useMemo(() => new Set(favs), [favs]);
 
   const heading = listFavOnly
@@ -170,7 +165,7 @@ export function SpotList({
     () =>
       tabPool.filter((w) => {
         if (!passes(w, host, listKind, listFavOnly, favSet)) return false;
-        if (listSpecies && !w.species.includes(listSpecies)) return false;
+        if (listSpecies.length && !listSpecies.every((id) => w.species.includes(id))) return false;
         if (!matchesObwod(w, listObwod)) return false;
         if (listNight && !w.night) return false;
         if (listBoats && !w.boats) return false;
@@ -255,7 +250,7 @@ export function SpotList({
         listKind === "all" &&
         (host === tabScope || host === "all") &&
         !listFavOnly &&
-        !listSpecies &&
+        !listSpecies.length &&
         !listObwod.trim() &&
         !listNight &&
         !listBoats
@@ -319,7 +314,7 @@ export function SpotList({
   })();
 
   return (
-    <ScreenFrame ref={scrollRef}>
+    <ScreenFrame ref={scrollRef} onBack={() => setScreen("map")}>
       <div className="mx-auto max-w-lg px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-8">
         <header className="flex items-center justify-between gap-3">
           <h1 className="text-lg font-semibold">
@@ -328,6 +323,21 @@ export function SpotList({
           </h1>
           <CoffeeLink />
         </header>
+        {recentIds.length > 0 && !q.trim() && !letter && (
+          <section className="mt-3">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-faint">
+              Ostatnio oglądane
+            </h2>
+            <div className="mt-2 grid gap-2">
+              {recentIds
+                .map((id) => WATERS_BY_ID[id])
+                .filter(Boolean)
+                .map((w) => (
+                  <WaterCard key={`r-${w.id}`} w={w} onOpen={openSpot} />
+                ))}
+            </div>
+          </section>
+        )}
         <p className="mt-2 text-xs leading-relaxed text-faint">{DISCLAIMER}</p>
         <div className="mt-3">
           <SearchField
@@ -370,7 +380,7 @@ export function SpotList({
         </div>
         <div className="mt-3 grid grid-cols-3 gap-1.5 min-[400px]:grid-cols-4">
           {MAP_SPECIES.map((id) => {
-            const on = listSpecies === id;
+            const on = listSpecies.includes(id);
             return (
               <button
                 key={id}
@@ -412,6 +422,11 @@ export function SpotList({
             Łodzie
           </button>
         </div>
+        {listSpecies.length > 0 && (
+          <p className="mt-1.5 text-[11px] text-muted">
+            Gatunki AND: {listSpecies.map((id) => SPECIES_BY_ID[id]?.name ?? id).join(" + ")}
+          </p>
+        )}
         {obwody.length > 0 && (
           <div className="mt-3 flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">
             {obwody.map((o) => {

@@ -12,7 +12,6 @@ import { OSM_URL, OSM_FALLBACK_URL, SAT_URL } from "@/lib/tiles";
 import { useAtlas } from "@/lib/store";
 import type { MapFilter, Water } from "@/lib/types";
 import { flyToUser, resetView } from "@/lib/map-api";
-import { fetchWeather, windArrow } from "@/lib/weather";
 import { cn } from "@/lib/utils";
 
 const leafletReady =
@@ -125,26 +124,43 @@ function gridDeg(z: number) {
   return 0;
 }
 
-function pickVisible(list: Water[], south: number, north: number, west: number, east: number, z: number, fav: Set<string>) {
+function pickVisible(
+  list: Water[],
+  south: number,
+  north: number,
+  west: number,
+  east: number,
+  z: number,
+  fav: Set<string>,
+): { w: Water; pack: Water[] }[] {
   const inView: Water[] = [];
   for (const w of list) {
     if (w.lat < south || w.lat > north || w.lng < west || w.lng > east) continue;
     inView.push(w);
   }
   const cs = gridDeg(z);
-  if (!cs || z >= 11.2 || inView.length <= 50) return inView;
-  const cells = new Map<string, Water>();
-  const scores = new Map<string, number>();
+  if (!cs || z >= 11.2 || inView.length <= 50) {
+    return inView.map((w) => ({ w, pack: [w] }));
+  }
+  const cells = new Map<string, Water[]>();
   for (const w of inView) {
     const key = `${Math.floor(w.lat / cs)}:${Math.floor(w.lng / cs)}`;
-    const sc = pinScore(w, fav);
-    const prev = cells.get(key);
-    if (!prev || sc > (scores.get(key) ?? 0)) {
-      cells.set(key, w);
-      scores.set(key, sc);
-    }
+    const arr = cells.get(key);
+    if (arr) arr.push(w);
+    else cells.set(key, [w]);
   }
-  return Array.from(cells.values());
+  return Array.from(cells.values()).map((pack) => {
+    let best = pack[0];
+    let bestSc = pinScore(best, fav);
+    for (const w of pack) {
+      const sc = pinScore(w, fav);
+      if (sc > bestSc) {
+        best = w;
+        bestSc = sc;
+      }
+    }
+    return { w: best, pack };
+  });
 }
 
 function drawFish(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number, color: string) {
@@ -159,10 +175,12 @@ function drawFish(ctx: CanvasRenderingContext2D, x: number, y: number, scale: nu
 export function MapCanvas({
   filter,
   onOpen,
+  onCluster,
   visible = true,
 }: {
   filter: MapFilter;
   onOpen: (id: string) => void;
+  onCluster?: (ids: string[]) => void;
   visible?: boolean;
 }) {
   const host = useRef<HTMLDivElement>(null);
@@ -172,7 +190,7 @@ export function MapCanvas({
   const osmRef = useRef<TileLayer | null>(null);
   const satRef = useRef<TileLayer | null>(null);
   const listRef = useRef<Water[]>([]);
-  const shownRef = useRef<Water[]>([]);
+  const shownRef = useRef<{ w: Water; pack: Water[] }[]>([]);
   const favRef = useRef<Set<string>>(new Set());
   const filterRef = useRef(filter);
   filterRef.current = filter;
@@ -180,6 +198,8 @@ export function MapCanvas({
   visibleRef.current = visible;
   const onOpenRef = useRef(onOpen);
   onOpenRef.current = onOpen;
+  const onClusterRef = useRef(onCluster);
+  onClusterRef.current = onCluster;
   const [ready, setReady] = useState(false);
   const [veilOut, setVeilOut] = useState(false);
   const [hideVeil, setHideVeil] = useState(false);
@@ -226,9 +246,9 @@ export function MapCanvas({
     canvas.dataset.pins = String(shown.length);
     const scale = z < 8.5 ? 1.18 : z < 10 ? 1.08 : z < 12 ? 1.02 : 0.95;
     const f = filterRef.current;
-    for (const w of shown) {
-      const p = map.latLngToContainerPoint([w.lat, w.lng]);
-      drawFish(ctx, p.x, p.y, scale, pinColor(w, f));
+    for (const item of shown) {
+      const p = map.latLngToContainerPoint([item.w.lat, item.w.lng]);
+      drawFish(ctx, p.x, p.y, scale, pinColor(item.w, f));
     }
   };
 
@@ -314,17 +334,29 @@ export function MapCanvas({
         if (!m) return;
         const z = m.getZoom();
         const hit = z < 9 ? 22 : z < 12 ? 20 : 18;
-        let best: Water | null = null;
+        let best: { w: Water; pack: Water[] } | null = null;
         let bestD = hit;
-        for (const w of shownRef.current) {
-          const p = m.latLngToContainerPoint([w.lat, w.lng]);
+        const near: Water[] = [];
+        for (const item of shownRef.current) {
+          const p = m.latLngToContainerPoint([item.w.lat, item.w.lng]);
           const d = Math.hypot(p.x - x, p.y - y);
+          if (d < hit) near.push(...item.pack);
           if (d < bestD) {
             bestD = d;
-            best = w;
+            best = item;
           }
         }
-        if (best) onOpenRef.current(best.id);
+        if (!best) return;
+        const pack = best.pack.length > 1 ? best.pack : near;
+        const seen = new Set<string>();
+        const ids: string[] = [];
+        for (const w of pack) {
+          if (seen.has(w.id)) continue;
+          seen.add(w.id);
+          ids.push(w.id);
+        }
+        if (ids.length > 1 && onClusterRef.current) onClusterRef.current(ids);
+        else onOpenRef.current(ids[0] ?? best.w.id);
       };
       map.on("move zoom viewreset resize", onMove);
       map.on("click", onClick);
@@ -436,7 +468,7 @@ export function MapCanvas({
     favRef.current = favSet;
     listRef.current = WATERS.filter((w) => {
       if (!matchesFilter(w, filter, favSet)) return false;
-      if (mapSpecies && !w.species.includes(mapSpecies)) return false;
+      if (mapSpecies.length && !mapSpecies.every((id) => w.species.includes(id))) return false;
       if (mapNight && !w.night) return false;
       if (mapBoats && !w.boats) return false;
       return true;
@@ -457,20 +489,11 @@ export function MapCanvas({
         hereRef.current = null;
       }
       if (!geo) return;
-      let wx = "";
-      try {
-        const w = await fetchWeather(geo.lat, geo.lng);
-        if (disposed) return;
-        wx = `${Math.round(w.pressure)} hPa · ${windArrow(w.windDir)} ${Math.round(w.wind)} km/h`;
-      } catch {
-        wx = "";
-      }
       const icon = L.divIcon({
         className: "fish-marker",
         html: `<div style="position:relative;width:18px;height:18px">
           <div class="here-ring" style="position:absolute;inset:-10px;border-radius:999px;border:2px solid #22c55e"></div>
           <div style="width:14px;height:14px;margin:2px;border-radius:999px;background:#22c55e;border:2px solid white;box-shadow:0 0 0 1px #14532d55"></div>
-          ${wx ? `<div style="position:absolute;left:22px;top:-4px;white-space:nowrap;border-radius:999px;background:rgba(8,12,16,.82);color:#f4f7f5;font:600 11px/1.2 system-ui,sans-serif;padding:4px 8px;box-shadow:0 1px 4px #0006">${wx}</div>` : ""}
         </div>`,
         iconSize: [18, 18],
         iconAnchor: [9, 9],

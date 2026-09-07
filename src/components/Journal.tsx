@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BookGlyph, CoffeeIcon, SearchGlyph } from "@/components/icons";
 import {
   CUPLINK,
@@ -171,7 +171,8 @@ export function Journal() {
   const remove = useAtlas((s) => s.removeCatch);
   const openSpot = useAtlas((s) => s.openSpot);
   const selectedId = useAtlas((s) => s.selectedId);
-  useAtlas((s) => s.catalogReady);
+  const catalogReady = useAtlas((s) => s.catalogReady);
+  const setScreen = useAtlas((s) => s.setScreen);
   const [open, setOpen] = useState(false);
   const [speciesId, setSpeciesId] = useState(SPECIES[0]?.id ?? "szczupak");
   const [waterId, setWaterId] = useState(() =>
@@ -183,6 +184,10 @@ export function Journal() {
   const [note, setNote] = useState("");
   const [killId, setKillId] = useState<string | null>(null);
   const [waterErr, setWaterErr] = useState(false);
+
+  useEffect(() => {
+    if (selectedId && WATERS_BY_ID[selectedId]) setWaterId(selectedId);
+  }, [selectedId, catalogReady]);
 
   const speciesSorted = useMemo(
     () => [...SPECIES].sort((a, b) => a.name.localeCompare(b.name, "pl")),
@@ -209,7 +214,7 @@ export function Journal() {
     return [...best.entries()]
       .filter(([, v]) => v.kg > 0 || v.cm > 0)
       .sort((a, b) => speciesName(a[0]).localeCompare(speciesName(b[0]), "pl"));
-  }, [rows]);
+  }, [rows, catalogReady]);
 
   const exportCsv = () => {
     const head = "data;gatunek;lowisko;cm;kg;metoda;notatka";
@@ -235,7 +240,7 @@ export function Journal() {
   };
 
   return (
-    <ScreenFrame>
+    <ScreenFrame onBack={() => setScreen("map")}>
       <div className="mx-auto max-w-lg px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-10">
         <header className="flex items-center justify-between">
           <h1 className="text-lg font-semibold">Dziennik</h1>

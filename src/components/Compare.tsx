@@ -79,7 +79,7 @@ export function ComparePage() {
   const [q, setQ] = useState("");
 
   return (
-    <ScreenFrame>
+    <ScreenFrame onBack={back}>
       <div className="mx-auto max-w-2xl px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-10">
         <header className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
@@ -108,6 +108,7 @@ export function ComparePage() {
               }}
               dark
               autoFocus
+              dropUp
               pool={aId ? WATERS.filter((w) => w.id !== aId) : WATERS}
             />
           </div>

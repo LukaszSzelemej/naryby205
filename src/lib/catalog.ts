@@ -283,6 +283,7 @@ export function loadCatalog() {
     fillWaters(rows);
   })().catch((err) => {
     catalogLoading = null;
+    console.warn("catalog", err);
     void import("@/lib/store").then(({ useAtlas }) => {
       useAtlas.setState({ catalogError: "Nie udało się wczytać katalogu." });
     });
@@ -615,6 +616,14 @@ export function nearestWaters(w: Water, n = 5): { w: Water; km: number }[] {
     .slice(0, n);
 }
 
+export function nearestTo(lat: number, lng: number, n = 5): Water[] {
+  return [...WATERS]
+    .map((w) => ({ w, km: haversineKm(lat, lng, w.lat, w.lng) }))
+    .sort((a, b) => a.km - b.km)
+    .slice(0, n)
+    .map((x) => x.w);
+}
+
 export function matchesObwod(w: Water, q: string) {
   const n = foldPl(q.trim());
   if (!n) return true;
@@ -654,9 +663,16 @@ export function waterTitle(w: Water) {
 
 export function protectionOf(sp: Species, at: Date = new Date(), atSea = false) {
   if (sp.seaBan && !sp.closed.length) {
+    if (!atSea) {
+      return {
+        hasPeriod: false,
+        active: false,
+        label: "Zakaz połowu tylko na morzu",
+      };
+    }
     return {
       hasPeriod: true,
-      active: atSea,
+      active: true,
       label: "Zakaz połowu na morzu",
     };
   }

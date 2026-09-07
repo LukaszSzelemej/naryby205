@@ -5,10 +5,17 @@ import {
   saveFavorites,
   saveJournal,
   saveLastGeo,
+  saveRecent,
   type ConsentState,
 } from "@/lib/storage";
 
 type Geo = { lat: number; lng: number } | null;
+
+export type MapSheet = {
+  kind: "nearby" | "cluster";
+  title: string;
+  ids: string[];
+} | null;
 
 const HOST_FILTERS = new Set<MapFilter>(["pzw", "specjalne", "prywatne"]);
 const KIND_FILTERS = new Set<MapFilter>([
@@ -29,14 +36,14 @@ type AtlasState = {
   screen: Screen;
   prevScreen: Screen;
   filter: MapFilter;
-  mapSpecies: string | null;
+  mapSpecies: string[];
   mapNight: boolean;
   mapBoats: boolean;
   mapNonce: number;
   listHost: MapFilter;
   listKind: MapFilter;
   listFavOnly: boolean;
-  listSpecies: string | null;
+  listSpecies: string[];
   listObwod: string;
   listNight: boolean;
   listBoats: boolean;
@@ -44,7 +51,6 @@ type AtlasState = {
   satellite: boolean;
   showCoords: boolean;
   spotMapFull: boolean;
-  mapSearchOpen: boolean;
   offlineOpen: boolean;
   selectedId: string | null;
   selectedSpeciesId: string | null;
@@ -63,6 +69,7 @@ type AtlasState = {
     | null;
   letter: string | null;
   sort: SortMode;
+  listSortAuto: boolean;
   listQuery: string;
   mapQuery: string;
   geo: Geo;
@@ -70,6 +77,9 @@ type AtlasState = {
   consent: ConsentState;
   favorites: string[];
   journal: JournalEntry[];
+  recentIds: string[];
+  sheet: MapSheet;
+  nearbyPending: boolean;
   startBoot: () => void;
   finishBoot: () => void;
   setScreen: (s: Screen) => void;
@@ -78,10 +88,10 @@ type AtlasState = {
   openHost: (key: string) => void;
   closeSpot: () => void;
   setFilter: (f: MapFilter) => void;
-  setMapSpecies: (id: string | null) => void;
+  setMapSpecies: (id: string) => void;
   setMapNight: () => void;
   setMapBoats: () => void;
-  setListSpecies: (id: string | null) => void;
+  setListSpecies: (id: string) => void;
   setListObwod: (q: string) => void;
   setListNight: () => void;
   setListBoats: () => void;
@@ -94,7 +104,6 @@ type AtlasState = {
   toggleSatellite: () => void;
   setShowCoords: (v: boolean) => void;
   setSpotMapFull: (v: boolean) => void;
-  setMapSearchOpen: (v: boolean) => void;
   setOfflineOpen: (v: boolean) => void;
   setKitTab: (t: AtlasState["kitTab"]) => void;
   setLetter: (l: string | null) => void;
@@ -109,6 +118,9 @@ type AtlasState = {
   removeCatch: (id: string) => void;
   showMyLocation: () => void;
   openList: (screen: Extract<Screen, "list" | "pzw" | "specjalne">) => void;
+  openSheet: (sheet: Exclude<MapSheet, null>) => void;
+  closeSheet: () => void;
+  setNearbyPending: (v: boolean) => void;
 };
 
 function tabHost(screen: Screen): MapFilter {
@@ -125,14 +137,14 @@ export const useAtlas = create<AtlasState>((set, get) => ({
   screen: "map",
   prevScreen: "map",
   filter: "all",
-  mapSpecies: null,
+  mapSpecies: [],
   mapNight: false,
   mapBoats: false,
   mapNonce: 0,
   listHost: "all",
   listKind: "all",
   listFavOnly: false,
-  listSpecies: null,
+  listSpecies: [],
   listObwod: "",
   listNight: false,
   listBoats: false,
@@ -140,7 +152,6 @@ export const useAtlas = create<AtlasState>((set, get) => ({
   satellite: false,
   showCoords: false,
   spotMapFull: false,
-  mapSearchOpen: false,
   offlineOpen: false,
   selectedId: null,
   selectedSpeciesId: null,
@@ -150,6 +161,7 @@ export const useAtlas = create<AtlasState>((set, get) => ({
   kitTab: null,
   letter: null,
   sort: "az",
+  listSortAuto: true,
   listQuery: "",
   mapQuery: "",
   geo: null,
@@ -157,6 +169,9 @@ export const useAtlas = create<AtlasState>((set, get) => ({
   consent: null,
   favorites: [],
   journal: [],
+  recentIds: [],
+  sheet: null,
+  nearbyPending: false,
   startBoot: () =>
     set({
       booting: true,
@@ -166,7 +181,6 @@ export const useAtlas = create<AtlasState>((set, get) => ({
       offlineOpen: false,
       showCoords: false,
       spotMapFull: false,
-      mapSearchOpen: false,
       selectedId: null,
     }),
   finishBoot: () => set({ booting: false }),
@@ -175,7 +189,6 @@ export const useAtlas = create<AtlasState>((set, get) => ({
       prevScreen: s.screen,
       screen,
       moreOpen: false,
-      mapSearchOpen: false,
       letter: screen === s.screen ? s.letter : null,
       listQuery: "",
     })),
@@ -186,15 +199,20 @@ export const useAtlas = create<AtlasState>((set, get) => ({
       spotMapFull: false,
     })),
   openSpot: (id, from) =>
-    set((s) => ({
-      prevScreen:
-        from ??
-        (s.screen === "spot" || s.screen === "compare" ? s.prevScreen : s.screen),
-      screen: "spot",
-      selectedId: id,
-      spotMapFull: false,
-      mapSearchOpen: false,
-    })),
+    set((s) => {
+      const recentIds = [id, ...s.recentIds.filter((x) => x !== id)].slice(0, 5);
+      saveRecent(recentIds);
+      return {
+        prevScreen:
+          from ??
+          (s.screen === "spot" || s.screen === "compare" ? s.prevScreen : s.screen),
+        screen: "spot",
+        selectedId: id,
+        spotMapFull: false,
+        sheet: null,
+        recentIds,
+      };
+    }),
   openHost: (key) =>
     set((s) => ({
       prevScreen: s.screen,
@@ -212,33 +230,33 @@ export const useAtlas = create<AtlasState>((set, get) => ({
       filter,
       screen: "map",
       moreOpen: filter === "all" ? false : s.moreOpen,
-      mapSearchOpen: false,
-      mapSpecies: filter === "all" ? null : s.mapSpecies,
+      mapSpecies: filter === "all" ? [] : s.mapSpecies,
       mapNight: filter === "all" ? false : s.mapNight,
       mapBoats: filter === "all" ? false : s.mapBoats,
       mapNonce: s.mapNonce + 1,
     })),
   setMapSpecies: (id) =>
     set((s) => ({
-      mapSpecies: s.mapSpecies === id ? null : id,
+      mapSpecies: s.mapSpecies.includes(id)
+        ? s.mapSpecies.filter((x) => x !== id)
+        : [...s.mapSpecies, id],
       screen: "map",
-      mapNonce: s.mapNonce + 1,
     })),
   setMapNight: () =>
     set((s) => ({
       mapNight: !s.mapNight,
       screen: "map",
-      mapNonce: s.mapNonce + 1,
     })),
   setMapBoats: () =>
     set((s) => ({
       mapBoats: !s.mapBoats,
       screen: "map",
-      mapNonce: s.mapNonce + 1,
     })),
   setListSpecies: (id) =>
     set((s) => ({
-      listSpecies: s.listSpecies === id ? null : id,
+      listSpecies: s.listSpecies.includes(id)
+        ? s.listSpecies.filter((x) => x !== id)
+        : [...s.listSpecies, id],
       letter: null,
     })),
   setListObwod: (listObwod) => set({ listObwod, letter: null }),
@@ -266,7 +284,7 @@ export const useAtlas = create<AtlasState>((set, get) => ({
           listFavOnly: false,
           letter: null,
           listQuery: "",
-          listSpecies: null,
+          listSpecies: [],
           listObwod: "",
           listNight: false,
           listBoats: false,
@@ -304,16 +322,19 @@ export const useAtlas = create<AtlasState>((set, get) => ({
   toggleSatellite: () => set((s) => ({ satellite: !s.satellite })),
   setShowCoords: (showCoords) => set({ showCoords }),
   setSpotMapFull: (spotMapFull) => set({ spotMapFull }),
-  setMapSearchOpen: (mapSearchOpen) => set({ mapSearchOpen }),
   setOfflineOpen: (offlineOpen) => set({ offlineOpen }),
   setKitTab: (kitTab) => set({ kitTab, screen: "kit" }),
   setLetter: (letter) => set({ letter }),
-  setSort: (sort) => set({ sort }),
+  setSort: (sort) => set({ sort, listSortAuto: false }),
   setListQuery: (listQuery) => set({ listQuery }),
   setMapQuery: (mapQuery) => set({ mapQuery }),
   setGeo: (geo) => {
     if (geo) saveLastGeo(geo.lat, geo.lng);
-    set({ geo, geoDenied: false });
+    set((s) => ({
+      geo,
+      geoDenied: false,
+      sort: geo && s.listSortAuto ? "nearest" : s.sort,
+    }));
   },
   setGeoDenied: (geoDenied) => set({ geoDenied }),
   setConsent: (consent) => {
@@ -349,16 +370,18 @@ export const useAtlas = create<AtlasState>((set, get) => ({
       listHost: tabHost(screen),
       listKind: "all",
       listFavOnly: false,
-      listSpecies: null,
+      listSpecies: [],
       listObwod: "",
       listNight: false,
       listBoats: false,
       letter: null,
       listQuery: "",
-      sort: "az",
+      sort: get().listSortAuto && get().geo ? "nearest" : get().sort,
       moreOpen: false,
-      mapSearchOpen: false,
       selectedId: null,
       spotMapFull: false,
     }),
+  openSheet: (sheet) => set({ sheet, nearbyPending: false, screen: "map" }),
+  closeSheet: () => set({ sheet: null }),
+  setNearbyPending: (nearbyPending) => set({ nearbyPending, screen: "map" }),
 }));

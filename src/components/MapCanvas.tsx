@@ -207,6 +207,7 @@ export function MapCanvas({
   const favs = useAtlas((s) => s.favorites);
   const mapNonce = useAtlas((s) => s.mapNonce);
   const catalogReady = useAtlas((s) => s.catalogReady);
+  const catalogError = useAtlas((s) => s.catalogError);
   const mapSpecies = useAtlas((s) => s.mapSpecies);
   const mapNight = useAtlas((s) => s.mapNight);
   const mapBoats = useAtlas((s) => s.mapBoats);
@@ -260,6 +261,7 @@ export function MapCanvas({
     let onClick: ((e: { containerPoint?: { x: number; y: number } }) => void) | undefined;
     let onPinLoad: (() => void) | undefined;
     let idle = 0;
+    let ro: ResizeObserver | undefined;
 
     const start = async () => {
       const pack = await leafletReady;
@@ -310,6 +312,16 @@ export function MapCanvas({
       osmRef.current.addTo(map);
       mapRef.current = map;
       window.__atlasMap = map;
+      if (host.current && typeof ResizeObserver !== "undefined") {
+        ro = new ResizeObserver(() => {
+          if (cancelled) return;
+          const live = mapRef.current;
+          if (!live) return;
+          live.invalidateSize({ animate: false });
+          redraw();
+        });
+        ro.observe(host.current);
+      }
       if (useAtlas.getState().mapDark) host.current?.classList.add("is-dark");
       const st = useAtlas.getState();
       const here = st.geo;
@@ -391,7 +403,8 @@ export function MapCanvas({
 
     const maybeStart = () => {
       if (cancelled || mapRef.current) return;
-      if (!visibleRef.current) {
+      const el = host.current;
+      if (!visibleRef.current || !el || el.clientWidth < 8 || el.clientHeight < 8) {
         idle = window.setTimeout(maybeStart, 80);
         return;
       }
@@ -402,6 +415,7 @@ export function MapCanvas({
     return () => {
       cancelled = true;
       window.clearTimeout(idle);
+      ro?.disconnect();
       if (onPinLoad) pinImg?.removeEventListener("load", onPinLoad);
       if (map && onMove) map.off("move zoom viewreset resize", onMove);
       if (map && onClick) map.off("click", onClick);
@@ -413,13 +427,14 @@ export function MapCanvas({
 
   useEffect(() => {
     if (!ready) return;
+    if (!catalogReady && !catalogError) return;
     const fade = window.setTimeout(() => setVeilOut(true), 80);
     const hide = window.setTimeout(() => setHideVeil(true), 480);
     return () => {
       window.clearTimeout(fade);
       window.clearTimeout(hide);
     };
-  }, [ready]);
+  }, [ready, catalogReady, catalogError]);
 
   useEffect(() => {
     if (!ready || !visible) return;

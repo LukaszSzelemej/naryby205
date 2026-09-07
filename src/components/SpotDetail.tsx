@@ -18,6 +18,7 @@ import {
   obwodLabel,
   waterTitle,
   hostGroupOf,
+  hostKindOf,
   watersOfHost,
   isSpecial,
   safeHttpUrl,
@@ -428,7 +429,17 @@ export function SpotDetail() {
                 .slice()
                 .sort((a, b) => speciesName(a).localeCompare(speciesName(b), "pl"))
                 .map((id) => (
-                  <SpeciesChip key={id} id={id} okrag={w.okrag} sea={w.kind === "morze"} />
+                  <SpeciesChip
+                    key={id}
+                    id={id}
+                    okrag={w.okrag}
+                    sea={w.kind === "morze"}
+                    protect={
+                      w.kind !== "komercyjne" &&
+                      w.tenure !== "prywatne" &&
+                      hostKindOf(w) !== "private"
+                    }
+                  />
                 ))}
             </div>
           </Box>

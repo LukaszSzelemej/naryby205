@@ -1060,10 +1060,12 @@ export function SpeciesChip({
   id,
   okrag,
   sea,
+  protect = true,
 }: {
   id: string;
   okrag?: string;
   sea?: boolean;
+  protect?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [flipX, setFlipX] = useState(false);
@@ -1071,8 +1073,8 @@ export function SpeciesChip({
   const box = useRef<HTMLSpanElement>(null);
   const sp = SPECIES_BY_ID[id];
   const name = sp?.name ?? speciesName(id);
-  const p = sp ? formatProtect(sp, okrag, sea) : null;
-  const hint = protectHint(id, okrag, sea);
+  const p = protect && sp ? formatProtect(sp, okrag, sea) : null;
+  const hint = protect ? protectHint(id, okrag, sea) : "";
 
   useEffect(() => {
     if (!open) return;
@@ -1089,6 +1091,14 @@ export function SpeciesChip({
       document.removeEventListener("keydown", onKey);
     };
   }, [open]);
+
+  if (!protect) {
+    return (
+      <span className="inline-flex items-center rounded-full bg-card-2 px-2.5 py-1 text-xs font-medium ring-1 ring-border">
+        {name}
+      </span>
+    );
+  }
 
   return (
     <span ref={box} className="relative inline-block">

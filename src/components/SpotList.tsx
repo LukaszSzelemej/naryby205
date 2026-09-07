@@ -182,6 +182,13 @@ export function SpotList() {
   );
   const kindObwodSet = useMemo(() => new Set(allObwody(kindPool)), [kindPool]);
   const anyKindObwod = kindObwodSet.size > 0;
+  const kindSpecies = useMemo(() => {
+    const s = new Set<string>();
+    for (const w of kindPool) {
+      for (const id of w.species ?? []) s.add(id);
+    }
+    return s;
+  }, [kindPool]);
 
   useEffect(() => {
     if (!catalogReady) return;
@@ -190,6 +197,15 @@ export function SpotList() {
     if (kindPool.some((w) => matchesObwod(w, cur))) return;
     setListObwod("");
   }, [catalogReady, host, listKind, listFavOnly, tabScope, kindPool, setListObwod]);
+
+  useEffect(() => {
+    if (!catalogReady) return;
+    const cur = useAtlas.getState().listSpecies;
+    if (!cur.length) return;
+    const next = cur.filter((id) => kindSpecies.has(id));
+    if (next.length === cur.length) return;
+    useAtlas.setState({ listSpecies: next, letter: null });
+  }, [catalogReady, kindSpecies]);
 
   const usedLetters = useMemo(() => {
     const set = new Set<string>();
@@ -407,18 +423,26 @@ export function SpotList() {
         </div>
         <div className="mt-3 grid grid-cols-3 gap-1.5 min-[400px]:grid-cols-4">
           {MAP_SPECIES.map((id) => {
-            const on = listSpecies.includes(id);
+            const present = !catalogReady || kindSpecies.has(id);
+            const on = present && listSpecies.includes(id);
             return (
               <button
                 key={id}
                 type="button"
-                onClick={() => setListSpecies(id)}
+                disabled={!present}
+                onClick={() => {
+                  if (!present) return;
+                  setListSpecies(id);
+                }}
                 className={cn(
                   "tap min-h-10 rounded-full px-1 text-center text-xs font-semibold leading-tight ring-1",
-                  on
-                    ? "bg-card-2 text-foreground ring-white"
-                    : "bg-card-2 text-foreground ring-border",
+                  !present
+                    ? "cursor-not-allowed bg-card-2 text-faint ring-border opacity-40"
+                    : on
+                      ? "bg-card-2 text-foreground ring-white"
+                      : "bg-card-2 text-foreground ring-border",
                 )}
+                aria-disabled={!present}
               >
                 {SPECIES_BY_ID[id]?.name ?? id}
               </button>

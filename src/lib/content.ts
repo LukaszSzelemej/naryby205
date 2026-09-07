@@ -147,7 +147,6 @@ export const ZAPIS_COPY = {
     "Menu (trzy kropki) → „Zainstaluj aplikację” albo „Dodaj do ekranu głównego”.",
     "Potwierdź. Atlas wędkarski pojawi się w szufladzie aplikacji.",
   ],
-  items: [] as string[],
 };
 
 export const COFFEE_COPY = {
@@ -204,5 +203,42 @@ export const INSTALL_COPY = {
     "Otwórz w Chrome.",
     "Menu (trzy kropki) → „Zainstaluj aplikację” albo „Dodaj do ekranu głównego”.",
     "Potwierdź. Atlas wędkarski pojawi się w szufladzie aplikacji.",
+  ],
+};
+
+export const LICENSES_COPY = {
+  title: "Licencje i źródła",
+  lead: "Oznaczenia bibliotek, map i danych, z których korzysta atlas.",
+  items: [
+    {
+      t: "OpenStreetMap",
+      d: "Kafelki mapy i nazwy miejsc © OpenStreetMap contributors. Dane na licencji ODbL 1.0.",
+      href: "https://www.openstreetmap.org/copyright",
+    },
+    {
+      t: "Esri World Imagery",
+      d: "Warstwa satelitarna — Esri, Maxar, Earthstar Geographics i wspólnoty GIS.",
+      href: "https://www.esri.com/en-us/legal/terms/full",
+    },
+    {
+      t: "Leaflet",
+      d: "Silnik mapy Leaflet, licencja BSD-2-Clause.",
+      href: "https://leafletjs.com",
+    },
+    {
+      t: "Open-Meteo",
+      d: "Prognoza pogody i ciśnienie. Licencja CC BY 4.0.",
+      href: "https://open-meteo.com",
+    },
+    {
+      t: "Geoportal / GUGiK",
+      d: "Nazwy i położenie wód stojących — wykaz urzędowy oraz geoportal.gov.pl.",
+      href: "https://www.geoportal.gov.pl",
+    },
+    {
+      t: "RAPR i rozporządzenie",
+      d: "Wymiary i okresy ochronne: Regulamin Amatorskiego Połowu Ryb PZW oraz rozporządzenie MRiRW.",
+      href: "https://www.gov.pl/web/wody-polskie-szczecin/regulamin-amatorskiego-polowu-ryb",
+    },
   ],
 };

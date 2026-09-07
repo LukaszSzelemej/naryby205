@@ -86,7 +86,7 @@
     "id": "leszcz",
     "name": "Leszcz",
     "latin": "Abramis brama",
-    "minCm": 25,
+    "minCm": null,
     "dailyLimit": null,
     "closed": []
   },
@@ -183,8 +183,8 @@
     "id": "pstrag-teczowy",
     "name": "Pstrąg tęczowy",
     "latin": "Oncorhynchus mykiss",
-    "minCm": 30,
-    "dailyLimit": 3,
+    "minCm": null,
+    "dailyLimit": 4,
     "closed": [],
     "predators": true
   },
@@ -301,7 +301,7 @@
     "id": "wzdręga",
     "name": "Wzdręga",
     "latin": "Scardinius erythrophthalmus",
-    "minCm": null,
+    "minCm": 15,
     "dailyLimit": null,
     "closed": []
   },
@@ -356,7 +356,13 @@
     "name": "Jesiotr",
     "latin": "Acipenser",
     "minCm": null,
-    "dailyLimit": null,
-    "closed": []
+    "dailyLimit": 0,
+    "closed": [
+      {
+        "from": "01-01",
+        "to": "12-31",
+        "note": "Ochrona gatunkowa — zakaz połowu"
+      }
+    ]
   }
 ]

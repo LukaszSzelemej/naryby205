@@ -14,11 +14,15 @@ import {
   CUPLINK,
   FILTER_META,
   formatCoords,
+  formatProtect,
   googlePin,
   INSTAGRAM,
+  protectHint,
   sanitizeQuery,
   searchWaters,
   DISCLAIMER,
+  SPECIES_BY_ID,
+  speciesName,
   WATERS_BY_ID,
 } from "@/lib/catalog";
 import { zoomBy, resetView, flyToSpot, flyToUser } from "@/lib/map-api";
@@ -783,4 +787,79 @@ export function ActionBtn({
 
 export function DisclaimerLine() {
   return <p className="text-xs leading-relaxed text-faint">{DISCLAIMER}</p>;
+}
+
+export function SpeciesChip({ id }: { id: string }) {
+  const [open, setOpen] = useState(false);
+  const [flip, setFlip] = useState(false);
+  const box = useRef<HTMLSpanElement>(null);
+  const sp = SPECIES_BY_ID[id];
+  const name = sp?.name ?? speciesName(id);
+  const p = sp ? formatProtect(sp) : null;
+  const hint = protectHint(id);
+
+  useEffect(() => {
+    if (!open) return;
+    const hide = (e: PointerEvent) => {
+      if (!box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", hide);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", hide);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <span ref={box} className="relative inline-block">
+      <button
+        type="button"
+        title={hint || undefined}
+        aria-expanded={open}
+        aria-label={`${name}. ${hint}`}
+        onClick={() => {
+          const next = !open;
+          if (next && box.current) {
+            const r = box.current.getBoundingClientRect();
+            setFlip(r.left + 230 > window.innerWidth - 16);
+          }
+          setOpen(next);
+        }}
+        className="tap inline-flex items-center gap-1 rounded-full bg-card-2 px-2.5 py-1 text-xs font-medium ring-1 ring-border"
+      >
+        {name}
+        <span className="grid size-4 place-items-center rounded-full bg-primary/20 text-[10px] font-bold text-primary">
+          i
+        </span>
+      </button>
+      {open && p && sp ? (
+        <div
+          role="dialog"
+          className={cn(
+            "absolute top-[calc(100%+0.35rem)] z-40 w-56 rounded-xl bg-card p-3 text-left shadow-lg ring-1 ring-border",
+            flip ? "right-0 left-auto" : "left-0",
+          )}
+        >
+          <p className="text-sm font-semibold text-foreground">{sp.name}</p>
+          <p className="text-xs italic text-muted">{sp.latin}</p>
+          <p className="mt-2 text-xs text-foreground">
+            Wymiar ochronny: <span className="font-semibold tabular-nums">{p.size}</span>
+          </p>
+          <p className="mt-0.5 text-xs text-foreground">
+            Limit: <span className="font-semibold">{p.limit}</span>
+          </p>
+          <p className={cn("mt-0.5 text-xs", p.period.active ? "text-danger" : "text-muted")}>
+            {p.period.label}
+          </p>
+          <p className="mt-2 text-[10px] leading-snug text-faint">
+            RAPR PZW i rozporządzenie. Okręg lub gospodarz może zaostrzyć.
+          </p>
+        </div>
+      ) : null}
+    </span>
+  );
 }

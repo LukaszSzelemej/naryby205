@@ -7,6 +7,7 @@ import {
   METHOD_LABEL,
   SPECIES,
   speciesName,
+  formatProtect,
   WATERS,
   WATERS_BY_ID,
   formatDistance,
@@ -243,11 +244,14 @@ export function Journal() {
                   onChange={(e) => setSpeciesId(e.target.value)}
                   className="mt-1 min-h-11 w-full rounded-xl bg-card-2 px-3 text-sm text-foreground"
                 >
-                  {speciesSorted.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
+                  {speciesSorted.map((s) => {
+                    const dim = formatProtect(s);
+                    return (
+                      <option key={s.id} value={s.id}>
+                        {s.name} · {dim.size}
+                      </option>
+                    );
+                  })}
                 </select>
               </label>
               <label className="block text-xs text-muted">

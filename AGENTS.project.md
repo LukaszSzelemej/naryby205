@@ -5,7 +5,7 @@ lands in `src/` or when a single JSON/bin blob is too heavy.
 
 ## Catalog
 
-- 1048 łowisk live in `public/atlas/waters/00.json` … (alphabetical by name, each ≤16 KB)
+- 1206 łowisk live in `public/atlas/waters/00.json` … (alphabetical by name, each ≤16 KB)
 - Manifest: `public/atlas/waters/index.json`
 - NEVER write `src/data/waters.json`, `.json.gz`, or `public/data/waters.bin`
 - NEVER concatenate shards into one file to “inspect” them

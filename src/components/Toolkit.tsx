@@ -11,6 +11,7 @@ import {
   linkLabel,
   MANAGERS,
   protectionOf,
+  formatProtect,
   safeHttpUrl,
   SPECIES,
   SPECIES_LETTERS,
@@ -24,6 +25,7 @@ import {
   DOKUMENTY,
   ETYKIETA,
   INSTALL_COPY,
+  LICENSES_COPY,
   OFFLINE_COPY,
   PORADNIK,
   ZAPIS_COPY,
@@ -171,6 +173,7 @@ export function Toolkit() {
                 const show = L !== last;
                 last = L;
                 const p = protectionOf(s);
+                const dim = formatProtect(s);
                 return (
                   <div key={s.id}>
                     {show && (
@@ -183,7 +186,10 @@ export function Toolkit() {
                     >
                       <p className="font-semibold">{s.name}</p>
                       <p className="text-xs italic text-muted">{s.latin}</p>
-                      <p className={cn("mt-1 text-xs font-medium", p.active ? "text-danger" : "text-ok")}>
+                      <p className="mt-1 text-xs font-medium tabular-nums text-foreground">
+                        Wymiar: {dim.size} · {dim.limit}
+                      </p>
+                      <p className={cn("mt-0.5 text-xs font-medium", p.active ? "text-danger" : "text-ok")}>
                         {p.hasPeriod ? p.label : "Brak okresu ochronnego"}
                       </p>
                     </button>
@@ -374,6 +380,7 @@ export function Toolkit() {
                 ))}
               </ol>
             </section>
+            <LicensesBlock />
           </div>
         )}
 
@@ -504,6 +511,30 @@ export function SpeciesWaters() {
   );
 }
 
+function LicensesBlock({ className }: { className?: string }) {
+  return (
+    <section className={cn("rounded-2xl bg-card p-3 ring-1 ring-border", className)}>
+      <h2 className="font-semibold">{LICENSES_COPY.title}</h2>
+      <p className="mt-2 text-sm leading-relaxed text-muted">{LICENSES_COPY.lead}</p>
+      <ul className="mt-3 space-y-3">
+        {LICENSES_COPY.items.map((it) => (
+          <li key={it.t}>
+            <p className="text-sm font-semibold text-foreground">{it.t}</p>
+            <p className="mt-0.5 text-sm leading-relaxed text-muted">{it.d}</p>
+            <button
+              type="button"
+              onClick={() => openExternal(it.href)}
+              className="mt-1 text-xs font-semibold text-primary underline decoration-primary/40 underline-offset-2"
+            >
+              Źródło
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 export function InstallPage() {
   const back = useAtlas((s) => s.back);
   return (
@@ -530,6 +561,7 @@ export function InstallPage() {
             ))}
           </ol>
         </section>
+        <LicensesBlock className="mt-3" />
         <p className="mt-6 text-center text-xs text-faint">{DISCLAIMER}</p>
       </div>
     </ScreenFrame>

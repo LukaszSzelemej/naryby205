@@ -19,7 +19,7 @@ import {
   WATERS_BY_ID,
 } from "@/lib/catalog";
 import { CoffeeIcon, FishOutline, FishPinSvg, StarGlyph, WeatherGlyph } from "@/components/icons";
-import { ActionBtn, BackBtn, OutLink, PhoneText, TelBtn } from "@/components/Chrome";
+import { ActionBtn, BackBtn, OutLink, PhoneText, SpeciesChip, TelBtn } from "@/components/Chrome";
 import { fetchWeather, weatherIcon, weatherLabel, windArrow } from "@/lib/weather";
 import {
   biomet,
@@ -333,10 +333,14 @@ export function SpotDetail() {
             )}
           </Box>
           <Box title="Gatunki">
-            {[...new Set(w.species)]
-              .map(speciesName)
-              .sort((a, b) => a.localeCompare(b, "pl"))
-              .join(", ")}
+            <div className="flex flex-wrap gap-1.5">
+              {[...new Set(w.species)]
+                .slice()
+                .sort((a, b) => speciesName(a).localeCompare(speciesName(b), "pl"))
+                .map((id) => (
+                  <SpeciesChip key={id} id={id} />
+                ))}
+            </div>
           </Box>
           <Box title="Metody">
             {[...w.methods]

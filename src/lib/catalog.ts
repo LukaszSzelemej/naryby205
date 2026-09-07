@@ -217,6 +217,9 @@ let catalogLoading: Promise<void> | null = null;
 
 function fillWaters(rows: Water[]) {
   if (WATERS.length) return;
+  for (const w of rows) {
+    if (w.species?.length) w.species = [...new Set(w.species)];
+  }
   WATERS.push(...rows);
   for (const w of rows) WATERS_BY_ID[w.id] = w;
   void import("@/lib/store").then(({ useAtlas }) => {
@@ -493,11 +496,19 @@ export function googlePin(lat: number, lng: number) {
   return `https://www.google.com/maps?q=${lat},${lng}`;
 }
 
+const DEAD_HOSTS = new Set([
+  "gruba-rybka.pl",
+  "karas2015.pl",
+  "dolinainy.pl",
+]);
+
 export function safeHttpUrl(raw: string | null | undefined) {
   if (!raw) return null;
   try {
     const u = new URL(raw);
     if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+    const host = u.hostname.replace(/^www\./, "").toLowerCase();
+    if (DEAD_HOSTS.has(host)) return null;
     return u.toString();
   } catch {
     return null;
@@ -567,4 +578,33 @@ export function protectionOf(sp: Species, at: Date = new Date()) {
     .map((c) => formatPeriod(c.from, c.to) + (c.note ? ` (${c.note})` : ""))
     .join(", ")}`;
   return { hasPeriod: true, active, label };
+}
+
+export function formatProtect(sp: Species) {
+  const size =
+    sp.dailyLimit === 0 && !sp.minCm
+      ? "zakaz zabierania"
+      : sp.minCm
+        ? `do ${sp.minCm} cm`
+        : "brak wymiaru";
+  const limit =
+    sp.dailyLimit === 0
+      ? "zakaz zabierania"
+      : sp.dailyLimit != null
+        ? `${sp.dailyLimit} szt./doba`
+        : "brak limitu sztuk";
+  return { size, limit, period: protectionOf(sp) };
+}
+
+export function protectHint(id: string) {
+  const sp = SPECIES_BY_ID[id];
+  if (!sp) return "";
+  const p = formatProtect(sp);
+  const size =
+    p.size === "brak wymiaru"
+      ? "Brak wymiaru ochronnego"
+      : p.size === "zakaz zabierania"
+        ? "Zakaz zabierania"
+        : `Wymiar ochronny: ${p.size}`;
+  return `${size} · ${p.limit}`;
 }

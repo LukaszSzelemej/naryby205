@@ -22,6 +22,14 @@ function soon(at = new Date()) {
   return tarloItems(at).filter((x) => x.days <= 1);
 }
 
+function urlBase64ToUint8Array(b64: string) {
+  const pad = "=".repeat((4 - (b64.length % 4)) % 4);
+  const raw = atob((b64 + pad).replace(/-/g, "+").replace(/_/g, "/"));
+  const out = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+  return out;
+}
+
 async function ensureSw() {
   if (!("serviceWorker" in navigator)) return null;
   const reg = await navigator.serviceWorker.register(SW, { scope: "/" });
@@ -30,7 +38,25 @@ async function ensureSw() {
 }
 
 function payload() {
-  return tarloItems().map((x) => ({ name: x.name, days: x.days }));
+  return tarloItems().map((x) => ({
+    name: x.name,
+    end: Date.now() + x.days * 86_400_000,
+  }));
+}
+
+async function subscribePush(reg: ServiceWorkerRegistration) {
+  if (!("PushManager" in window)) return;
+  const info = await fetch("/api/push").then((r) => r.json() as Promise<{ publicKey?: string }>);
+  if (!info?.publicKey) return;
+  const sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(info.publicKey),
+  });
+  await fetch("/api/push", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ sub }),
+  });
 }
 
 export async function setTarloPref(on: boolean): Promise<"ok" | "denied" | "unsupported"> {
@@ -57,8 +83,20 @@ export async function setTarloPref(on: boolean): Promise<"ok" | "denied" | "unsu
   } catch {
     /* not supported */
   }
-  reg?.active?.postMessage({ type: "tarlo", items: payload() });
+  if (reg) {
+    try {
+      await subscribePush(reg);
+    } catch {
+      /* iOS needs installed PWA */
+    }
+    reg.active?.postMessage({ type: "tarlo", items: payload() });
+  }
   fireIfDue(reg);
+  void fetch("/api/push", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ tick: true }),
+  }).catch(() => undefined);
   return "ok";
 }
 
@@ -77,6 +115,18 @@ function fireIfDue(reg: ServiceWorkerRegistration | null) {
 export async function bootTarlo() {
   if (!tarloPref()) return;
   const reg = await ensureSw();
-  reg?.active?.postMessage({ type: "tarlo", items: payload() });
+  if (reg) {
+    try {
+      await subscribePush(reg);
+    } catch {
+      /* ignore */
+    }
+    reg.active?.postMessage({ type: "tarlo", items: payload() });
+  }
   fireIfDue(reg);
+  void fetch("/api/push", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ tick: true }),
+  }).catch(() => undefined);
 }

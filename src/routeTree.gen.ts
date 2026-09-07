@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPresenceRouteImport } from './routes/api/presence'
+import { Route as ApiPushRouteImport } from './routes/api/push'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const ApiPresenceRoute = ApiPresenceRouteImport.update({
   path: '/api/presence',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPushRoute = ApiPushRouteImport.update({
+  id: '/api/push',
+  path: '/api/push',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/presence': typeof ApiPresenceRoute
+  '/api/push': typeof ApiPushRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/presence': typeof ApiPresenceRoute
+  '/api/push': typeof ApiPushRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api/presence': typeof ApiPresenceRoute
+  '/api/push': typeof ApiPushRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/presence'
+  fullPaths: '/' | '/api/presence' | '/api/push'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/presence'
-  id: '__root__' | '/' | '/api/presence'
+  to: '/' | '/api/presence' | '/api/push'
+  id: '__root__' | '/' | '/api/presence' | '/api/push'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiPresenceRoute: typeof ApiPresenceRoute
+  ApiPushRoute: typeof ApiPushRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPresenceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/push': {
+      id: '/api/push'
+      path: '/api/push'
+      fullPath: '/api/push'
+      preLoaderRoute: typeof ApiPushRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiPresenceRoute: ApiPresenceRoute,
+  ApiPushRoute: ApiPushRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

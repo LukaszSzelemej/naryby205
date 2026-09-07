@@ -99,20 +99,20 @@ export function App() {
         <MapCanvas filter={filter} onOpen={(id) => openSpot(id, "map")} visible={showMap} />
       </div>
 
+      {catalogError && (
+        <div className="absolute top-[max(3.5rem,env(safe-area-inset-top))] left-3 right-3 z-40 rounded-2xl bg-card p-3 ring-1 ring-danger/40">
+          <p className="text-sm font-medium">{catalogError}</p>
+          <button
+            type="button"
+            className="tap mt-2 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+            onClick={() => void retryCatalog()}
+          >
+            Spróbuj ponownie
+          </button>
+        </div>
+      )}
       {showMap && (
         <>
-          {catalogError && (
-            <div className="absolute top-[max(3.5rem,env(safe-area-inset-top))] left-3 right-3 z-30 rounded-2xl bg-card p-3 ring-1 ring-danger/40">
-              <p className="text-sm font-medium">{catalogError}</p>
-              <button
-                type="button"
-                className="tap mt-2 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
-                onClick={() => void retryCatalog()}
-              >
-                Spróbuj ponownie
-              </button>
-            </div>
-          )}
           <div className="chrome-in">
             <FishFab />
             <OnlinePill n={online} />

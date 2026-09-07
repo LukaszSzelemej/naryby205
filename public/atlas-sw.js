@@ -21,12 +21,19 @@ async function checkTarlo() {
   const res = await cache.match("/__tarlo.json");
   if (!res) return;
   const items = await res.json();
-  const hits = (items || []).filter((x) => x && x.days <= 1);
+  const hits = (items || []).filter((x) => {
+    const left = (x.end || 0) - Date.now();
+    return left >= 0 && left <= 36 * 60 * 60 * 1000;
+  });
   if (!hits.length) return;
-  const body =
-    hits[0].days === 0
-      ? hits.map((h) => `${h.name}: ochrona kończy się dziś`).join(". ")
-      : hits.map((h) => `${h.name}: ochrona kończy się jutro`).join(". ");
+  const today = hits.filter((x) => (x.end || 0) - Date.now() < 24 * 60 * 60 * 1000);
+  const body = (today.length ? today : hits)
+    .map((h) =>
+      (h.end || 0) - Date.now() < 24 * 60 * 60 * 1000
+        ? `${h.name}: ochrona kończy się dziś`
+        : `${h.name}: ochrona kończy się jutro`,
+    )
+    .join(". ");
   await self.registration.showNotification("Atlas wędkarski — tarło", {
     body,
     tag: "atlas-tarlo",
@@ -35,6 +42,22 @@ async function checkTarlo() {
 
 self.addEventListener("periodicsync", (e) => {
   if (e.tag === "atlas-tarlo") e.waitUntil(checkTarlo());
+});
+
+self.addEventListener("push", (e) => {
+  let data = {};
+  try {
+    data = e.data ? e.data.json() : {};
+  } catch {
+    data = { body: e.data ? e.data.text() : "" };
+  }
+  const title = data.title || "Atlas wędkarski";
+  e.waitUntil(
+    self.registration.showNotification(title, {
+      body: data.body || "Sygnał z atlasu",
+      tag: data.tag || "atlas",
+    }),
+  );
 });
 
 self.addEventListener("notificationclick", (e) => {

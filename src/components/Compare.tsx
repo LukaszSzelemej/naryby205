@@ -12,6 +12,7 @@ import {
   METHOD_LABEL,
   speciesName,
   waterTitle,
+  WATERS,
   WATERS_BY_ID,
 } from "@/lib/catalog";
 import { useAtlas } from "@/lib/store";
@@ -106,6 +107,8 @@ export function ComparePage() {
                 setQ("");
               }}
               dark
+              autoFocus
+              pool={aId ? WATERS.filter((w) => w.id !== aId) : WATERS}
             />
           </div>
         )}

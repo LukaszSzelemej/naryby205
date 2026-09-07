@@ -591,9 +591,9 @@ function TarloNotify() {
     <section className="rounded-2xl bg-card p-3 ring-1 ring-border">
       <h2 className="font-semibold">Powiadomienie o tarle</h2>
       <p className="mt-2 text-sm leading-relaxed text-muted">
-        Gdy okres ochronny kończy się dziś albo jutro, atlas może wysłać powiadomienie na telefon —
-        także bez otwartej karty, jeśli aplikacja jest zapisana na ekranie i system pozwala na
-        tło (Chrome na Androidzie).
+        Gdy okres ochronny kończy się dziś albo jutro, atlas wysyła powiadomienie.
+        Na iPhonie: zapisz na ekranie początkowym (Safari → Udostępnij), włącz zgody —
+        wtedy działa Web Push bez otwartej karty. Na Androidzie Chrome też w tle.
       </p>
       <button
         type="button"

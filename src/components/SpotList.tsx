@@ -18,6 +18,7 @@ import {
   SPECIES_BY_ID,
   matchesFilter,
   matchesObwod,
+  allObwody,
   sanitizeQuery,
   searchWaters,
   sortName,
@@ -102,6 +103,10 @@ export function SpotList({
   const setListSpecies = useAtlas((s) => s.setListSpecies);
   const listObwod = useAtlas((s) => s.listObwod);
   const setListObwod = useAtlas((s) => s.setListObwod);
+  const listNight = useAtlas((s) => s.listNight);
+  const setListNight = useAtlas((s) => s.setListNight);
+  const listBoats = useAtlas((s) => s.listBoats);
+  const setListBoats = useAtlas((s) => s.setListBoats);
   const letter = useAtlas((s) => s.letter);
   const setLetter = useAtlas((s) => s.setLetter);
   const sort = useAtlas((s) => s.sort);
@@ -167,9 +172,11 @@ export function SpotList({
         if (!passes(w, host, listKind, listFavOnly, favSet)) return false;
         if (listSpecies && !w.species.includes(listSpecies)) return false;
         if (!matchesObwod(w, listObwod)) return false;
+        if (listNight && !w.night) return false;
+        if (listBoats && !w.boats) return false;
         return true;
       }),
-    [tabPool, host, listKind, listFavOnly, favSet, listSpecies, listObwod],
+    [tabPool, host, listKind, listFavOnly, favSet, listSpecies, listObwod, listNight, listBoats],
   );
 
   const usedLetters = useMemo(() => {
@@ -178,6 +185,7 @@ export function SpotList({
     return set;
   }, [scoped]);
 
+  const obwody = useMemo(() => allObwody(tabPool), [tabPool, catalogReady]);
   const categoryCount = scoped.length;
 
   const pool = useMemo(() => {
@@ -208,7 +216,7 @@ export function SpotList({
   const [rise, setRise] = useState(true);
   useEffect(() => {
     setShown(letter || q.trim() ? pool.length : 160);
-  }, [host, listKind, listFavOnly, tabScope, q, letter, sort, pool.length, listSpecies, listObwod]);
+  }, [host, listKind, listFavOnly, tabScope, q, letter, sort, pool.length, listSpecies, listObwod, listNight, listBoats]);
   useEffect(() => {
     const t = window.setTimeout(() => setRise(false), 700);
     return () => window.clearTimeout(t);
@@ -243,7 +251,15 @@ export function SpotList({
 
   const isOn = (id: MapFilter) => {
     if (id === "all") {
-      return listKind === "all" && (host === tabScope || host === "all") && !listFavOnly;
+      return (
+        listKind === "all" &&
+        (host === tabScope || host === "all") &&
+        !listFavOnly &&
+        !listSpecies &&
+        !listObwod.trim() &&
+        !listNight &&
+        !listBoats
+      );
     }
     if (id === "ulubione") return listFavOnly;
     if (id === "pzw" || id === "specjalne" || id === "prywatne") return host === id;
@@ -252,8 +268,6 @@ export function SpotList({
 
   const clearFilters = () => {
     setListFilter("all");
-    setListSpecies(null);
-    setListObwod("");
     setLetter(null);
     setQ("");
   };
@@ -373,20 +387,53 @@ export function SpotList({
               </button>
             );
           })}
+          <button
+            type="button"
+            onClick={setListNight}
+            className={cn(
+              "tap min-h-10 rounded-full px-1 text-center text-xs font-semibold leading-tight ring-1",
+              listNight
+                ? "bg-card-2 text-foreground ring-white"
+                : "bg-card-2 text-foreground ring-border",
+            )}
+          >
+            Noc
+          </button>
+          <button
+            type="button"
+            onClick={setListBoats}
+            className={cn(
+              "tap min-h-10 rounded-full px-1 text-center text-xs font-semibold leading-tight ring-1",
+              listBoats
+                ? "bg-card-2 text-foreground ring-white"
+                : "bg-card-2 text-foreground ring-border",
+            )}
+          >
+            Łodzie
+          </button>
         </div>
-        <label className="mt-3 block text-xs text-muted">
-          Obwód PZW
-          <input
-            value={listObwod}
-            onChange={(e) => setListObwod(e.target.value.slice(0, 12))}
-            placeholder="np. 086 albo J-89"
-            inputMode="text"
-            autoCapitalize="characters"
-            autoCorrect="off"
-            spellCheck={false}
-            className="mt-1 min-h-11 w-full rounded-xl bg-card px-3 text-sm text-foreground ring-1 ring-border"
-          />
-        </label>
+        {obwody.length > 0 && (
+          <div className="mt-3 flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">
+            {obwody.map((o) => {
+              const on = listObwod === o;
+              return (
+                <button
+                  key={o}
+                  type="button"
+                  onClick={() => setListObwod(on ? "" : o)}
+                  className={cn(
+                    "tap min-h-8 rounded-full px-2.5 text-[11px] font-semibold tabular-nums ring-1",
+                    on
+                      ? "bg-card-2 text-foreground ring-white"
+                      : "bg-card-2 text-foreground ring-border",
+                  )}
+                >
+                  {o}
+                </button>
+              );
+            })}
+          </div>
+        )}
         <div className="mt-3 grid grid-cols-4 gap-1.5">
           {sorts.map((s) => (
             <button

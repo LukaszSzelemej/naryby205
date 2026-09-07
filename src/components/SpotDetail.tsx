@@ -18,6 +18,7 @@ import {
   waterTitle,
   hostGroupOf,
   watersOfHost,
+  isSpecial,
   safeHttpUrl,
   speciesName,
   WATERS_BY_ID,
@@ -40,6 +41,7 @@ import { cn, copyText, openExternal, phonesIn } from "@/lib/utils";
 import { EmptyState, FeedSkeleton, ScreenFrame, useFlash } from "@/components/States";
 import { fetchHydro, hydroRiverKey, type HydroRow } from "@/lib/hydro";
 import { satThumb } from "@/lib/tiles";
+import { shareWaterCard } from "@/lib/share-card";
 
 function toneClass(tone: "ok" | "primary" | "warn" | "danger") {
   if (tone === "ok") return "bg-ok/15 text-ok";
@@ -261,6 +263,18 @@ export function SpotDetail() {
         {w.summary && (
           <p className="mt-3 text-sm leading-relaxed text-foreground">{w.summary}</p>
         )}
+        {(w.kind === "komercyjne" || w.noKill || isSpecial(w)) && (
+          <div className="mt-3 rounded-2xl bg-card p-3 ring-1 ring-border">
+            <p className="text-sm font-semibold">
+              {w.noKill ? "No kill — catch & release" : "No kill / zabieranie"}
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-muted">
+              {w.noKill
+                ? "Ryba wraca do wody. Mata, podbierak i regulamin gospodarza obowiązują — potwierdź na miejscu."
+                : "Na łowiskach komercyjnych i specjalnych często obowiązuje no kill. Zabieranie ryb tylko jeśli regulamin gospodarza na to pozwala."}
+            </p>
+          </div>
+        )}
 
         {(w.featured && w.kind !== "komercyjne") && (
           <div className="relative mt-4 mx-1 overflow-hidden rounded-2xl ring-1 ring-border">
@@ -281,13 +295,32 @@ export function SpotDetail() {
           className="relative mt-4 mx-1 block aspect-[16/10] w-[calc(100%-0.5rem)] overflow-hidden rounded-2xl ring-1 ring-border"
         >
           <MiniMap lat={w.lat} lng={w.lng} full={false} color={color} />
+          {weather && (
+            <span className="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-0.5 text-[11px] text-white">
+              {Math.round(weather.pressure)} hPa · {windArrow(weather.windDir)}{" "}
+              {Math.round(weather.wind)} km/h
+            </span>
+          )}
         </button>
 
         <div className="mt-3 grid gap-2">
           <Box title="Wielkość i głębokość">
-            {[formatSize(w), formatDepth(w) ? `głębokość ${formatDepth(w)}` : null]
+            {[
+              formatSize(w),
+              formatDepth(w)
+                ? `głębokość ${formatDepth(w)}`
+                : w.kind === "jezioro" || w.kind === "zalew" || w.kind === "staw" || w.kind === "komercyjne"
+                  ? "brak pomiaru batymetrycznego"
+                  : null,
+            ]
               .filter(Boolean)
               .join(" · ") || "Brak danych"}
+            {!formatDepth(w) &&
+              (w.kind === "jezioro" || w.kind === "zalew") && (
+                <p className="mt-1 text-[11px] leading-snug text-faint">
+                  NMT GUGiK to model terenu, nie dna jeziora — nie zgadujemy metrów.
+                </p>
+              )}
           </Box>
           <Box title="Zarządzający">
             <button
@@ -384,7 +417,7 @@ export function SpotDetail() {
                 .slice()
                 .sort((a, b) => speciesName(a).localeCompare(speciesName(b), "pl"))
                 .map((id) => (
-                  <SpeciesChip key={id} id={id} okrag={w.okrag} />
+                  <SpeciesChip key={id} id={id} okrag={w.okrag} sea={w.kind === "morze"} />
                 ))}
             </div>
           </Box>
@@ -590,6 +623,13 @@ export function SpotDetail() {
                 {copiedPin ? "Skopiowano" : "Pinezka"}
               </ActionBtn>
             </div>
+            <button
+              type="button"
+              onClick={() => void shareWaterCard(w)}
+              className="tap mt-2 min-h-11 w-full rounded-full bg-card-2 text-sm font-semibold ring-1 ring-border"
+            >
+              Udostępnij kartę
+            </button>
           </Box>
           <Box title="Porównaj">
             <button

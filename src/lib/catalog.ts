@@ -621,12 +621,18 @@ export function matchesObwod(w: Water, q: string) {
   return (w.obwod ?? []).some((o) => foldPl(o) === n || foldPl(o).includes(n));
 }
 
-export function mdToNum(md: string) {
+export function allObwody(pool: Water[] = WATERS) {
+  const set = new Set<string>();
+  for (const w of pool) for (const o of w.obwod ?? []) set.add(o);
+  return [...set].sort((a, b) => a.localeCompare(b, "pl", { numeric: true }));
+}
+
+function mdToNum(md: string) {
   const [m, d] = md.split("-").map(Number);
   return (m ?? 1) * 100 + (d ?? 1);
 }
 
-export function isClosedNow(
+function isClosedNow(
   from: string,
   to: string,
   at: Date = new Date(),
@@ -637,7 +643,7 @@ export function isClosedNow(
   return a <= b ? n >= a && n <= b : n >= a || n <= b;
 }
 
-export function formatPeriod(from: string, to: string) {
+function formatPeriod(from: string, to: string) {
   return `${from.replace("-", ".")} – ${to.replace("-", ".")}`;
 }
 
@@ -646,17 +652,17 @@ export function waterTitle(w: Water) {
   return w.name;
 }
 
-export function protectionOf(sp: Species, at: Date = new Date()) {
+export function protectionOf(sp: Species, at: Date = new Date(), atSea = false) {
   if (sp.seaBan && !sp.closed.length) {
     return {
       hasPeriod: true,
-      active: true,
+      active: atSea,
       label: "Zakaz połowu na morzu",
     };
   }
   const inland = sp.closed.map((c) => ({ ...c, sea: false }));
-  const sea = (sp.seaClosed ?? []).map((c) => ({ ...c, sea: true }));
-  const all = [...inland, ...sea];
+  const marine = (sp.seaClosed ?? []).map((c) => ({ ...c, sea: true }));
+  const all = [...inland, ...marine];
   if (!all.length) {
     return {
       hasPeriod: false,
@@ -688,7 +694,7 @@ export const OKREG_FORK: Record<string, Record<string, { min: number; max?: numb
   },
 };
 
-export function formatProtect(sp: Species, okrag?: string) {
+export function formatProtect(sp: Species, okrag?: string, sea = false) {
   const fork = okrag ? OKREG_FORK[okrag]?.[sp.id] : undefined;
   const min = fork?.min ?? sp.minCm;
   const max = fork?.max;
@@ -706,14 +712,15 @@ export function formatProtect(sp: Species, okrag?: string) {
       : sp.dailyLimit != null
         ? `${sp.dailyLimit} szt./doba`
         : "brak limitu sztuk";
-  return { size, limit, period: protectionOf(sp), fork: Boolean(fork) };
+  return { size, limit, period: protectionOf(sp, new Date(), sea), fork: Boolean(fork) };
 }
 
 export function closedEndingDays(sp: Species, at: Date = new Date()): number | null {
-  if (!sp.closed.length) return null;
+  const periods = [...sp.closed, ...(sp.seaClosed ?? [])];
+  if (!periods.length) return null;
   const y = at.getFullYear();
   let best: number | null = null;
-  for (const c of sp.closed) {
+  for (const c of periods) {
     if (!isClosedNow(c.from, c.to, at)) continue;
     const [tm, td] = c.to.split("-").map(Number);
     let end = new Date(y, (tm ?? 1) - 1, td ?? 1, 23, 59, 59);
@@ -737,15 +744,15 @@ export const MAP_SPECIES = [
   "bolen",
 ] as const;
 
-export function protectHint(id: string, okrag?: string) {
+export function protectHint(id: string, okrag?: string, sea = false) {
   const sp = SPECIES_BY_ID[id];
   if (!sp) return "";
-  const p = formatProtect(sp, okrag);
+  const p = formatProtect(sp, okrag, sea);
   const size =
     p.size === "brak wymiaru"
       ? "Brak wymiaru ochronnego"
       : p.size === "zakaz zabierania"
         ? "Zakaz zabierania"
         : `Wymiar ochronny: ${p.size}`;
-  return `${size} · ${p.limit}`;
+  return `${size} · ${p.limit}${p.period.active ? " · ochrona trwa" : ""}`;
 }

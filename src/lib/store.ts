@@ -33,12 +33,13 @@ type AtlasState = {
   mapNight: boolean;
   mapBoats: boolean;
   mapNonce: number;
-  listFilter: MapFilter;
   listHost: MapFilter;
   listKind: MapFilter;
   listFavOnly: boolean;
   listSpecies: string | null;
   listObwod: string;
+  listNight: boolean;
+  listBoats: boolean;
   moreOpen: boolean;
   satellite: boolean;
   showCoords: boolean;
@@ -82,6 +83,8 @@ type AtlasState = {
   setMapBoats: () => void;
   setListSpecies: (id: string | null) => void;
   setListObwod: (q: string) => void;
+  setListNight: () => void;
+  setListBoats: () => void;
   openCompare: (id: string) => void;
   setCompareB: (id: string) => void;
   setListFilter: (f: MapFilter) => void;
@@ -126,12 +129,13 @@ export const useAtlas = create<AtlasState>((set, get) => ({
   mapNight: false,
   mapBoats: false,
   mapNonce: 0,
-  listFilter: "all",
   listHost: "all",
   listKind: "all",
   listFavOnly: false,
   listSpecies: null,
   listObwod: "",
+  listNight: false,
+  listBoats: false,
   moreOpen: false,
   satellite: false,
   showCoords: false,
@@ -238,6 +242,8 @@ export const useAtlas = create<AtlasState>((set, get) => ({
       letter: null,
     })),
   setListObwod: (listObwod) => set({ listObwod, letter: null }),
+  setListNight: () => set((s) => ({ listNight: !s.listNight, letter: null })),
+  setListBoats: () => set((s) => ({ listBoats: !s.listBoats, letter: null })),
   openCompare: (id) =>
     set((s) => ({
       prevScreen: s.screen === "spot" ? s.prevScreen : s.screen,
@@ -255,7 +261,6 @@ export const useAtlas = create<AtlasState>((set, get) => ({
       const locked = tabHost(s.screen);
       if (id === "all") {
         return {
-          listFilter: "all",
           listHost: locked,
           listKind: "all",
           listFavOnly: false,
@@ -263,12 +268,13 @@ export const useAtlas = create<AtlasState>((set, get) => ({
           listQuery: "",
           listSpecies: null,
           listObwod: "",
+          listNight: false,
+          listBoats: false,
         };
       }
       if (id === "ulubione") {
         return {
           listFavOnly: !s.listFavOnly,
-          listFilter: !s.listFavOnly ? "ulubione" : s.listKind !== "all" ? s.listKind : s.listHost,
           letter: null,
           listQuery: "",
         };
@@ -278,7 +284,6 @@ export const useAtlas = create<AtlasState>((set, get) => ({
         const host = locked !== "all" && id !== "prywatne" ? locked : nextHost;
         return {
           listHost: host,
-          listFilter: s.listKind !== "all" ? s.listKind : host,
           letter: null,
           listQuery: "",
         };
@@ -287,12 +292,11 @@ export const useAtlas = create<AtlasState>((set, get) => ({
         const nextKind = s.listKind === id ? "all" : id;
         return {
           listKind: nextKind,
-          listFilter: nextKind !== "all" ? nextKind : s.listHost,
           letter: null,
           listQuery: "",
         };
       }
-      return { listFilter: id, letter: null, listQuery: "" };
+      return { letter: null, listQuery: "" };
     }),
   toggleMore: () => set((s) => ({ moreOpen: !s.moreOpen })),
   setMoreOpen: (moreOpen) => set({ moreOpen }),
@@ -342,12 +346,13 @@ export const useAtlas = create<AtlasState>((set, get) => ({
     set({
       prevScreen: get().screen,
       screen,
-      listFilter: "all",
       listHost: tabHost(screen),
       listKind: "all",
       listFavOnly: false,
       listSpecies: null,
       listObwod: "",
+      listNight: false,
+      listBoats: false,
       letter: null,
       listQuery: "",
       sort: "az",

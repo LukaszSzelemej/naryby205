@@ -434,45 +434,45 @@ export function FilterBar() {
                 </button>
               );
             })}
-            <button
-              type="button"
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation();
-                setMapNight();
-              }}
-              className={cn(
-                "filter-chip min-h-10 w-full rounded-full px-1 text-xs font-semibold leading-tight ring-1 sm:px-2",
-                mapNight
-                  ? "bg-card-2 text-foreground ring-white"
-                  : "bg-card-2 text-foreground ring-border",
-              )}
-            >
-              Noc
-            </button>
-            <button
-              type="button"
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation();
-                setMapBoats();
-              }}
-              className={cn(
-                "filter-chip min-h-10 w-full rounded-full px-1 text-xs font-semibold leading-tight ring-1 sm:px-2",
-                mapBoats
-                  ? "bg-card-2 text-foreground ring-white"
-                  : "bg-card-2 text-foreground ring-border",
-              )}
-            >
-              Łodzie
-            </button>
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-1.5 min-[360px]:grid-cols-4">
+      <div className="grid grid-cols-3 gap-1.5">
         <Chip id="location" label="Lokalizacja" color={FILTER_META.location.color} />
         <Chip id="all" label="Wszystkie" color={FILTER_META.all.color} />
         <Chip id="specjalne" label="Specjalne" color={FILTER_META.specjalne.color} />
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            setMapNight();
+          }}
+          className={cn(
+            "filter-chip min-h-10 w-full rounded-full px-1 text-xs font-semibold leading-tight ring-1 sm:px-2",
+            mapNight
+              ? "bg-card-2 text-foreground ring-white"
+              : "bg-card-2 text-foreground ring-border",
+          )}
+        >
+          Noc
+        </button>
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            setMapBoats();
+          }}
+          className={cn(
+            "filter-chip min-h-10 w-full rounded-full px-1 text-xs font-semibold leading-tight ring-1 sm:px-2",
+            mapBoats
+              ? "bg-card-2 text-foreground ring-white"
+              : "bg-card-2 text-foreground ring-border",
+          )}
+        >
+          Łodzie
+        </button>
         <button
           type="button"
           onClick={toggleMore}
@@ -481,9 +481,15 @@ export function FilterBar() {
           {more ? "Mniej" : "Więcej"}
         </button>
       </div>
-      {mapSpecies && (
+      {(mapSpecies || mapNight || mapBoats) && (
         <p className="text-[11px] text-muted">
-          Mapa: {SPECIES_BY_ID[mapSpecies]?.name ?? mapSpecies}
+          Mapa: {[
+            mapSpecies ? SPECIES_BY_ID[mapSpecies]?.name ?? mapSpecies : null,
+            mapNight ? "noc" : null,
+            mapBoats ? "łodzie" : null,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
         </p>
       )}
     </div>
@@ -869,14 +875,22 @@ export function ActionBtn({
   );
 }
 
-export function SpeciesChip({ id, okrag }: { id: string; okrag?: string }) {
+export function SpeciesChip({
+  id,
+  okrag,
+  sea,
+}: {
+  id: string;
+  okrag?: string;
+  sea?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const [flip, setFlip] = useState(false);
   const box = useRef<HTMLSpanElement>(null);
   const sp = SPECIES_BY_ID[id];
   const name = sp?.name ?? speciesName(id);
-  const p = sp ? formatProtect(sp, okrag) : null;
-  const hint = protectHint(id, okrag);
+  const p = sp ? formatProtect(sp, okrag, sea) : null;
+  const hint = protectHint(id, okrag, sea);
 
   useEffect(() => {
     if (!open) return;

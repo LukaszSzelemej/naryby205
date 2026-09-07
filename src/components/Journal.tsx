@@ -42,6 +42,7 @@ function WaterPicker({
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(!selected);
 
+  const catalogReady = useAtlas((s) => s.catalogReady);
   const hits = useMemo(() => {
     const query = q.trim();
     if (query) return searchWaters(sanitizeQuery(query)).slice(0, 12);
@@ -56,7 +57,7 @@ function WaterPicker({
     });
     ranked.sort((a, b) => b.score - a.score);
     return ranked.slice(0, 8).map((x) => x.w);
-  }, [q, geo, favs]);
+  }, [q, geo, favs, catalogReady]);
 
   return (
     <div className="block text-xs text-muted">

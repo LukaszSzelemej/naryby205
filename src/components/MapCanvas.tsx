@@ -12,6 +12,7 @@ import { OSM_URL, OSM_FALLBACK_URL, SAT_URL } from "@/lib/tiles";
 import { useAtlas } from "@/lib/store";
 import type { MapFilter, Water } from "@/lib/types";
 import { flyToUser, resetView } from "@/lib/map-api";
+import { fetchWeather, windArrow } from "@/lib/weather";
 import { cn } from "@/lib/utils";
 
 const leafletReady =
@@ -456,11 +457,20 @@ export function MapCanvas({
         hereRef.current = null;
       }
       if (!geo) return;
+      let wx = "";
+      try {
+        const w = await fetchWeather(geo.lat, geo.lng);
+        if (disposed) return;
+        wx = `${Math.round(w.pressure)} hPa · ${windArrow(w.windDir)} ${Math.round(w.wind)} km/h`;
+      } catch {
+        wx = "";
+      }
       const icon = L.divIcon({
         className: "fish-marker",
         html: `<div style="position:relative;width:18px;height:18px">
           <div class="here-ring" style="position:absolute;inset:-10px;border-radius:999px;border:2px solid #22c55e"></div>
           <div style="width:14px;height:14px;margin:2px;border-radius:999px;background:#22c55e;border:2px solid white;box-shadow:0 0 0 1px #14532d55"></div>
+          ${wx ? `<div style="position:absolute;left:22px;top:-4px;white-space:nowrap;border-radius:999px;background:rgba(8,12,16,.82);color:#f4f7f5;font:600 11px/1.2 system-ui,sans-serif;padding:4px 8px;box-shadow:0 1px 4px #0006">${wx}</div>` : ""}
         </div>`,
         iconSize: [18, 18],
         iconAnchor: [9, 9],

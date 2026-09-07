@@ -33,7 +33,8 @@ import {
 import { zoomBy, resetView, flyToSpot, flyToUser } from "@/lib/map-api";
 import { useAtlas } from "@/lib/store";
 import type { MapFilter, Screen, Water, WeatherNow } from "@/lib/types";
-import { weatherIcon, windArrow, pressureTrendLabel } from "@/lib/weather";
+import { weatherIcon, windArrow, pressureTrendLabel, windFromLabel } from "@/lib/weather";
+import { requestHeadingPermission, useCompassHeading, useSmoothAngle } from "@/lib/heading";
 import { cn, copyText, openExternal, splitPhoneParts, telHref, formatPlPhone } from "@/lib/utils";
 import { Meter, useFlash } from "@/components/States";
 
@@ -81,6 +82,55 @@ function locateOnMap() {
   requestLocation({ reveal: true });
 }
 
+function MapCompass({ windDir, windKmh }: { windDir: number; windKmh: number }) {
+  const setScreen = useAtlas((s) => s.setScreen);
+  const { heading, live } = useCompassHeading();
+  const rose = useSmoothAngle(-heading);
+  const from = windFromLabel(windDir);
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        if (!live && typeof (DeviceOrientationEvent as unknown as { requestPermission?: unknown }).requestPermission === "function") {
+          void requestHeadingPermission();
+          return;
+        }
+        setScreen("weather");
+      }}
+      className={cn("map-compass pointer-events-auto tap ring-1 ring-border backdrop-blur-sm", !live && "is-wait")}
+      aria-label={`Kompas. Północ, wschód, południe, zachód. Wiatr z ${from}, ${Math.round(windKmh)} kilometrów na godzinę${live ? "" : ". Dotknij, aby włączyć orientację telefonu"}`}
+      title="N północ · E wschód · S południe · W zachód"
+    >
+      <svg viewBox="0 0 80 80" width="52" height="52" aria-hidden>
+        <circle cx="40" cy="40" r="37.5" className="map-compass-ring" />
+        <path d="M40 3.5 43.2 9.2 40 7.6 36.8 9.2Z" className="map-compass-notch" />
+        <g className="map-compass-rose" style={{ transform: `rotate(${rose}deg)`, transformOrigin: "40px 40px" }}>
+          <path d="M40 12v6M40 62v6M12 40h6M62 40h6" className="map-compass-tick" />
+          <path d="M18.8 18.8l3.6 3.6M57.6 18.8l-3.6 3.6M18.8 61.2l3.6-3.6M57.6 61.2l-3.6-3.6" className="map-compass-tick-sm" />
+          <text x="40" y="16" className="map-compass-n" textAnchor="middle">
+            N
+          </text>
+          <text x="66" y="43.2" className="map-compass-letter" textAnchor="middle">
+            E
+          </text>
+          <text x="40" y="70" className="map-compass-letter" textAnchor="middle">
+            S
+          </text>
+          <text x="14" y="43.2" className="map-compass-letter" textAnchor="middle">
+            W
+          </text>
+          <g className="map-compass-wind" style={{ transform: `rotate(${windDir}deg)`, transformOrigin: "40px 40px" }}>
+            <g className="compass-wind-nudge">
+              <path d="M40 18 45.6 44 40 39.2 34.4 44Z" />
+              <path d="M40 39v16" />
+            </g>
+          </g>
+        </g>
+      </svg>
+    </button>
+  );
+}
+
 export function OnlinePill({
   n,
   weather,
@@ -98,15 +148,18 @@ export function OnlinePill({
         </span>
       </div>
       {weather && (
-        <button
-          type="button"
-          onClick={() => setScreen("weather")}
-          className="pointer-events-auto tap flex min-h-8 items-center gap-1.5 rounded-full bg-background/75 px-3 py-1 text-xs font-medium text-foreground ring-1 ring-border backdrop-blur-sm"
-          aria-label={`Wiatr ${windArrow(weather.windDir)} ${Math.round(weather.wind)} kilometrów na godzinę`}
-        >
-          <span aria-hidden>{windArrow(weather.windDir)}</span>
-          <span className="tabular-nums">{Math.round(weather.wind)} km/h</span>
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={() => setScreen("weather")}
+            className="pointer-events-auto tap flex min-h-8 items-center gap-1.5 rounded-full bg-background/75 px-3 py-1 text-xs font-medium text-foreground ring-1 ring-border backdrop-blur-sm"
+            aria-label={`Wiatr z ${windFromLabel(weather.windDir)} ${Math.round(weather.wind)} kilometrów na godzinę`}
+          >
+            <span aria-hidden>{windArrow(weather.windDir)}</span>
+            <span className="tabular-nums">{Math.round(weather.wind)} km/h</span>
+          </button>
+          <MapCompass windDir={weather.windDir} windKmh={weather.wind} />
+        </>
       )}
     </div>
   );

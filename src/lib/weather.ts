@@ -157,3 +157,17 @@ export function windArrow(deg: number) {
   const dirs = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
   return dirs[Math.round(deg / 45) % 8];
 }
+
+export function windFromLabel(deg: number) {
+  const dirs = [
+    "północy",
+    "północnego wschodu",
+    "wschodu",
+    "południowego wschodu",
+    "południa",
+    "południowego zachodu",
+    "zachodu",
+    "północnego zachodu",
+  ];
+  return dirs[Math.round(deg / 45) % 8];
+}

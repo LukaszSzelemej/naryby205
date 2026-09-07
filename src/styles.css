@@ -364,6 +364,82 @@
   align-items: center;
   gap: 0.38rem;
 }
+.map-compass {
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 9999px;
+  display: grid;
+  place-items: center;
+  color: var(--color-foreground);
+  background: color-mix(in srgb, var(--color-background) 78%, transparent);
+  box-shadow: 0 1px 2px #3c40434d;
+  animation: pressure-pop 0.32s var(--ease-out) both;
+}
+.map-compass.is-wait {
+  opacity: 0.82;
+}
+.map-compass svg {
+  display: block;
+}
+.map-compass-ring {
+  fill: color-mix(in srgb, var(--color-card) 70%, transparent);
+  stroke: var(--color-border);
+  stroke-width: 1.15;
+}
+.map-compass-notch {
+  fill: var(--color-primary);
+}
+.map-compass-n {
+  fill: var(--color-danger);
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--font-sans);
+}
+.map-compass-letter {
+  fill: var(--color-muted);
+  font-size: 8px;
+  font-weight: 700;
+  font-family: var(--font-sans);
+}
+.map-compass-tick {
+  stroke: var(--color-faint);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  fill: none;
+}
+.map-compass-tick-sm {
+  stroke: var(--color-faint);
+  stroke-width: 1;
+  opacity: 0.5;
+  fill: none;
+}
+.map-compass-rose,
+.map-compass-wind {
+  transform-box: view-box;
+  transform-origin: 40px 40px;
+  transition: transform 180ms var(--ease-out);
+}
+.map-compass-wind {
+  fill: var(--color-primary);
+  stroke: var(--color-primary);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.compass-wind-nudge {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: 1.15s ease-in-out infinite compass-nudge;
+}
+@keyframes compass-nudge {
+  0%,
+  100% {
+    transform: translateY(1.2px);
+  }
+  50% {
+    transform: translateY(-2.2px);
+  }
+}
 .pressure-mark {
   color: var(--color-primary-foreground);
 }
@@ -949,6 +1025,8 @@
   .map-btn-weather,
   .map-btn-pressure,
   .pressure-arrow,
+  .map-compass,
+  .compass-wind-nudge,
   .here-ring,
   .page-enter,
   .chrome-in,
@@ -973,7 +1051,9 @@
   .water-card,
   .star-btn,
   .down-item,
-  .map-btn {
+  .map-btn,
+  .map-compass-rose,
+  .map-compass-wind {
     transition: none !important;
   }
   .splash-fill {

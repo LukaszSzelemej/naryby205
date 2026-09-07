@@ -16,7 +16,7 @@ export const COOKIES_TEXT = {
     },
     {
       t: "Lokalizacja",
-      d: "tylko na tym urządzeniu, do mapy i odległości — po zgodzie na pasku na mapie. Nie wysyłamy jej na nasz serwer. Odmowę cofniesz ikoną lokalizacji.",
+      d: "tylko na tym urządzeniu, do mapy, odległości i kompasu — po zgodzie na pasku na mapie. Kierunek z GPS gdy się ruszasz oraz z czujnika orientacji telefonu. Nie wysyłamy jej na nasz serwer. Odmowę cofniesz ikoną lokalizacji.",
     },
     {
       t: "Online",

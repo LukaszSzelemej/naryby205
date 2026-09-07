@@ -12,5 +12,6 @@ artifacts/
 dist/
 screenshots/*.png
 screenshots/*.jpg
+screenshots/*.json
 
 .project_id

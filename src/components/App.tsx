@@ -15,9 +15,10 @@ import {
 import { SpotList } from "@/components/SpotList";
 import { SpotDetail } from "@/components/SpotDetail";
 import { Journal } from "@/components/Journal";
-import { InstallPage, SpeciesWaters, Toolkit } from "@/components/Toolkit";
+import { InstallPage, SpeciesWaters, HostWaters, Toolkit } from "@/components/Toolkit";
 import { WeatherPage } from "@/components/WeatherPage";
-import { MAP_CENTER } from "@/lib/catalog";
+import { ComparePage } from "@/components/Compare";
+import { MAP_CENTER, retryCatalog } from "@/lib/catalog";
 import { startPresence } from "@/lib/presence";
 import { useAtlas } from "@/lib/store";
 import { fetchWeather } from "@/lib/weather";
@@ -29,6 +30,7 @@ import { cn } from "@/lib/utils";
 export function App() {
   const screen = useAtlas((s) => s.screen);
   const filter = useAtlas((s) => s.filter);
+  const catalogError = useAtlas((s) => s.catalogError);
   const openSpot = useAtlas((s) => s.openSpot);
   const geo = useAtlas((s) => s.geo);
   const [online, setOnline] = useState(1);
@@ -99,6 +101,18 @@ export function App() {
 
       {showMap && (
         <>
+          {catalogError && (
+            <div className="absolute top-[max(3.5rem,env(safe-area-inset-top))] left-3 right-3 z-30 rounded-2xl bg-card p-3 ring-1 ring-danger/40">
+              <p className="text-sm font-medium">{catalogError}</p>
+              <button
+                type="button"
+                className="tap mt-2 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+                onClick={() => void retryCatalog()}
+              >
+                Spróbuj ponownie
+              </button>
+            </div>
+          )}
           <div className="chrome-in">
             <FishFab />
             <OnlinePill n={online} />
@@ -124,9 +138,11 @@ export function App() {
       {screen === "journal" && <Journal />}
       {screen === "kit" && <Toolkit />}
       {screen === "species-waters" && <SpeciesWaters />}
+      {screen === "host-waters" && <HostWaters />}
       {screen === "spot" && <SpotDetail />}
       {screen === "weather" && <WeatherPage weather={weather} />}
       {screen === "install" && <InstallPage />}
+      {screen === "compare" && <ComparePage />}
       <DownMenu />
     </div>
   );

@@ -14,6 +14,10 @@ import {
   linkLabel,
   managerOf,
   METHOD_LABEL,
+  nearestWaters,
+  waterTitle,
+  hostGroupOf,
+  watersOfHost,
   safeHttpUrl,
   speciesName,
   WATERS_BY_ID,
@@ -34,6 +38,8 @@ import { useAtlas } from "@/lib/store";
 import type { WeatherNow } from "@/lib/types";
 import { cn, copyText, openExternal, phonesIn } from "@/lib/utils";
 import { EmptyState, FeedSkeleton, ScreenFrame, useFlash } from "@/components/States";
+import { fetchHydro, hydroRiverKey, type HydroRow } from "@/lib/hydro";
+import { satThumb } from "@/lib/tiles";
 
 function toneClass(tone: "ok" | "primary" | "warn" | "danger") {
   if (tone === "ok") return "bg-ok/15 text-ok";
@@ -125,8 +131,12 @@ export function SpotDetail() {
   const favs = useAtlas((s) => s.favorites);
   const toggleFav = useAtlas((s) => s.toggleFav);
   const journal = useAtlas((s) => s.journal);
+  const openHost = useAtlas((s) => s.openHost);
+  const openCompare = useAtlas((s) => s.openCompare);
+  const openSpot = useAtlas((s) => s.openSpot);
   const w = id ? WATERS_BY_ID[id] : undefined;
   const [weather, setWeather] = useState<WeatherNow | null>(null);
+  const [hydro, setHydro] = useState<HydroRow[] | null>(null);
   const [copiedCoords, flashCoords] = useFlash(1400);
   const [copiedPin, flashPin] = useFlash(1400);
 
@@ -136,6 +146,13 @@ export function SpotDetail() {
     fetchWeather(w.lat, w.lng).then((d) => {
       if (live) setWeather(d);
     });
+    if (hydroRiverKey(w)) {
+      fetchHydro(w).then((rows) => {
+        if (live) setHydro(rows);
+      });
+    } else {
+      setHydro(null);
+    }
     return () => {
       live = false;
     };
@@ -159,6 +176,8 @@ export function SpotDetail() {
   }
 
   const mgr = managerOf(w);
+  const host = hostGroupOf(w);
+  const hostCount = watersOfHost(host.key).length;
   const dist = geo ? formatDistance(haversineKm(geo.lat, geo.lng, w.lat, w.lng)) : null;
   const on = favs.includes(w.id);
   const web = safeHttpUrl(w.website) ?? safeHttpUrl(mgr.website);
@@ -239,6 +258,22 @@ export function SpotDetail() {
         </header>
 
         <p className="mt-3 text-xs leading-relaxed text-faint">{DISCLAIMER}</p>
+        {w.summary && (
+          <p className="mt-3 text-sm leading-relaxed text-foreground">{w.summary}</p>
+        )}
+
+        {(w.featured && w.kind !== "komercyjne") && (
+          <div className="relative mt-4 mx-1 overflow-hidden rounded-2xl ring-1 ring-border">
+            <img
+              src={satThumb(w.lat, w.lng)}
+              alt=""
+              className="aspect-[16/9] w-full object-cover"
+            />
+            <p className="absolute bottom-1.5 left-2 rounded-full bg-black/55 px-2 py-0.5 text-[10px] text-white">
+              Ortofoto Esri — brzeg i tafla
+            </p>
+          </div>
+        )}
 
         <button
           type="button"
@@ -255,7 +290,18 @@ export function SpotDetail() {
               .join(" · ") || "Brak danych"}
           </Box>
           <Box title="Zarządzający">
-            <p className="font-medium">{mgr.name}</p>
+            <button
+              type="button"
+              onClick={() => openHost(host.key)}
+              className="tap block w-full text-left"
+            >
+              <p className="font-medium text-primary underline decoration-primary/40 underline-offset-2">
+                {mgr.name}
+              </p>
+              <p className="mt-0.5 text-xs text-muted">
+                {hostCount} {hostCount === 1 ? "łowisko" : hostCount < 5 ? "łowiska" : "łowisk"} tego gospodarza
+              </p>
+            </button>
             {mgr.priceNote && (
               <p className="mt-1 text-xs text-muted">
                 <PhoneText text={mgr.priceNote} />
@@ -338,7 +384,7 @@ export function SpotDetail() {
                 .slice()
                 .sort((a, b) => speciesName(a).localeCompare(speciesName(b), "pl"))
                 .map((id) => (
-                  <SpeciesChip key={id} id={id} />
+                  <SpeciesChip key={id} id={id} okrag={w.okrag} />
                 ))}
             </div>
           </Box>
@@ -372,6 +418,20 @@ export function SpotDetail() {
               Parking: <PhoneText text={w.parking || "Przy drodze / lesie"} />
             </p>
           </Box>
+          {hydro && hydro.length > 0 && (
+            <Box title="Stan wody IMGW">
+              <ul className="space-y-1 text-xs">
+                {hydro.map((h) => (
+                  <li key={h.stacja}>
+                    <span className="font-medium">{h.stacja}</span>
+                    {h.cm != null ? ` · ${h.cm} cm` : " · brak odczytu"}
+                    {h.at ? ` · ${h.at.replace("T", " ").slice(0, 16)}` : ""}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-[10px] text-faint">Dane: IMGW-PIB, hydro.imgw.pl</p>
+            </Box>
+          )}
         </div>
 
         {weather ? (
@@ -531,8 +591,36 @@ export function SpotDetail() {
               </ActionBtn>
             </div>
           </Box>
+          <Box title="Porównaj">
+            <button
+              type="button"
+              onClick={() => openCompare(w.id)}
+              className="tap min-h-11 w-full rounded-full bg-card-2 text-sm font-semibold ring-1 ring-border"
+            >
+              Porównaj z innym łowiskiem
+            </button>
+          </Box>
         </div>
         <p className="mt-5 text-center text-xs leading-relaxed text-faint">{DISCLAIMER}</p>
+        <section className="mt-4">
+          <h2 className="text-sm font-semibold">W pobliżu</h2>
+          <ul className="mt-2 space-y-1 rounded-2xl bg-card p-3 ring-1 ring-border">
+            {nearestWaters(w, 5).map(({ w: n, km }) => (
+              <li key={n.id}>
+                <button
+                  type="button"
+                  onClick={() => openSpot(n.id)}
+                  className="tap flex w-full items-baseline justify-between gap-2 py-1 text-left text-sm"
+                >
+                  <span className="min-w-0 truncate font-medium">{waterTitle(n)}</span>
+                  <span className="shrink-0 text-xs tabular-nums text-muted">
+                    {formatDistance(km)}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
       </div>
     </ScreenFrame>
   );

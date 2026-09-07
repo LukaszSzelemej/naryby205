@@ -167,17 +167,7 @@ function catalogStaticPlugin(): Plugin {
           res.end(body);
         };
         if (file === "all.json") {
-          try {
-            const idx = JSON.parse(readFileSync(join(dir, "index.json"), "utf8")) as {
-              shards: string[];
-            };
-            const rows = idx.shards.flatMap((name) =>
-              JSON.parse(readFileSync(join(dir, name), "utf8")),
-            );
-            send(JSON.stringify(rows));
-          } catch {
-            send('{"error":"catalog"}', 500);
-          }
+          send('{"error":"no all.json"}', 404);
           return;
         }
         if (!/^(index|[0-9]{2})\.json$/.test(file)) {

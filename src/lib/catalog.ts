@@ -14,6 +14,7 @@ export { CUPLINK, INSTAGRAM, SITE_URL, VERSION } from "@/lib/brand";
 /** Filled by loadCatalog() during splash — never import the 644KB JSON into the bundle. */
 export const WATERS: Water[] = [];
 export const WATERS_BY_ID: Record<string, Water> = {};
+export const NAME_COUNTS: Record<string, number> = {};
 export const SPECIES = speciesJson as Species[];
 export const SPECIES_BY_ID: Record<string, Species> = Object.fromEntries(
   SPECIES.map((s) => [s.id, s]),
@@ -114,7 +115,6 @@ export const ALPHABET: string[][] = [
   ["Ó", "P", "Q", "R", "S", "Ś", "T", "U", "V", "W"],
   ["X", "Y", "Z", "Ź", "Ż"],
 ];
-export const LETTERS = ALPHABET.flat();
 
 const PREFIX = /^(jezioro|rzeka|stawy|staw|łowisko|zalew|zbiornik|kanały|kanał)\s+/i;
 
@@ -219,9 +219,12 @@ function fillWaters(rows: Water[]) {
   if (WATERS.length) return;
   for (const w of rows) {
     if (w.species?.length) w.species = [...new Set(w.species)];
+    w.obwod = parseObwod(w);
   }
   WATERS.push(...rows);
   for (const w of rows) WATERS_BY_ID[w.id] = w;
+  for (const k of Object.keys(NAME_COUNTS)) delete NAME_COUNTS[k];
+  for (const w of rows) NAME_COUNTS[w.name] = (NAME_COUNTS[w.name] ?? 0) + 1;
   void import("@/lib/store").then(({ useAtlas }) => {
     useAtlas.setState((s) => ({
       catalogReady: true,
@@ -283,9 +286,20 @@ export function loadCatalog() {
     void import("@/lib/store").then(({ useAtlas }) => {
       useAtlas.setState({ catalogError: "Nie udało się wczytać katalogu." });
     });
-    throw err;
   });
   return catalogLoading;
+}
+
+export function retryCatalog() {
+  catalogLoading = null;
+  WATERS.length = 0;
+  for (const k of Object.keys(WATERS_BY_ID)) delete WATERS_BY_ID[k];
+  for (const k of Object.keys(NAME_COUNTS)) delete NAME_COUNTS[k];
+  hostKindCache.clear();
+  void import("@/lib/store").then(({ useAtlas }) => {
+    useAtlas.setState({ catalogError: null, catalogReady: false });
+  });
+  return loadCatalog();
 }
 
 export function managerOf(w: Water): Manager {
@@ -409,8 +423,11 @@ export function searchWaters(query: string, pool: Water[] = WATERS): Water[] {
   return pool
     .map((w) => {
       const names = [w.name, ...(w.aliases ?? [])].map((x) => foldPl(x));
+      const gmina = foldPl(w.gmina ?? "");
+      const okrag = foldPl(w.okrag ?? "");
+      const powiat = foldPl(w.powiat ?? "");
       const hay = foldPl(
-        [w.powiat, w.gmina ?? "", w.okrag, w.kind, ...w.species].join(" "),
+        [w.powiat, w.gmina ?? "", w.okrag, w.kind, ...(w.obwod ?? []), ...w.species].join(" "),
       );
       let score = 0;
       if (names.some((x) => x === n)) score = 100;
@@ -419,7 +436,14 @@ export function searchWaters(query: string, pool: Water[] = WATERS): Water[] {
         names.some((x) => x.startsWith(n) || foldPl(strip(x)).startsWith(n))
       )
         score = 80;
+      else if (gmina === n || okrag === n || powiat === n) score = 70;
       else if (names.some((x) => x.includes(n))) score = 60;
+      else if (
+        (gmina && gmina.includes(n)) ||
+        (okrag && okrag.includes(n)) ||
+        (powiat && powiat.includes(n))
+      )
+        score = 50;
       else if (hay.includes(n)) score = 20;
       if (w.featured && score >= 60) score += 8;
       return { w, score };
@@ -473,15 +497,6 @@ export function formatDepth(w: Water) {
 
 export function speciesName(id: string) {
   return SPECIES_BY_ID[id]?.name ?? id;
-}
-
-export function inVoivodeship(lat: number, lng: number) {
-  return (
-    lat >= BOUNDS.south &&
-    lat <= BOUNDS.north &&
-    lng >= BOUNDS.west &&
-    lng <= BOUNDS.east
-  );
 }
 
 export function formatCoords(lat: number, lng: number) {
@@ -545,6 +560,67 @@ export function watersForSpecies(speciesId: string) {
   );
 }
 
+function hostNameFromUrl(url?: string | null) {
+  if (!url) return "";
+  try {
+    return new URL(url).hostname.replace(/^www\./i, "").toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
+export function hostGroupOf(w: Water): { key: string; label: string } {
+  const k = hostKindOf(w);
+  const mgr = managerOf(w);
+  if (k === "private") {
+    const host = hostNameFromUrl(w.website) || hostNameFromUrl(w.socialUrl);
+    if (host) {
+      const label = mgr.name === "Gospodarz łowiska" ? host : mgr.name;
+      return { key: `web:${host}`, label };
+    }
+    return { key: `one:${w.id}`, label: w.name };
+  }
+  if (k === "pzw" || k === "pzw-special") {
+    return { key: `pzw:${mgr.id}`, label: mgr.name };
+  }
+  return { key: `kind:${k}`, label: mgr.name };
+}
+
+export function watersOfHost(key: string) {
+  return WATERS.filter((w) => hostGroupOf(w).key === key).sort((a, b) =>
+    sortName(a.name).localeCompare(sortName(b.name), "pl"),
+  );
+}
+
+export function parseObwod(w: Water): string[] {
+  const blob = [...(w.rules ?? []), w.ticket ?? "", w.summary ?? ""].join(" ");
+  const out = new Set<string>();
+  for (const m of blob.matchAll(/PZW[^0-9]{0,28}nr\.?\s*(\d{2,3})(?:\s*i\s*(\d{2,3}))?/gi)) {
+    out.add(m[1].padStart(3, "0"));
+    if (m[2]) out.add(m[2].padStart(3, "0"));
+  }
+  for (const m of blob.matchAll(/\b([JR])-(\d{1,3})\b/g)) {
+    out.add(`${m[1].toUpperCase()}-${m[2]}`);
+  }
+  for (const m of blob.matchAll(/obw[oó]d(?:zie)?\s*(?:nr\.?\s*)?(\d{1,3})/gi)) {
+    out.add(m[1]);
+  }
+  return [...out];
+}
+
+export function nearestWaters(w: Water, n = 5): { w: Water; km: number }[] {
+  return WATERS.filter((x) => x.id !== w.id)
+    .map((x) => ({ w: x, km: haversineKm(w.lat, w.lng, x.lat, x.lng) }))
+    .sort((a, b) => a.km - b.km)
+    .slice(0, n);
+}
+
+export function matchesObwod(w: Water, q: string) {
+  const n = foldPl(q.trim());
+  if (!n) return true;
+  return (w.obwod ?? []).some((o) => foldPl(o) === n || foldPl(o).includes(n));
+}
+
 export function mdToNum(md: string) {
   const [m, d] = md.split("-").map(Number);
   return (m ?? 1) * 100 + (d ?? 1);
@@ -565,27 +641,64 @@ export function formatPeriod(from: string, to: string) {
   return `${from.replace("-", ".")} – ${to.replace("-", ".")}`;
 }
 
+export function waterTitle(w: Water) {
+  if ((NAME_COUNTS[w.name] ?? 0) > 1 && w.gmina) return `${w.name} (${w.gmina})`;
+  return w.name;
+}
+
 export function protectionOf(sp: Species, at: Date = new Date()) {
-  if (!sp.closed.length) {
+  if (sp.seaBan && !sp.closed.length) {
+    return {
+      hasPeriod: true,
+      active: true,
+      label: "Zakaz połowu na morzu",
+    };
+  }
+  const inland = sp.closed.map((c) => ({ ...c, sea: false }));
+  const sea = (sp.seaClosed ?? []).map((c) => ({ ...c, sea: true }));
+  const all = [...inland, ...sea];
+  if (!all.length) {
     return {
       hasPeriod: false,
       active: false,
       label: "Brak okresu ochronnego",
     };
   }
-  const active = sp.closed.some((c) => isClosedNow(c.from, c.to, at));
-  const label = `Okres ochronny: ${sp.closed
-    .map((c) => formatPeriod(c.from, c.to) + (c.note ? ` (${c.note})` : ""))
+  const active = all.some((c) => isClosedNow(c.from, c.to, at));
+  const label = `Okres ochronny: ${all
+    .map(
+      (c) =>
+        formatPeriod(c.from, c.to) +
+        (c.note ? ` (${c.note})` : c.sea ? " (morze)" : ""),
+    )
     .join(", ")}`;
   return { hasPeriod: true, active, label };
 }
 
-export function formatProtect(sp: Species) {
+export const OKREG_FORK: Record<string, Record<string, { min: number; max?: number }>> = {
+  Szczecin: {
+    szczupak: { min: 50, max: 80 },
+    sandacz: { min: 50, max: 80 },
+    okon: { min: 18, max: 35 },
+  },
+  Koszalin: {
+    szczupak: { min: 50, max: 80 },
+    sandacz: { min: 50, max: 80 },
+    okon: { min: 18, max: 35 },
+  },
+};
+
+export function formatProtect(sp: Species, okrag?: string) {
+  const fork = okrag ? OKREG_FORK[okrag]?.[sp.id] : undefined;
+  const min = fork?.min ?? sp.minCm;
+  const max = fork?.max;
   const size =
-    sp.dailyLimit === 0 && !sp.minCm
+    sp.dailyLimit === 0 && !min
       ? "zakaz zabierania"
-      : sp.minCm
-        ? `do ${sp.minCm} cm`
+      : min
+        ? max
+          ? `${min}–${max} cm`
+          : `do ${min} cm`
         : "brak wymiaru";
   const limit =
     sp.dailyLimit === 0
@@ -593,13 +706,41 @@ export function formatProtect(sp: Species) {
       : sp.dailyLimit != null
         ? `${sp.dailyLimit} szt./doba`
         : "brak limitu sztuk";
-  return { size, limit, period: protectionOf(sp) };
+  return { size, limit, period: protectionOf(sp), fork: Boolean(fork) };
 }
 
-export function protectHint(id: string) {
+export function closedEndingDays(sp: Species, at: Date = new Date()): number | null {
+  if (!sp.closed.length) return null;
+  const y = at.getFullYear();
+  let best: number | null = null;
+  for (const c of sp.closed) {
+    if (!isClosedNow(c.from, c.to, at)) continue;
+    const [tm, td] = c.to.split("-").map(Number);
+    let end = new Date(y, (tm ?? 1) - 1, td ?? 1, 23, 59, 59);
+    if (end < at) end = new Date(y + 1, (tm ?? 1) - 1, td ?? 1, 23, 59, 59);
+    const days = Math.ceil((end.getTime() - at.getTime()) / 86_400_000);
+    if (days >= 0 && (best == null || days < best)) best = days;
+  }
+  return best;
+}
+
+export const MAP_SPECIES = [
+  "szczupak",
+  "sandacz",
+  "okon",
+  "sum",
+  "karp",
+  "lin",
+  "pstrag-potokowy",
+  "troc",
+  "wegorz",
+  "bolen",
+] as const;
+
+export function protectHint(id: string, okrag?: string) {
   const sp = SPECIES_BY_ID[id];
   if (!sp) return "";
-  const p = formatProtect(sp);
+  const p = formatProtect(sp, okrag);
   const size =
     p.size === "brak wymiaru"
       ? "Brak wymiaru ochronnego"

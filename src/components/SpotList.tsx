@@ -14,11 +14,15 @@ import {
   haversineKm,
   letterOf,
   LIST_CATEGORIES,
+  MAP_SPECIES,
+  SPECIES_BY_ID,
   matchesFilter,
+  matchesObwod,
   sanitizeQuery,
   searchWaters,
   sortName,
   speciesName,
+  waterTitle,
   WATERS,
 } from "@/lib/catalog";
 import { useAtlas } from "@/lib/store";
@@ -63,10 +67,9 @@ export function WaterCard({ w, onOpen }: { w: Water; onOpen: (id: string) => voi
       </button>
       <button type="button" onClick={() => onOpen(w.id)} className="block w-full text-left">
         <p className="text-xs font-medium text-primary">{categoryTags(w).join(" · ")}</p>
-        <h3 className="mt-0.5 text-base font-semibold text-foreground">{w.name}</h3>
+        <h3 className="mt-0.5 text-base font-semibold text-foreground">{waterTitle(w)}</h3>
         <p className="mt-1 text-xs text-muted">
-          {w.powiat}
-          {dist ? ` · ${dist}` : ""}
+          {[w.gmina, w.powiat, dist].filter(Boolean).join(" · ")}
         </p>
         <p className="mt-1 text-xs text-muted">
           {[size, depth ? `gł. ${depth}` : null].filter(Boolean).join(" · ") || "—"}
@@ -95,6 +98,10 @@ export function SpotList({
   const listKind = useAtlas((s) => s.listKind);
   const listFavOnly = useAtlas((s) => s.listFavOnly);
   const setListFilter = useAtlas((s) => s.setListFilter);
+  const listSpecies = useAtlas((s) => s.listSpecies);
+  const setListSpecies = useAtlas((s) => s.setListSpecies);
+  const listObwod = useAtlas((s) => s.listObwod);
+  const setListObwod = useAtlas((s) => s.setListObwod);
   const letter = useAtlas((s) => s.letter);
   const setLetter = useAtlas((s) => s.setLetter);
   const sort = useAtlas((s) => s.sort);
@@ -155,8 +162,14 @@ export function SpotList({
   }, [tabPool, favSet, host, listKind, listFavOnly]);
 
   const scoped = useMemo(
-    () => tabPool.filter((w) => passes(w, host, listKind, listFavOnly, favSet)),
-    [tabPool, host, listKind, listFavOnly, favSet],
+    () =>
+      tabPool.filter((w) => {
+        if (!passes(w, host, listKind, listFavOnly, favSet)) return false;
+        if (listSpecies && !w.species.includes(listSpecies)) return false;
+        if (!matchesObwod(w, listObwod)) return false;
+        return true;
+      }),
+    [tabPool, host, listKind, listFavOnly, favSet, listSpecies, listObwod],
   );
 
   const usedLetters = useMemo(() => {
@@ -195,7 +208,7 @@ export function SpotList({
   const [rise, setRise] = useState(true);
   useEffect(() => {
     setShown(letter || q.trim() ? pool.length : 160);
-  }, [host, listKind, listFavOnly, tabScope, q, letter, sort, pool.length]);
+  }, [host, listKind, listFavOnly, tabScope, q, letter, sort, pool.length, listSpecies, listObwod]);
   useEffect(() => {
     const t = window.setTimeout(() => setRise(false), 700);
     return () => window.clearTimeout(t);
@@ -239,6 +252,8 @@ export function SpotList({
 
   const clearFilters = () => {
     setListFilter("all");
+    setListSpecies(null);
+    setListObwod("");
     setLetter(null);
     setQ("");
   };
@@ -339,6 +354,39 @@ export function SpotList({
             );
           })}
         </div>
+        <div className="mt-3 grid grid-cols-3 gap-1.5 min-[400px]:grid-cols-4">
+          {MAP_SPECIES.map((id) => {
+            const on = listSpecies === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setListSpecies(id)}
+                className={cn(
+                  "tap min-h-10 rounded-full px-1 text-center text-xs font-semibold leading-tight ring-1",
+                  on
+                    ? "bg-card-2 text-foreground ring-white"
+                    : "bg-card-2 text-foreground ring-border",
+                )}
+              >
+                {SPECIES_BY_ID[id]?.name ?? id}
+              </button>
+            );
+          })}
+        </div>
+        <label className="mt-3 block text-xs text-muted">
+          Obwód PZW
+          <input
+            value={listObwod}
+            onChange={(e) => setListObwod(e.target.value.slice(0, 12))}
+            placeholder="np. 086 albo J-89"
+            inputMode="text"
+            autoCapitalize="characters"
+            autoCorrect="off"
+            spellCheck={false}
+            className="mt-1 min-h-11 w-full rounded-xl bg-card px-3 text-sm text-foreground ring-1 ring-border"
+          />
+        </label>
         <div className="mt-3 grid grid-cols-4 gap-1.5">
           {sorts.map((s) => (
             <button

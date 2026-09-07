@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { INSTAGRAM, SITE_URL, VERSION } from "@/lib/brand";
 import { loadCatalog } from "@/lib/catalog";
 import { openExternal } from "@/lib/utils";
@@ -13,36 +13,18 @@ export function Loader({ online, onDone, replay }: Props) {
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
   const done = useRef(false);
-  const [pct, setPct] = useState(8);
 
   const finish = () => {
     if (done.current) return;
     done.current = true;
-    setPct(100);
     onDoneRef.current();
   };
 
   useEffect(() => {
     done.current = false;
-    setPct(8);
-    const start = performance.now();
-    let raf = 0;
-    let live = true;
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / dur);
-      setPct(Math.max(8, Math.round(t * 100)));
-      if (t < 1 && live) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
     void loadCatalog();
-    const cap = window.setTimeout(() => {
-      if (live) finish();
-    }, dur);
-    return () => {
-      live = false;
-      cancelAnimationFrame(raf);
-      window.clearTimeout(cap);
-    };
+    const cap = window.setTimeout(finish, dur);
+    return () => window.clearTimeout(cap);
   }, [dur]);
 
   return (

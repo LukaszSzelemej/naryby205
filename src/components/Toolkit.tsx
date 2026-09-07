@@ -12,11 +12,14 @@ import {
   MANAGERS,
   protectionOf,
   formatProtect,
+  closedEndingDays,
   safeHttpUrl,
   SPECIES,
   SPECIES_LETTERS,
   sanitizeQuery,
   watersForSpecies,
+  watersOfHost,
+  hostGroupOf,
   foldPl,
 } from "@/lib/catalog";
 import {
@@ -31,6 +34,7 @@ import {
   ZAPIS_COPY,
 } from "@/lib/content";
 import { useAtlas } from "@/lib/store";
+import { setTarloPref, tarloPref } from "@/lib/tarlo";
 import { cn, openExternal, phonesIn } from "@/lib/utils";
 import { clearOffline, downloadOffline, offlineCount } from "@/lib/offline";
 import { EmptyState, Meter, ScreenFrame } from "@/components/States";
@@ -173,7 +177,8 @@ export function Toolkit() {
                 const show = L !== last;
                 last = L;
                 const p = protectionOf(s);
-                const dim = formatProtect(s);
+                const dim = formatProtect(s, "Szczecin");
+                const left = closedEndingDays(s);
                 return (
                   <div key={s.id}>
                     {show && (
@@ -188,10 +193,18 @@ export function Toolkit() {
                       <p className="text-xs italic text-muted">{s.latin}</p>
                       <p className="mt-1 text-xs font-medium tabular-nums text-foreground">
                         Wymiar: {dim.size} · {dim.limit}
+                        {dim.fork ? " · okręgi ZP" : ""}
                       </p>
                       <p className={cn("mt-0.5 text-xs font-medium", p.active ? "text-danger" : "text-ok")}>
                         {p.hasPeriod ? p.label : "Brak okresu ochronnego"}
                       </p>
+                      {left != null && left <= 3 && (
+                        <p className="mt-0.5 text-xs font-medium text-warn">
+                          {left === 0
+                            ? "Okres ochronny kończy się dziś"
+                            : `Okres ochronny kończy się za ${left} dni`}
+                        </p>
+                      )}
                     </button>
                   </div>
                 );
@@ -380,6 +393,7 @@ export function Toolkit() {
                 ))}
               </ol>
             </section>
+            <TarloNotify />
             <LicensesBlock />
           </div>
         )}
@@ -508,6 +522,106 @@ export function SpeciesWaters() {
         <p className="mt-6 text-center text-xs text-faint">{DISCLAIMER}</p>
       </div>
     </ScreenFrame>
+  );
+}
+
+export function HostWaters() {
+  const key = useAtlas((s) => s.selectedHostKey);
+  const back = useAtlas((s) => s.back);
+  const openSpot = useAtlas((s) => s.openSpot);
+  useAtlas((s) => s.catalogReady);
+  const list = key ? watersOfHost(key) : [];
+  const label = list[0] ? hostGroupOf(list[0]).label : "Gospodarz";
+  let last = "";
+  return (
+    <ScreenFrame>
+      <div className="mx-auto max-w-lg px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-10">
+        <header className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <BackBtn onClick={back} />
+            <h1 className="min-w-0 text-lg font-semibold">
+              {label}{" "}
+              <span className="tabular-nums text-muted">({list.length})</span>
+            </h1>
+          </div>
+          <button
+            type="button"
+            onClick={() => openExternal(CUPLINK)}
+            className="tap grid size-10 place-items-center rounded-full bg-coffee text-coffee-fg"
+            aria-label="Postaw kawę"
+          >
+            <CoffeeIcon size={18} />
+          </button>
+        </header>
+        <p className="mt-2 text-xs leading-relaxed text-faint">{DISCLAIMER}</p>
+        <div className="mt-4 space-y-2 list-rise">
+          {list.map((w) => {
+            const L = letterOf(w.name);
+            const show = L !== last;
+            last = L;
+            return (
+              <div key={w.id}>
+                {show && (
+                  <p className="mb-1 mt-3 text-xs font-semibold tracking-widest text-faint">{L}</p>
+                )}
+                <WaterCard w={w} onOpen={(wid) => openSpot(wid, "host-waters")} />
+              </div>
+            );
+          })}
+          {list.length === 0 && (
+            <EmptyState
+              icon={<FishOutline size={26} />}
+              title="Brak łowisk"
+              body="Ten gospodarz nie ma innych wpisów w atlasie."
+              action={back}
+              actionLabel="Wróć"
+            />
+          )}
+        </div>
+        <p className="mt-6 text-center text-xs text-faint">{DISCLAIMER}</p>
+      </div>
+    </ScreenFrame>
+  );
+}
+
+function TarloNotify() {
+  const [on, setOn] = useState(() => tarloPref());
+  const [msg, setMsg] = useState("");
+  return (
+    <section className="rounded-2xl bg-card p-3 ring-1 ring-border">
+      <h2 className="font-semibold">Powiadomienie o tarle</h2>
+      <p className="mt-2 text-sm leading-relaxed text-muted">
+        Gdy okres ochronny kończy się dziś albo jutro, atlas może wysłać powiadomienie na telefon —
+        także bez otwartej karty, jeśli aplikacja jest zapisana na ekranie i system pozwala na
+        tło (Chrome na Androidzie).
+      </p>
+      <button
+        type="button"
+        onClick={async () => {
+          const next = !on;
+          const res = await setTarloPref(next);
+          if (res === "denied") {
+            setMsg("Brak zgody na powiadomienia w systemie.");
+            setOn(false);
+            return;
+          }
+          if (res === "unsupported") {
+            setMsg("Ta przeglądarka nie obsługuje powiadomień.");
+            setOn(false);
+            return;
+          }
+          setOn(next);
+          setMsg(next ? "Włączone. Dostaniesz sygnał, gdy ochrona się kończy." : "Wyłączone.");
+        }}
+        className={cn(
+          "tap mt-3 min-h-11 w-full rounded-full text-sm font-semibold",
+          on ? "bg-primary text-primary-foreground" : "bg-card-2 ring-1 ring-border",
+        )}
+      >
+        {on ? "Powiadomienia włączone" : "Włącz powiadomienia"}
+      </button>
+      {msg && <p className="mt-2 text-center text-xs text-muted">{msg}</p>}
+    </section>
   );
 }
 

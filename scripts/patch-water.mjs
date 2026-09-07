@@ -47,5 +47,5 @@ for (const pair of sets) {
 }
 
 writeShards(waters);
-console.log(`patched ${id} → public/data/waters/*.json`);
+console.log(`patched ${id} → public/atlas/waters/*.json`);
 if (get) console.log(JSON.stringify(w, null, 2));

@@ -13,6 +13,8 @@ import {
   formatDistance,
   haversineKm,
   searchWaters,
+  sanitizeQuery,
+  waterTitle,
 } from "@/lib/catalog";
 import { useAtlas } from "@/lib/store";
 import { cn, openExternal } from "@/lib/utils";
@@ -42,7 +44,7 @@ function WaterPicker({
 
   const hits = useMemo(() => {
     const query = q.trim();
-    if (query) return searchWaters(query).slice(0, 12);
+    if (query) return searchWaters(sanitizeQuery(query)).slice(0, 12);
     const favSet = new Set(favs);
     const ranked = WATERS.map((w) => {
       let score = 0;
@@ -90,7 +92,7 @@ function WaterPicker({
                 setQ(e.target.value);
                 if (!open) setOpen(true);
               }}
-              placeholder="Szukaj łowiska po nazwie…"
+              placeholder="Szukaj nazwy, gminy albo okręgu PZW…"
               autoComplete="off"
               autoCapitalize="none"
               autoCorrect="off"
@@ -133,9 +135,9 @@ function WaterPicker({
                         setOpen(false);
                       }}
                     >
-                      <span className="text-sm font-medium text-foreground">{w.name}</span>
+                      <span className="text-sm font-medium text-foreground">{waterTitle(w)}</span>
                       <span className="text-xs text-muted">
-                        {KIND_LABEL[w.kind]} · {w.powiat}
+                        {KIND_LABEL[w.kind]} · {[w.gmina, w.powiat].filter(Boolean).join(", ")}
                         {dist ? ` · ${dist}` : ""}
                       </span>
                     </button>
@@ -186,6 +188,51 @@ export function Journal() {
     [],
   );
 
+  const year = new Date().getFullYear();
+  const season = rows.filter((r) => new Date(r.createdAt).getFullYear() === year);
+  const kgSum = season.reduce((s, r) => s + (r.weightKg ?? 0), 0);
+  const records = useMemo(() => {
+    const best = new Map<string, { kg: number; cm: number; water: string }>();
+    for (const r of rows) {
+      const kg = r.weightKg ?? 0;
+      const cm = r.lengthCm ?? 0;
+      const prev = best.get(r.speciesId);
+      if (!prev || kg > prev.kg || (kg === prev.kg && cm > prev.cm)) {
+        best.set(r.speciesId, {
+          kg,
+          cm,
+          water: WATERS_BY_ID[r.waterId]?.name ?? r.waterId,
+        });
+      }
+    }
+    return [...best.entries()]
+      .filter(([, v]) => v.kg > 0 || v.cm > 0)
+      .sort((a, b) => speciesName(a[0]).localeCompare(speciesName(b[0]), "pl"));
+  }, [rows]);
+
+  const exportCsv = () => {
+    const head = "data;gatunek;lowisko;cm;kg;metoda;notatka";
+    const lines = rows.map((r) =>
+      [
+        r.createdAt,
+        speciesName(r.speciesId),
+        WATERS_BY_ID[r.waterId]?.name ?? r.waterId,
+        r.lengthCm ?? "",
+        r.weightKg ?? "",
+        r.method ?? "",
+        (r.note ?? "").replace(/;/g, ","),
+      ].join(";"),
+    );
+    const blob = new Blob([`\uFEFF${head}\n${lines.join("\n")}`], {
+      type: "text/csv;charset=utf-8",
+    });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `dziennik-atlas-${year}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
   return (
     <ScreenFrame>
       <div className="mx-auto max-w-lg px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-10">
@@ -201,6 +248,33 @@ export function Journal() {
           </button>
         </header>
         <p className="mt-2 text-xs leading-relaxed text-faint">{DISCLAIMER}</p>
+        {rows.length > 0 && (
+          <section className="mt-3 rounded-2xl bg-card p-3 ring-1 ring-border">
+            <p className="text-sm font-semibold">Sezon {year}</p>
+            <p className="mt-1 text-xs text-muted">
+              {season.length} połowów · {kgSum.toFixed(2).replace(".", ",")} kg
+            </p>
+            {records.length > 0 && (
+              <ul className="mt-2 space-y-0.5 text-xs">
+                {records.slice(0, 8).map(([id, rec]) => (
+                  <li key={id}>
+                    {speciesName(id)}
+                    {rec.cm ? ` · ${rec.cm} cm` : ""}
+                    {rec.kg ? ` · ${rec.kg} kg` : ""}
+                    {rec.water ? ` · ${rec.water}` : ""}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <button
+              type="button"
+              onClick={exportCsv}
+              className="tap mt-3 min-h-9 rounded-full bg-card-2 px-3 text-xs font-semibold ring-1 ring-border"
+            >
+              Eksport CSV
+            </button>
+          </section>
+        )}
         <button
           type="button"
           onClick={() => {

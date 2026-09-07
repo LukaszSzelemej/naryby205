@@ -37,6 +37,7 @@ export type Water = {
   ticket?: string | null;
   website?: string | null;
   socialUrl?: string | null;
+  obwod?: string[];
 };
 
 export type ClosedPeriod = { from: string; to: string; note?: string };
@@ -106,7 +107,9 @@ export type Screen =
   | "spot"
   | "weather"
   | "install"
-  | "species-waters";
+  | "species-waters"
+  | "host-waters"
+  | "compare";
 
 export type SortMode = "az" | "largest" | "fav" | "nearest";
 

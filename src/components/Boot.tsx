@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { App } from "@/components/App";
 import { Loader } from "@/components/Loader";
 import { loadCatalog } from "@/lib/catalog";
+import { bootTarlo } from "@/lib/tarlo";
 import { useAtlas } from "@/lib/store";
 
 export function Boot() {
@@ -11,6 +12,7 @@ export function Boot() {
 
   useEffect(() => {
     void loadCatalog();
+    void bootTarlo();
   }, []);
 
   return (

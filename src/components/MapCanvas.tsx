@@ -187,6 +187,9 @@ export function MapCanvas({
   const favs = useAtlas((s) => s.favorites);
   const mapNonce = useAtlas((s) => s.mapNonce);
   const catalogReady = useAtlas((s) => s.catalogReady);
+  const mapSpecies = useAtlas((s) => s.mapSpecies);
+  const mapNight = useAtlas((s) => s.mapNight);
+  const mapBoats = useAtlas((s) => s.mapBoats);
 
   const redraw = () => {
     const map = mapRef.current;
@@ -430,9 +433,15 @@ export function MapCanvas({
     if (!ready) return;
     const favSet = new Set(favs);
     favRef.current = favSet;
-    listRef.current = WATERS.filter((w) => matchesFilter(w, filter, favSet));
+    listRef.current = WATERS.filter((w) => {
+      if (!matchesFilter(w, filter, favSet)) return false;
+      if (mapSpecies && !w.species.includes(mapSpecies)) return false;
+      if (mapNight && !w.night) return false;
+      if (mapBoats && !w.boats) return false;
+      return true;
+    });
     redraw();
-  }, [filter, favs, ready, mapNonce, catalogReady]);
+  }, [filter, favs, ready, mapNonce, catalogReady, mapSpecies, mapNight, mapBoats]);
 
   useEffect(() => {
     const map = mapRef.current;

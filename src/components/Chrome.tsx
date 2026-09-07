@@ -17,12 +17,15 @@ import {
   formatProtect,
   googlePin,
   INSTAGRAM,
+  MAP_SPECIES,
   protectHint,
   sanitizeQuery,
   searchWaters,
   DISCLAIMER,
+  SPECIES,
   SPECIES_BY_ID,
   speciesName,
+  closedEndingDays,
   WATERS_BY_ID,
 } from "@/lib/catalog";
 import { zoomBy, resetView, flyToSpot, flyToUser } from "@/lib/map-api";
@@ -132,7 +135,7 @@ export function DownMenu() {
       id: "list",
       label: "Łowiska",
       icon: <ListGlyph size={18} />,
-      on: screen === "list",
+      on: screen === "list" || screen === "host-waters" || screen === "compare",
       go: () => openList("list"),
     },
     {
@@ -197,7 +200,7 @@ export function SearchField({
   onChange,
   onPick,
   dark,
-  placeholder = "Szukaj…",
+  placeholder = "Szukaj nazwy, gminy, okręgu…",
   autoFocus,
   dropUp,
   pool,
@@ -344,6 +347,12 @@ export function FilterBar() {
   const setFilter = useAtlas((s) => s.setFilter);
   const more = useAtlas((s) => s.moreOpen);
   const toggleMore = useAtlas((s) => s.toggleMore);
+  const mapSpecies = useAtlas((s) => s.mapSpecies);
+  const setMapSpecies = useAtlas((s) => s.setMapSpecies);
+  const mapNight = useAtlas((s) => s.mapNight);
+  const setMapNight = useAtlas((s) => s.setMapNight);
+  const mapBoats = useAtlas((s) => s.mapBoats);
+  const setMapBoats = useAtlas((s) => s.setMapBoats);
 
   const Chip = ({
     id,
@@ -379,14 +388,84 @@ export function FilterBar() {
     );
   };
 
+  const ending = SPECIES.map((s) => ({ s, d: closedEndingDays(s) })).filter(
+    (x) => x.d != null && x.d <= 3,
+  );
+
   return (
     <div className="flex w-full flex-col gap-1.5">
+      {ending.length > 0 && (
+        <p className="rounded-xl bg-card/90 px-2.5 py-1.5 text-[11px] leading-snug text-foreground ring-1 ring-border">
+          {ending
+            .map(({ s, d }) =>
+              d === 0 ? `${s.name}: ochrona kończy się dziś` : `${s.name}: ochrona jeszcze ${d} dni`,
+            )
+            .join(" · ")}
+        </p>
+      )}
       <div className={cn("fold", more && "is-open")}>
         <div className="fold-inner" {...(!more ? { inert: true } : {})}>
           <div className="grid grid-cols-3 gap-1.5 pb-1.5 min-[420px]:grid-cols-4">
             {MORE_FILTERS.map((id) => (
               <Chip key={id} id={id} label={FILTER_META[id].label} color={FILTER_META[id].color} />
             ))}
+          </div>
+          <div className="grid grid-cols-3 gap-1.5 pb-1.5 min-[420px]:grid-cols-4">
+            {MAP_SPECIES.map((id) => {
+              const sp = SPECIES_BY_ID[id];
+              const on = mapSpecies === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMapSpecies(id);
+                  }}
+                  className={cn(
+                    "filter-chip min-h-10 w-full rounded-full px-1 text-xs font-semibold leading-tight ring-1 sm:px-2",
+                    on
+                      ? "bg-card-2 text-foreground ring-white"
+                      : "bg-card-2 text-foreground ring-border",
+                  )}
+                >
+                  {sp?.name ?? id}
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                setMapNight();
+              }}
+              className={cn(
+                "filter-chip min-h-10 w-full rounded-full px-1 text-xs font-semibold leading-tight ring-1 sm:px-2",
+                mapNight
+                  ? "bg-card-2 text-foreground ring-white"
+                  : "bg-card-2 text-foreground ring-border",
+              )}
+            >
+              Noc
+            </button>
+            <button
+              type="button"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                setMapBoats();
+              }}
+              className={cn(
+                "filter-chip min-h-10 w-full rounded-full px-1 text-xs font-semibold leading-tight ring-1 sm:px-2",
+                mapBoats
+                  ? "bg-card-2 text-foreground ring-white"
+                  : "bg-card-2 text-foreground ring-border",
+              )}
+            >
+              Łodzie
+            </button>
           </div>
         </div>
       </div>
@@ -402,6 +481,11 @@ export function FilterBar() {
           {more ? "Mniej" : "Więcej"}
         </button>
       </div>
+      {mapSpecies && (
+        <p className="text-[11px] text-muted">
+          Mapa: {SPECIES_BY_ID[mapSpecies]?.name ?? mapSpecies}
+        </p>
+      )}
     </div>
   );
 }
@@ -785,18 +869,14 @@ export function ActionBtn({
   );
 }
 
-export function DisclaimerLine() {
-  return <p className="text-xs leading-relaxed text-faint">{DISCLAIMER}</p>;
-}
-
-export function SpeciesChip({ id }: { id: string }) {
+export function SpeciesChip({ id, okrag }: { id: string; okrag?: string }) {
   const [open, setOpen] = useState(false);
   const [flip, setFlip] = useState(false);
   const box = useRef<HTMLSpanElement>(null);
   const sp = SPECIES_BY_ID[id];
   const name = sp?.name ?? speciesName(id);
-  const p = sp ? formatProtect(sp) : null;
-  const hint = protectHint(id);
+  const p = sp ? formatProtect(sp, okrag) : null;
+  const hint = protectHint(id, okrag);
 
   useEffect(() => {
     if (!open) return;
@@ -848,6 +928,7 @@ export function SpeciesChip({ id }: { id: string }) {
           <p className="text-xs italic text-muted">{sp.latin}</p>
           <p className="mt-2 text-xs text-foreground">
             Wymiar ochronny: <span className="font-semibold tabular-nums">{p.size}</span>
+            {p.fork ? " (okręg)" : ""}
           </p>
           <p className="mt-0.5 text-xs text-foreground">
             Limit: <span className="font-semibold">{p.limit}</span>

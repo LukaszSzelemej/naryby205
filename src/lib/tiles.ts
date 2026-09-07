@@ -2,9 +2,9 @@ import { BOUNDS } from "@/lib/catalog";
 
 export const TILE_CACHE = "atlas-tiles-v4";
 
-/** OpenStreetMap Carto (osm.org) — polskie nazwy miejsc w Polsce. */
+/** OpenStreetMap Carto (osm.org) — polskie nazwy miejsc w Polsce. Bez klucza API. */
 export const OSM_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-/** Zapas: OSM.de, też Carto, bez klucza. */
+/** Zapas: OSM.de, ten sam styl, bez klucza. */
 export const OSM_FALLBACK_URL = "https://tile.openstreetmap.de/{z}/{x}/{y}.png";
 
 export function osmTile(z: number, x: number, y: number) {

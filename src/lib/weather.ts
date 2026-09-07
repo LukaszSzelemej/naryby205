@@ -6,6 +6,12 @@ function keyOf(lat: number, lng: number) {
   return `${lat.toFixed(3)},${lng.toFixed(3)}`;
 }
 
+export function pressureTrendLabel(trend: WeatherNow["pressureTrend"]) {
+  if (trend === "down") return "spada";
+  if (trend === "up") return "rośnie";
+  return "stabilne";
+}
+
 export function weatherIcon(code: number): "sun" | "partly" | "cloud" | "rain" | "storm" | "snow" | "fog" {
   if (code === 0) return "sun";
   if (code === 1 || code === 2) return "partly";

@@ -264,7 +264,7 @@
 .map-right-col {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-end;
   gap: 0.38rem;
   max-height: 100%;
   overflow-y: auto;
@@ -357,6 +357,83 @@
   color: #fff;
   background: #64748b;
   animation: 1.6s ease-in-out infinite weather-wait;
+}
+.map-weather-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.38rem;
+}
+.pressure-mark {
+  color: var(--color-primary-foreground);
+}
+.pressure-mark.is-down {
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+}
+.pressure-mark.is-up {
+  background: var(--color-warn);
+  color: #1c1917;
+}
+.map-btn-pressure.is-down {
+  animation:
+    pressure-pop 0.32s var(--ease-out) both,
+    pressure-glow-down 2.4s ease-in-out 0.32s infinite;
+}
+.map-btn-pressure.is-up {
+  animation:
+    pressure-pop 0.32s var(--ease-out) both,
+    pressure-glow-up 2.4s ease-in-out 0.32s infinite;
+}
+.pressure-arrow {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.pressure-arrow.is-up {
+  animation: 1.15s ease-in-out infinite pressure-nudge-up;
+}
+.pressure-arrow.is-down {
+  animation: 1.15s ease-in-out infinite pressure-nudge-down;
+}
+@keyframes pressure-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.25);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+@keyframes pressure-nudge-up {
+  0%,
+  100% {
+    transform: translateY(2px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+@keyframes pressure-nudge-down {
+  0%,
+  100% {
+    transform: translateY(-2px);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}
+@keyframes pressure-glow-down {
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-primary) 30%, transparent);
+  }
+}
+@keyframes pressure-glow-up {
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-warn) 34%, transparent);
+  }
 }
 .filter-chip {
   text-align: center;
@@ -473,6 +550,13 @@
   max-width: 100% !important;
   height: 100% !important;
   max-height: 100% !important;
+}
+.fishing-map.is-dark,
+.fishing-map.is-dark.leaflet-container {
+  background: #0c1218;
+}
+.fishing-map.is-dark .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) saturate(0.65) brightness(0.9) contrast(0.95);
 }
 .fish-canvas {
   position: absolute;
@@ -863,6 +947,8 @@
   .splash-fill,
   .splash-meter,
   .map-btn-weather,
+  .map-btn-pressure,
+  .pressure-arrow,
   .here-ring,
   .page-enter,
   .chrome-in,

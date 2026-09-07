@@ -217,16 +217,21 @@ export function Journal() {
   }, [rows, catalogReady]);
 
   const exportCsv = () => {
+    const cell = (v: string | number | null | undefined) => {
+      const s = String(v ?? "");
+      if (/[;"\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+      return s;
+    };
     const head = "data;gatunek;lowisko;cm;kg;metoda;notatka";
     const lines = rows.map((r) =>
       [
-        r.createdAt,
-        speciesName(r.speciesId),
-        WATERS_BY_ID[r.waterId]?.name ?? r.waterId,
-        r.lengthCm ?? "",
-        r.weightKg ?? "",
-        r.method ?? "",
-        (r.note ?? "").replace(/;/g, ","),
+        cell(r.createdAt),
+        cell(speciesName(r.speciesId)),
+        cell(WATERS_BY_ID[r.waterId]?.name ?? r.waterId),
+        cell(r.lengthCm),
+        cell(r.weightKg),
+        cell(r.method),
+        cell(r.note),
       ].join(";"),
     );
     const blob = new Blob([`\uFEFF${head}\n${lines.join("\n")}`], {

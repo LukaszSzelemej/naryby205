@@ -24,9 +24,9 @@ import {
   speciesName,
   WATERS_BY_ID,
 } from "@/lib/catalog";
-import { CoffeeIcon, FishOutline, FishPinSvg, StarGlyph, WeatherGlyph } from "@/components/icons";
+import { CoffeeIcon, FishOutline, FishPinSvg, StarGlyph, WeatherGlyph, PressureGlyph } from "@/components/icons";
 import { ActionBtn, BackBtn, OutLink, PhoneText, SpeciesChip, TelBtn } from "@/components/Chrome";
-import { fetchWeather, weatherIcon, weatherLabel, windArrow } from "@/lib/weather";
+import { fetchWeather, weatherIcon, weatherLabel, windArrow, pressureTrendLabel } from "@/lib/weather";
 import {
   biomet,
   dayParts,
@@ -58,7 +58,7 @@ function SpotTile({
 }: {
   label: string;
   value: string;
-  hint?: string;
+  hint?: ReactNode;
 }) {
   return (
     <div className="rounded-2xl bg-card p-3 ring-1 ring-border">
@@ -484,6 +484,17 @@ export function SpotDetail() {
               <h2 className="text-sm font-semibold">Pogoda na łowisku</h2>
               <div className="mt-2 rounded-2xl bg-card p-4 ring-1 ring-border">
                 <div className="flex items-center gap-4">
+                  {weather.pressureTrend !== "flat" && (
+                    <div
+                      className={cn(
+                        "grid size-14 shrink-0 place-items-center rounded-2xl pressure-mark",
+                        weather.pressureTrend === "down" ? "is-down" : "is-up",
+                      )}
+                      title={`Ciśnienie ${pressureTrendLabel(weather.pressureTrend)}`}
+                    >
+                      <PressureGlyph trend={weather.pressureTrend} size={28} />
+                    </div>
+                  )}
                   <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-card-2 text-primary">
                     <WeatherGlyph kind={weatherIcon(weather.weatherCode)} size={28} />
                   </div>
@@ -505,11 +516,14 @@ export function SpotDetail() {
                   label="Ciśnienie"
                   value={`${weather.pressure.toFixed(0)} hPa`}
                   hint={
-                    weather.pressureTrend === "down"
-                      ? "spada"
-                      : weather.pressureTrend === "up"
-                        ? "rośnie"
-                        : "stabilne"
+                    weather.pressureTrend === "flat" ? (
+                      pressureTrendLabel(weather.pressureTrend)
+                    ) : (
+                      <span className="inline-flex items-center gap-1">
+                        <PressureGlyph trend={weather.pressureTrend} size={12} />
+                        {pressureTrendLabel(weather.pressureTrend)}
+                      </span>
+                    )
                   }
                 />
                 <SpotTile

@@ -176,6 +176,21 @@ export function SpotList() {
     [tabPool, host, listKind, listFavOnly, favSet, listSpecies, listObwod, listNight, listBoats],
   );
 
+  const kindPool = useMemo(
+    () => tabPool.filter((w) => passes(w, host, listKind, listFavOnly, favSet)),
+    [tabPool, host, listKind, listFavOnly, favSet],
+  );
+  const kindObwodSet = useMemo(() => new Set(allObwody(kindPool)), [kindPool]);
+  const anyKindObwod = kindObwodSet.size > 0;
+
+  useEffect(() => {
+    if (!catalogReady) return;
+    const cur = useAtlas.getState().listObwod;
+    if (!cur.trim()) return;
+    if (kindPool.some((w) => matchesObwod(w, cur))) return;
+    setListObwod("");
+  }, [catalogReady, host, listKind, listFavOnly, tabScope, kindPool, setListObwod]);
+
   const usedLetters = useMemo(() => {
     const set = new Set<string>();
     for (const w of scoped) set.add(letterOf(w.name));
@@ -196,7 +211,18 @@ export function SpotList() {
       sortName(a.name).localeCompare(sortName(b.name), "pl");
     if (sort === "az") rows.sort(cmpAz);
     else if (sort === "largest") {
-      rows.sort((a, b) => (b.areaHa ?? b.lengthKm ?? 0) - (a.areaHa ?? a.lengthKm ?? 0));
+      const rank = (w: Water): [number, number] => {
+        const ha = typeof w.areaHa === "number" && w.areaHa > 0 ? w.areaHa : 0;
+        const km = typeof w.lengthKm === "number" && w.lengthKm > 0 ? w.lengthKm : 0;
+        if (ha > 0) return [1, ha];
+        if (km > 0) return [0, km];
+        return [-1, 0];
+      };
+      rows.sort((a, b) => {
+        const [ga, va] = rank(a);
+        const [gb, vb] = rank(b);
+        return gb - ga || vb - va;
+      });
     } else if (sort === "fav") {
       rows.sort((a, b) => Number(favSet.has(b.id)) - Number(favSet.has(a.id)) || cmpAz(a, b));
     } else if (sort === "nearest" && geo) {
@@ -434,40 +460,61 @@ export function SpotList() {
               <span className="sr-only">Numer koła lub obwodu</span>
               <input
                 value={listObwod}
-                onChange={(e) => setListObwod(sanitizeQuery(e.target.value))}
+                onChange={(e) => {
+                  if (!anyKindObwod) return;
+                  setListObwod(sanitizeQuery(e.target.value));
+                }}
                 placeholder="Nr koła / obwodu, np. 86 albo J-89"
                 inputMode="search"
                 autoCapitalize="none"
                 autoCorrect="off"
                 spellCheck={false}
-                className="min-h-11 w-full rounded-full bg-card px-4 text-sm ring-1 ring-border outline-none placeholder:text-faint"
+                disabled={!anyKindObwod}
+                aria-disabled={!anyKindObwod}
+                className={cn(
+                  "min-h-11 w-full rounded-full bg-card px-4 text-sm ring-1 ring-border outline-none placeholder:text-faint",
+                  !anyKindObwod && "cursor-not-allowed opacity-40",
+                )}
               />
             </label>
             {(["kolo", "jezioro", "rzeka"] as const).map((g) => {
-              const items = obwody
-                .filter((o) => classifyObwod(o) === g)
-                .filter((o) => !listObwod.trim() || matchesObwod({ obwod: [o] }, listObwod));
+              const items = obwody.filter((o) => classifyObwod(o) === g);
               if (!items.length) return null;
+              const groupOn = items.some((o) => kindObwodSet.has(o));
               const title =
                 g === "kolo" ? "Koła PZW" : g === "jezioro" ? "Jeziora J-" : "Rzeki R-";
               return (
-                <div key={g}>
+                <div
+                  key={g}
+                  className={cn(!groupOn && "pointer-events-none opacity-40")}
+                  aria-disabled={!groupOn}
+                >
                   <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-faint">
                     {title}
                   </p>
                   <div className="flex gap-1.5 overflow-x-auto pb-1">
                     {items.map((o) => {
-                      const on = Boolean(listObwod.trim()) && matchesObwod({ obwod: [o] }, listObwod);
+                      const chipOn = kindObwodSet.has(o);
+                      const on =
+                        chipOn &&
+                        Boolean(listObwod.trim()) &&
+                        matchesObwod({ obwod: [o] }, listObwod);
                       return (
                         <button
                           key={o}
                           type="button"
-                          onClick={() => setListObwod(on ? "" : o)}
+                          disabled={!chipOn}
+                          onClick={() => {
+                            if (!chipOn) return;
+                            setListObwod(on ? "" : o);
+                          }}
                           className={cn(
                             "tap min-h-8 shrink-0 rounded-full px-2.5 text-[11px] font-semibold tabular-nums ring-1",
-                            on
-                              ? "bg-card-2 text-foreground ring-white"
-                              : "bg-card-2 text-foreground ring-border",
+                            !chipOn
+                              ? "cursor-not-allowed bg-card-2 text-faint ring-border"
+                              : on
+                                ? "bg-card-2 text-foreground ring-white"
+                                : "bg-card-2 text-foreground ring-border",
                           )}
                         >
                           {obwodLabel(o)}

@@ -7,6 +7,7 @@ import {
   BookGlyph,
   PackGlyph,
   WeatherGlyph,
+  PressureGlyph,
   SearchGlyph,
 } from "@/components/icons";
 import {
@@ -32,7 +33,7 @@ import {
 import { zoomBy, resetView, flyToSpot, flyToUser } from "@/lib/map-api";
 import { useAtlas } from "@/lib/store";
 import type { MapFilter, Screen, Water, WeatherNow } from "@/lib/types";
-import { weatherIcon, windArrow } from "@/lib/weather";
+import { weatherIcon, windArrow, pressureTrendLabel } from "@/lib/weather";
 import { cn, copyText, openExternal, splitPhoneParts, telHref, formatPlPhone } from "@/lib/utils";
 import { Meter, useFlash } from "@/components/States";
 
@@ -424,6 +425,7 @@ export function FilterBar() {
             return;
           }
           setFilter(id);
+          resetView();
         }}
         className={cn(
           "filter-chip min-h-10 w-full rounded-full px-1 text-xs font-semibold leading-tight text-white ring-1 sm:px-2",
@@ -580,6 +582,8 @@ export function FilterBar() {
 export function RightMenu({ weather }: { weather: WeatherNow | null }) {
   const setScreen = useAtlas((s) => s.setScreen);
   const setOfflineOpen = useAtlas((s) => s.setOfflineOpen);
+  const mapDark = useAtlas((s) => s.mapDark);
+  const toggleMapDark = useAtlas((s) => s.toggleMapDark);
   const startBoot = useAtlas((s) => s.startBoot);
   const filter = useAtlas((s) => s.filter);
   const sheet = useAtlas((s) => s.sheet);
@@ -635,19 +639,31 @@ export function RightMenu({ weather }: { weather: WeatherNow | null }) {
 
   return (
     <div className="map-right-col">
-      <Btn
-        label="Pogoda"
-        className={cn(
-          "map-btn-weather relative",
-          scoreTone === "good" ? "is-good" : scoreTone === "mid" ? "is-mid" : scoreTone === "bad" ? "is-bad" : "is-wait",
+      <div className="map-weather-row">
+        {trend !== "flat" && (
+          <Btn
+            label={trend === "down" ? "Ciśnienie spada" : "Ciśnienie rośnie"}
+            className={cn("map-btn-pressure pressure-mark", trend === "down" ? "is-down" : "is-up")}
+            onClick={() => setScreen("weather")}
+          >
+            <PressureGlyph trend={trend} size={16} />
+          </Btn>
         )}
-        onClick={() => setScreen("weather")}
-      >
-        <span className="absolute -left-0.5 text-xs font-bold">
-          {trend === "down" ? "↓" : trend === "up" ? "↑" : "–"}
-        </span>
-        <WeatherGlyph kind={icon} size={16} />
-      </Btn>
+        <Btn
+          label={
+            trend === "flat"
+              ? "Pogoda"
+              : `Pogoda, ciśnienie ${pressureTrendLabel(trend)}`
+          }
+          className={cn(
+            "map-btn-weather",
+            scoreTone === "good" ? "is-good" : scoreTone === "mid" ? "is-mid" : scoreTone === "bad" ? "is-bad" : "is-wait",
+          )}
+          onClick={() => setScreen("weather")}
+        >
+          <WeatherGlyph kind={icon} size={16} />
+        </Btn>
+      </div>
       <Btn label="Jak dodać do ekranu" onClick={() => setScreen("install")}>
         <span className="text-sm font-semibold">i</span>
       </Btn>
@@ -672,6 +688,16 @@ export function RightMenu({ weather }: { weather: WeatherNow | null }) {
           <circle cx="12" cy="12" r="7" stroke="currentColor" strokeWidth="1.7" />
           <circle cx="12" cy="12" r="2.2" fill="currentColor" />
           <path d="M12 5v2M12 17v2M5 12h2M17 12h2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+        </svg>
+      </Btn>
+      <Btn label="Ciemna mapa" className={mapDark ? "is-on" : ""} onClick={toggleMapDark}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <path
+            d="M12 3a9 9 0 1 0 9 9c0-.5-.04-1-.12-1.48A7 7 0 0 1 12 3Z"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinejoin="round"
+          />
         </svg>
       </Btn>
       <Btn label="Mapa offline" onClick={() => setOfflineOpen(true)}>
@@ -990,7 +1016,8 @@ export function SpeciesChip({
   sea?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const [flip, setFlip] = useState(false);
+  const [flipX, setFlipX] = useState(false);
+  const [flipY, setFlipY] = useState(false);
   const box = useRef<HTMLSpanElement>(null);
   const sp = SPECIES_BY_ID[id];
   const name = sp?.name ?? speciesName(id);
@@ -1024,7 +1051,8 @@ export function SpeciesChip({
           const next = !open;
           if (next && box.current) {
             const r = box.current.getBoundingClientRect();
-            setFlip(r.left + 230 > window.innerWidth - 16);
+            setFlipX(r.left + 230 > window.innerWidth - 16);
+            setFlipY(r.bottom + 190 > window.innerHeight - 16);
           }
           setOpen(next);
         }}
@@ -1039,8 +1067,9 @@ export function SpeciesChip({
         <div
           role="dialog"
           className={cn(
-            "absolute top-[calc(100%+0.35rem)] z-40 w-56 rounded-xl bg-card p-3 text-left shadow-lg ring-1 ring-border",
-            flip ? "right-0 left-auto" : "left-0",
+            "absolute z-40 w-56 rounded-xl bg-card p-3 text-left shadow-lg ring-1 ring-border",
+            flipX ? "right-0 left-auto" : "left-0",
+            flipY ? "bottom-[calc(100%+0.35rem)] top-auto" : "top-[calc(100%+0.35rem)]",
           )}
         >
           <p className="text-sm font-semibold text-foreground">{sp.name}</p>

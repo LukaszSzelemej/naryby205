@@ -33,13 +33,13 @@ import {
   PORADNIK,
   ZAPIS_COPY,
 } from "@/lib/content";
-import { useAtlas } from "@/lib/store";
-import { setTarloPref, tarloPref } from "@/lib/tarlo";
+import { useAtlas, type KitTab } from "@/lib/store";
+import { setHydroPref, hydroPref, setTarloPref, tarloPref } from "@/lib/tarlo";
 import { cn, openExternal, phonesIn } from "@/lib/utils";
 import { clearOffline, downloadOffline, offlineCount } from "@/lib/offline";
 import { EmptyState, FeedSkeleton, Meter, ScreenFrame } from "@/components/States";
 
-const TABS: { id: NonNullable<ReturnType<typeof tabId>>; label: string; alwaysOrange?: boolean }[] = [
+const TABS: { id: KitTab; label: string; alwaysOrange?: boolean }[] = [
   { id: "gatunki", label: "Gatunki" },
   { id: "dokumenty", label: "Dokumenty" },
   { id: "etykieta", label: "Etykieta" },
@@ -49,10 +49,6 @@ const TABS: { id: NonNullable<ReturnType<typeof tabId>>; label: string; alwaysOr
   { id: "ciasteczka", label: "Ciasteczka" },
   { id: "kawa", label: "Postaw kawę", alwaysOrange: true },
 ];
-
-function tabId(): "gatunki" | "dokumenty" | "etykieta" | "poradnik" | "offline" | "zapis" | "ciasteczka" | "kawa" {
-  return "gatunki";
-}
 
 export function Toolkit() {
   const tab = useAtlas((s) => s.kitTab) ?? "gatunki";
@@ -395,6 +391,7 @@ export function Toolkit() {
               </ol>
             </section>
             <TarloNotify />
+            <HydroNotify />
             <LicensesBlock />
           </div>
         )}
@@ -628,6 +625,46 @@ function TarloNotify() {
         )}
       >
         {on ? "Powiadomienia włączone" : "Włącz powiadomienia"}
+      </button>
+      {msg && <p className="mt-2 text-center text-xs text-muted">{msg}</p>}
+    </section>
+  );
+}
+
+function HydroNotify() {
+  const [on, setOn] = useState(() => hydroPref());
+  const [msg, setMsg] = useState("");
+  return (
+    <section className="rounded-2xl bg-card p-3 ring-1 ring-border">
+      <h2 className="font-semibold">Stany rzek IMGW</h2>
+      <p className="mt-2 text-sm leading-relaxed text-muted">
+        Gdy Odra, Rega, Drawa, Parsęta, Ina, Płonia albo Wieprza skoczą o 30 cm
+        i więcej, atlas wyśle powiadomienie. Sprawdzamy rano i po południu.
+      </p>
+      <button
+        type="button"
+        onClick={async () => {
+          const next = !on;
+          const res = await setHydroPref(next);
+          if (res === "denied") {
+            setMsg("Brak zgody na powiadomienia w systemie.");
+            setOn(false);
+            return;
+          }
+          if (res === "unsupported") {
+            setMsg("Ta przeglądarka nie obsługuje powiadomień.");
+            setOn(false);
+            return;
+          }
+          setOn(next);
+          setMsg(next ? "Włączone. Dostaniesz sygnał przy skoku stanu." : "Wyłączone.");
+        }}
+        className={cn(
+          "tap mt-3 min-h-11 w-full rounded-full text-sm font-semibold",
+          on ? "bg-primary text-primary-foreground" : "bg-card-2 ring-1 ring-border",
+        )}
+      >
+        {on ? "Stany IMGW włączone" : "Włącz stany IMGW"}
       </button>
       {msg && <p className="mt-2 text-center text-xs text-muted">{msg}</p>}
     </section>

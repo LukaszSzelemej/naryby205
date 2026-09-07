@@ -1,6 +1,7 @@
 import { closedEndingDays, SPECIES } from "@/lib/catalog";
 
 const KEY = "atlas.tarlo";
+const HYDRO_KEY = "atlas.hydro";
 const SW = "/atlas-sw.js";
 
 export function tarloPref(): boolean {
@@ -44,6 +45,14 @@ function payload() {
   }));
 }
 
+export function hydroPref(): boolean {
+  try {
+    return localStorage.getItem(HYDRO_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
 async function subscribePush(reg: ServiceWorkerRegistration) {
   if (!("PushManager" in window)) return;
   const info = await fetch("/api/push").then((r) => r.json() as Promise<{ publicKey?: string }>);
@@ -55,7 +64,11 @@ async function subscribePush(reg: ServiceWorkerRegistration) {
   await fetch("/api/push", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ sub }),
+    body: JSON.stringify({
+      sub,
+      tarlo: tarloPref(),
+      hydro: hydroPref(),
+    }),
   });
 }
 
@@ -65,6 +78,14 @@ export async function setTarloPref(on: boolean): Promise<"ok" | "denied" | "unsu
       localStorage.removeItem(KEY);
     } catch {
       /* ignore */
+    }
+    const reg = await ensureSw();
+    if (reg) {
+      try {
+        await subscribePush(reg);
+      } catch {
+        /* ignore */
+      }
     }
     return "ok";
   }
@@ -100,6 +121,47 @@ export async function setTarloPref(on: boolean): Promise<"ok" | "denied" | "unsu
   return "ok";
 }
 
+export async function setHydroPref(on: boolean): Promise<"ok" | "denied" | "unsupported"> {
+  if (!on) {
+    try {
+      localStorage.removeItem(HYDRO_KEY);
+    } catch {
+      /* ignore */
+    }
+    const reg = await ensureSw();
+    if (reg) {
+      try {
+        await subscribePush(reg);
+      } catch {
+        /* ignore */
+      }
+    }
+    return "ok";
+  }
+  if (!("Notification" in window)) return "unsupported";
+  const perm = await Notification.requestPermission();
+  if (perm !== "granted") return "denied";
+  try {
+    localStorage.setItem(HYDRO_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+  const reg = await ensureSw();
+  if (reg) {
+    try {
+      await subscribePush(reg);
+    } catch {
+      /* iOS */
+    }
+  }
+  void fetch("/api/push", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ tick: true }),
+  }).catch(() => undefined);
+  return "ok";
+}
+
 function fireIfDue(reg: ServiceWorkerRegistration | null) {
   const hits = soon();
   if (!hits.length || Notification.permission !== "granted") return;
@@ -113,7 +175,7 @@ function fireIfDue(reg: ServiceWorkerRegistration | null) {
 }
 
 export async function bootTarlo() {
-  if (!tarloPref()) return;
+  if (!tarloPref() && !hydroPref()) return;
   const reg = await ensureSw();
   if (reg) {
     try {

@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import speciesFile from "@/data/species.json";
 import { getSql } from "@/lib/db";
+import { fetchHydroSnapshot } from "@/lib/hydro";
 
 const PUBLIC_KEY =
   "BIjqLyv-BuXXCGt0uoUQlBe4bg4Feb3tmyowTDXy2o2bIyA2a5IohJU4uExWcMrUFb206KKKpXz1xBkShr8cLNc";
 const PRIVATE_KEY = "b5rMRM3e2RSxoZ9Z8ZHAXvSDe-B5eD7Ve-in_rJfKl4";
 
-type Sub = { endpoint: string; keys?: { p256dh: string; auth: string } };
+type Sub = { endpoint: string; keys?: { p256dh: string; auth: string }; tarlo?: boolean; hydro?: boolean };
 type Sp = {
   name: string;
   closed: { from: string; to: string }[];
@@ -63,16 +64,28 @@ async function webPush() {
 async function loadSubs() {
   try {
     const sql = await getSql();
-    const rows = await sql.query<{
+    type SubRow = {
       endpoint: string;
       p256dh: string | null;
       auth: string | null;
-    }>("select endpoint, p256dh, auth from push_subs");
+      tarlo?: boolean | null;
+      hydro?: boolean | null;
+    };
+    let rows: SubRow[] = [];
+    try {
+      rows = await sql.query<SubRow>(
+        "select endpoint, p256dh, auth, tarlo, hydro from push_subs",
+      );
+    } catch {
+      rows = await sql.query<SubRow>("select endpoint, p256dh, auth from push_subs");
+    }
     for (const r of rows) {
       subs.set(r.endpoint, {
         endpoint: r.endpoint,
         keys:
           r.p256dh && r.auth ? { p256dh: r.p256dh, auth: r.auth } : undefined,
+        tarlo: r.tarlo !== false,
+        hydro: Boolean(r.hydro),
       });
     }
   } catch {
@@ -85,23 +98,38 @@ async function saveSub(s: Sub) {
   try {
     const sql = await getSql();
     await sql.query(
-      `insert into push_subs (endpoint, p256dh, auth, updated_at)
-       values ($1, $2, $3, now())
+      `insert into push_subs (endpoint, p256dh, auth, tarlo, hydro, updated_at)
+       values ($1, $2, $3, $4, $5, now())
        on conflict (endpoint) do update
-         set p256dh = excluded.p256dh, auth = excluded.auth, updated_at = now()`,
-      [s.endpoint, s.keys?.p256dh ?? null, s.keys?.auth ?? null],
+         set p256dh = excluded.p256dh, auth = excluded.auth,
+             tarlo = excluded.tarlo, hydro = excluded.hydro, updated_at = now()`,
+      [
+        s.endpoint,
+        s.keys?.p256dh ?? null,
+        s.keys?.auth ?? null,
+        s.tarlo !== false,
+        Boolean(s.hydro),
+      ],
     );
   } catch {
     /* memory */
   }
 }
 
-async function sendAll(payload: { title: string; body: string; tag?: string }) {
+async function sendAll(
+  payload: { title: string; body: string; tag?: string },
+  kind: "tarlo" | "hydro" | "all" = "all",
+) {
   await loadSubs();
   const webpush = await webPush();
   const json = JSON.stringify(payload);
+  const list = [...subs.values()].filter((s) => {
+    if (kind === "tarlo") return s.tarlo !== false;
+    if (kind === "hydro") return Boolean(s.hydro);
+    return true;
+  });
   await Promise.all(
-    [...subs.values()].map(async (s) => {
+    list.map(async (s) => {
       try {
         await webpush.sendNotification(s, json);
       } catch {
@@ -111,10 +139,57 @@ async function sendAll(payload: { title: string; body: string; tag?: string }) {
   );
 }
 
+async function hydroTick() {
+  const rows = await fetchHydroSnapshot();
+  if (!rows.length) return false;
+  let sql: Awaited<ReturnType<typeof getSql>> | null = null;
+  try {
+    sql = await getSql();
+  } catch {
+    sql = null;
+  }
+  const alerts: string[] = [];
+  for (const r of rows) {
+    let prev: number | null = null;
+    if (sql) {
+      try {
+        const hit = await sql.query<{ cm: number }>(
+          "select cm from hydro_snap where kod = $1",
+          [r.kod],
+        );
+        prev = hit[0]?.cm ?? null;
+        await sql.query(
+          `insert into hydro_snap (kod, cm, at) values ($1, $2, now())
+           on conflict (kod) do update set cm = excluded.cm, at = now()`,
+          [r.kod, r.cm],
+        );
+      } catch {
+        /* no table yet */
+      }
+    }
+    if (prev != null && Math.abs(r.cm - prev) >= 30) {
+      const d = r.cm - prev;
+      const sign = d > 0 ? "+" : "";
+      alerts.push(`${r.rzeka} ${r.stacja}: ${r.cm} cm (${sign}${d} cm)`);
+    }
+  }
+  if (!alerts.length) return false;
+  await sendAll(
+    {
+      title: "Atlas wędkarski — stany IMGW",
+      body: alerts.slice(0, 4).join(". "),
+      tag: "atlas-hydro",
+    },
+    "hydro",
+  );
+  return true;
+}
+
 async function tick() {
   const due = tarloBody();
-  if (due) await sendAll(due);
-  return Boolean(due);
+  if (due) await sendAll(due, "tarlo");
+  const hydro = await hydroTick();
+  return Boolean(due) || hydro;
 }
 
 export const Route = createFileRoute("/api/push")({
@@ -129,16 +204,25 @@ export const Route = createFileRoute("/api/push")({
         return Response.json({ publicKey: PUBLIC_KEY, n: subs.size });
       },
       POST: async ({ request }) => {
-        let body: { sub?: Sub; tick?: boolean } = {};
+        let body: { sub?: Sub; tick?: boolean; tarlo?: boolean; hydro?: boolean } = {};
         try {
-          body = (await request.json()) as { sub?: Sub; tick?: boolean };
+          body = (await request.json()) as {
+            sub?: Sub;
+            tick?: boolean;
+            tarlo?: boolean;
+            hydro?: boolean;
+          };
         } catch {
           body = {};
         }
         if (body.sub?.endpoint) {
-          await saveSub(body.sub);
+          await saveSub({
+            ...body.sub,
+            tarlo: body.tarlo ?? body.sub.tarlo,
+            hydro: body.hydro ?? body.sub.hydro,
+          });
           const due = tarloBody();
-          if (due) void sendAll(due);
+          if (due) void sendAll(due, "tarlo");
           return Response.json({ ok: true, n: subs.size });
         }
         if (body.tick) {

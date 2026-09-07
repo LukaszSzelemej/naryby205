@@ -1,7 +1,8 @@
+import type { ReactNode } from "react";
 import { useAtlas } from "@/lib/store";
 import { MAP_CENTER, DISCLAIMER } from "@/lib/catalog";
 import { BackBtn } from "@/components/Chrome";
-import { WeatherGlyph } from "@/components/icons";
+import { WeatherGlyph, PressureGlyph } from "@/components/icons";
 import {
   biomet,
   dayParts,
@@ -10,7 +11,7 @@ import {
   forecastFeeding,
   moonPhase,
 } from "@/lib/feeding";
-import { weatherIcon, weatherLabel, windArrow } from "@/lib/weather";
+import { weatherIcon, weatherLabel, windArrow, pressureTrendLabel } from "@/lib/weather";
 import type { WeatherNow } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ScreenFrame, WeatherSkeleton } from "@/components/States";
@@ -28,7 +29,7 @@ function Tile({
 }: {
   label: string;
   value: string;
-  hint?: string;
+  hint?: ReactNode;
 }) {
   return (
     <div className="rounded-2xl bg-card p-3.5 ring-1 ring-border">
@@ -44,12 +45,6 @@ function toneClass(tone: "ok" | "primary" | "warn" | "danger") {
   if (tone === "primary") return "bg-primary/20 text-primary";
   if (tone === "warn") return "bg-warn/20 text-warn";
   return "bg-danger/15 text-danger";
-}
-
-function pressureHint(trend: WeatherNow["pressureTrend"]) {
-  if (trend === "down") return "spada";
-  if (trend === "up") return "rośnie";
-  return "stabilne";
 }
 
 export function WeatherPage({ weather }: { weather: WeatherNow | null }) {
@@ -92,6 +87,17 @@ export function WeatherPage({ weather }: { weather: WeatherNow | null }) {
 
         <section className="mt-3 rounded-2xl bg-card p-4 ring-1 ring-border">
           <div className="flex items-center gap-4">
+            {weather.pressureTrend !== "flat" && (
+              <div
+                className={cn(
+                  "grid size-16 shrink-0 place-items-center rounded-2xl pressure-mark",
+                  weather.pressureTrend === "down" ? "is-down" : "is-up",
+                )}
+                title={`Ciśnienie ${pressureTrendLabel(weather.pressureTrend)}`}
+              >
+                <PressureGlyph trend={weather.pressureTrend} size={32} />
+              </div>
+            )}
             <div className="grid size-16 shrink-0 place-items-center rounded-2xl bg-card-2 text-primary">
               <WeatherGlyph kind={icon} size={32} />
             </div>
@@ -118,7 +124,16 @@ export function WeatherPage({ weather }: { weather: WeatherNow | null }) {
           <Tile
             label="Ciśnienie"
             value={`${weather.pressure.toFixed(0)} hPa`}
-            hint={pressureHint(weather.pressureTrend)}
+            hint={
+              weather.pressureTrend === "flat" ? (
+                pressureTrendLabel(weather.pressureTrend)
+              ) : (
+                <span className="inline-flex items-center gap-1">
+                  <PressureGlyph trend={weather.pressureTrend} size={12} />
+                  {pressureTrendLabel(weather.pressureTrend)}
+                </span>
+              )
+            }
           />
           <Tile
             label="Opad"

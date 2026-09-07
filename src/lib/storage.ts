@@ -4,6 +4,7 @@ const FAV = "atlas.fav";
 const JOURNAL = "atlas.journal";
 const CONSENT = "atlas.consent";
 const GEO = "atlas.geo";
+const MAP_DARK = "atlas.mapDark";
 
 function readJson<T>(key: string, fallback: T): T {
   try {
@@ -59,5 +60,22 @@ export function loadLastGeo(): { lat: number; lng: number } | null {
     return null;
   } catch {
     return null;
+  }
+}
+
+export function loadMapDark(): boolean {
+  try {
+    return localStorage.getItem(MAP_DARK) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function saveMapDark(on: boolean) {
+  try {
+    if (on) localStorage.setItem(MAP_DARK, "1");
+    else localStorage.removeItem(MAP_DARK);
+  } catch {
+    /* ignore */
   }
 }

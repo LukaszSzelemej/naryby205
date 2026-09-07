@@ -188,6 +188,7 @@ export function MapCanvas({
   const mapRef = useRef<LeafletMap | null>(null);
   const hereRef = useRef<Marker | null>(null);
   const osmRef = useRef<TileLayer | null>(null);
+  const tileUrlRef = useRef<string>(OSM_URL);
   const listRef = useRef<Water[]>([]);
   const shownRef = useRef<{ w: Water; pack: Water[] }[]>([]);
   const favRef = useRef<Set<string>>(new Set());
@@ -209,6 +210,7 @@ export function MapCanvas({
   const mapSpecies = useAtlas((s) => s.mapSpecies);
   const mapNight = useAtlas((s) => s.mapNight);
   const mapBoats = useAtlas((s) => s.mapBoats);
+  const mapDark = useAtlas((s) => s.mapDark);
 
   const redraw = () => {
     const map = mapRef.current;
@@ -288,6 +290,7 @@ export function MapCanvas({
         updateWhenZooming: false,
         crossOrigin: true,
       });
+      tileUrlRef.current = OSM_URL;
       osmRef.current.on("tileerror", () => {
         if (usedFallback || cancelled) return;
         usedFallback = true;
@@ -300,13 +303,25 @@ export function MapCanvas({
           updateWhenIdle: true,
           updateWhenZooming: false,
         });
+        tileUrlRef.current = OSM_FALLBACK_URL;
         osmRef.current.addTo(live);
         osmRef.current.bringToBack();
       });
       osmRef.current.addTo(map);
       mapRef.current = map;
       window.__atlasMap = map;
-      const here = useAtlas.getState().geo;
+      if (useAtlas.getState().mapDark) host.current?.classList.add("is-dark");
+      const st = useAtlas.getState();
+      const here = st.geo;
+      const favSet = new Set(st.favorites);
+      favRef.current = favSet;
+      listRef.current = WATERS.filter((w) => {
+        if (!matchesFilter(w, filterRef.current, favSet)) return false;
+        if (st.mapSpecies.length && !st.mapSpecies.every((id) => w.species.includes(id))) return false;
+        if (st.mapNight && !w.night) return false;
+        if (st.mapBoats && !w.boats) return false;
+        return true;
+      });
       if (here) {
         map.setView([here.lat, here.lng], 15);
       } else {
@@ -365,11 +380,6 @@ export function MapCanvas({
       onPinLoad = kickPins;
       if (pinImg?.complete && pinImg.naturalWidth) kickPins();
       else pinImg?.addEventListener("load", kickPins);
-      const favSet = new Set(useAtlas.getState().favorites);
-      favRef.current = favSet;
-      listRef.current = WATERS.filter((w) =>
-        matchesFilter(w, filterRef.current, favSet),
-      );
       setReady(true);
       requestAnimationFrame(redraw);
       window.setTimeout(() => {
@@ -420,13 +430,20 @@ export function MapCanvas({
     return () => window.clearTimeout(t);
   }, [ready, visible]);
 
+  const filterOnce = useRef(false);
   useEffect(() => {
     if (!ready) return;
     if (filter === "location") return;
-    // nonce 0 = just after splash; App / geolocation owns the camera.
-    if (mapNonce === 0) return;
+    if (!filterOnce.current) {
+      filterOnce.current = true;
+      return;
+    }
     resetView();
-  }, [filter, ready, mapNonce]);
+  }, [filter, ready]);
+
+  useEffect(() => {
+    host.current?.classList.toggle("is-dark", mapDark);
+  }, [mapDark, ready]);
 
   useEffect(() => {
     if (!ready) return;
@@ -440,6 +457,13 @@ export function MapCanvas({
       return true;
     });
     redraw();
+    const live = mapRef.current;
+    if (live) {
+      window.requestAnimationFrame(() => {
+        live.invalidateSize({ animate: false });
+        redraw();
+      });
+    }
   }, [filter, favs, ready, mapNonce, catalogReady, mapSpecies, mapNight, mapBoats]);
 
   useEffect(() => {

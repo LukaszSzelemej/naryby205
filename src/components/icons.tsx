@@ -119,6 +119,44 @@ export function WeatherGlyph({
   );
 }
 
+export function PressureGlyph({
+  trend,
+  size = 16,
+  ...p
+}: IconProps & { trend: "up" | "down" }) {
+  const up = trend === "up";
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden {...p}>
+      <path
+        d="M6.2 16.4a7.2 7.2 0 1 1 11.6 0"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        opacity="0.4"
+      />
+      <g className={up ? "pressure-arrow is-up" : "pressure-arrow is-down"}>
+        {up ? (
+          <path
+            d="M12 16.2V8.2M8.2 11.6 12 7.6l3.8 4"
+            stroke="currentColor"
+            strokeWidth="2.1"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        ) : (
+          <path
+            d="M12 7.8v8M8.2 12.4 12 16.4l3.8-4"
+            stroke="currentColor"
+            strokeWidth="2.1"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        )}
+      </g>
+    </svg>
+  );
+}
+
 export function FishOutline({ size = 22, ...p }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden {...p}>

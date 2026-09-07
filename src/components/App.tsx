@@ -24,7 +24,7 @@ import { startPresence } from "@/lib/presence";
 import { useAtlas } from "@/lib/store";
 import { fetchWeather } from "@/lib/weather";
 import type { WeatherNow } from "@/lib/types";
-import { loadConsent, loadFavorites, loadJournal, loadLastGeo } from "@/lib/storage";
+import { loadConsent, loadFavorites, loadJournal, loadLastGeo, loadMapDark } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 
 export function App() {
@@ -50,12 +50,8 @@ export function App() {
       favorites: loadFavorites(),
       journal: loadJournal(),
       geo: loadLastGeo(),
+      mapDark: loadMapDark(),
     });
-    try {
-      localStorage.removeItem("atlas.recent");
-    } catch {
-      /* ignore */
-    }
     const t = window.setTimeout(() => {
       requestLocation();
     }, 80);

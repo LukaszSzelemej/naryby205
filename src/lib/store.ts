@@ -5,10 +5,22 @@ import {
   saveFavorites,
   saveJournal,
   saveLastGeo,
+  saveMapDark,
+  loadMapDark,
   type ConsentState,
 } from "@/lib/storage";
 
 type Geo = { lat: number; lng: number } | null;
+
+export type KitTab =
+  | "gatunki"
+  | "dokumenty"
+  | "etykieta"
+  | "poradnik"
+  | "offline"
+  | "zapis"
+  | "ciasteczka"
+  | "kawa";
 
 export type MapSheet = {
   kind: "nearby" | "cluster";
@@ -47,6 +59,7 @@ type AtlasState = {
   listNight: boolean;
   listBoats: boolean;
   moreOpen: boolean;
+  mapDark: boolean;
   showCoords: boolean;
   spotMapFull: boolean;
   offlineOpen: boolean;
@@ -55,16 +68,7 @@ type AtlasState = {
   selectedHostKey: string | null;
   compareA: string | null;
   compareB: string | null;
-  kitTab:
-    | "gatunki"
-    | "dokumenty"
-    | "etykieta"
-    | "poradnik"
-    | "offline"
-    | "zapis"
-    | "ciasteczka"
-    | "kawa"
-    | null;
+  kitTab: KitTab | null;
   letter: string | null;
   sort: SortMode;
   listSortAuto: boolean;
@@ -97,6 +101,7 @@ type AtlasState = {
   setListFilter: (f: MapFilter) => void;
   toggleMore: () => void;
   setMoreOpen: (v: boolean) => void;
+  toggleMapDark: () => void;
   setShowCoords: (v: boolean) => void;
   setSpotMapFull: (v: boolean) => void;
   setOfflineOpen: (v: boolean) => void;
@@ -144,6 +149,7 @@ export const useAtlas = create<AtlasState>((set, get) => ({
   listNight: false,
   listBoats: false,
   moreOpen: false,
+  mapDark: loadMapDark(),
   showCoords: false,
   spotMapFull: false,
   offlineOpen: false,
@@ -306,6 +312,12 @@ export const useAtlas = create<AtlasState>((set, get) => ({
     }),
   toggleMore: () => set((s) => ({ moreOpen: !s.moreOpen })),
   setMoreOpen: (moreOpen) => set({ moreOpen }),
+  toggleMapDark: () =>
+    set((s) => {
+      const mapDark = !s.mapDark;
+      saveMapDark(mapDark);
+      return { mapDark };
+    }),
   setShowCoords: (showCoords) => set({ showCoords }),
   setSpotMapFull: (spotMapFull) => set({ spotMapFull }),
   setOfflineOpen: (offlineOpen) => set({ offlineOpen }),

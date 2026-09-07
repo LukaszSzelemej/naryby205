@@ -14,7 +14,7 @@ export { CUPLINK, INSTAGRAM, SITE_URL, VERSION } from "@/lib/brand";
 /** Filled by loadCatalog() during splash — never import the 644KB JSON into the bundle. */
 export const WATERS: Water[] = [];
 export const WATERS_BY_ID: Record<string, Water> = {};
-export const NAME_COUNTS: Record<string, number> = {};
+const NAME_COUNTS: Record<string, number> = {};
 export const SPECIES = speciesJson as Species[];
 export const SPECIES_BY_ID: Record<string, Species> = Object.fromEntries(
   SPECIES.map((s) => [s.id, s]),
@@ -29,7 +29,7 @@ type ManagersFile = {
 const MANAGERS_FILE = managersJson as ManagersFile;
 export const MANAGERS = MANAGERS_FILE.managers;
 export const OKRAG_TO_MANAGER = MANAGERS_FILE.okragToManager;
-export const HOST_BY_ID = MANAGERS_FILE.hostById;
+const HOST_BY_ID = MANAGERS_FILE.hostById;
 
 export const BOUNDS = { south: 52.62, west: 14.12, north: 54.58, east: 16.98 };
 export const MAP_CENTER: [number, number] = [53.52, 15.35];
@@ -220,6 +220,7 @@ function fillWaters(rows: Water[]) {
   for (const w of rows) {
     if (w.species?.length) w.species = [...new Set(w.species)];
     w.obwod = normObwodList([...(w.obwod ?? []), ...parseObwod(w)]);
+    w.night = inferNight(w);
   }
   WATERS.push(...rows);
   for (const w of rows) WATERS_BY_ID[w.id] = w;
@@ -331,7 +332,7 @@ export function managerOf(w: Water): Manager {
   return MANAGERS[id] ?? MANAGERS["pzw-szczecin"];
 }
 
-export function isPrivate(w: Water) {
+function isPrivate(w: Water) {
   const k = hostKindOf(w);
   return (
     k === "private" ||
@@ -351,7 +352,7 @@ export function isSpecial(w: Water) {
   return hostKindOf(w) !== "pzw";
 }
 
-export function isPzw(w: Water) {
+function isPzw(w: Water) {
   return hostKindOf(w) === "pzw";
 }
 
@@ -418,6 +419,7 @@ export function sanitizeQuery(raw: string) {
 export function searchWaters(query: string, pool: Water[] = WATERS): Water[] {
   const n = foldPl(sanitizeQuery(query).trim());
   if (!n) return pool;
+  if (n.length < 2 && !/^\d+$/.test(n)) return [];
   const strip = (s: string) =>
     s.replace(/^(jezioro|rzeka|kanal|staw|zalew|lowisko)\s+/i, "");
   return pool
@@ -484,6 +486,13 @@ export function formatDistance(km: number | null | undefined) {
   return `${Math.round(km)} km`;
 }
 
+export function inferNight(w: Water): boolean {
+  const blob = foldPl([...(w.rules ?? []), w.ticket ?? "", w.summary ?? ""].join(" "));
+  if (/zakaz.{0,28}noc|bez nocy|nie wolno.{0,18}noc/.test(blob)) return false;
+  if (/\bnoc(y|a|nego|leg)?\b/.test(blob)) return true;
+  return false;
+}
+
 export function formatSize(w: Water) {
   if (w.kind === "rzeka" || w.kind === "kanal") {
     return w.lengthKm ? `${w.lengthKm} km` : null;
@@ -495,7 +504,10 @@ export function formatSize(w: Water) {
 }
 
 export function formatDepth(w: Water) {
-  return w.maxDepthM ? `${String(w.maxDepthM).replace(".", ",")} m` : null;
+  if (!w.maxDepthM) return null;
+  const max = String(w.maxDepthM).replace(".", ",");
+  if (w.avgDepthM) return `max ${max} m · śr. ${String(w.avgDepthM).replace(".", ",")} m`;
+  return `${max} m`;
 }
 
 export function speciesName(id: string) {
@@ -534,7 +546,7 @@ export function safeHttpUrl(raw: string | null | undefined) {
   }
 }
 
-export function linkKind(url: string): "facebook" | "instagram" | "youtube" | "tiktok" | "web" {
+function linkKind(url: string): "facebook" | "instagram" | "youtube" | "tiktok" | "web" {
   try {
     const h = new URL(url).hostname.replace(/^www\./, "").toLowerCase();
     if (h === "facebook.com" || h === "fb.com" || h === "m.facebook.com" || h.endsWith(".facebook.com")) {
@@ -596,7 +608,7 @@ export function watersOfHost(key: string) {
   );
 }
 
-export function parseObwod(w: Water): string[] {
+function parseObwod(w: Water): string[] {
   const blob = [...(w.rules ?? []), w.ticket ?? "", w.summary ?? ""].join(" ");
   const out = new Set<string>();
   const addNum = (raw: string) => {
@@ -766,7 +778,7 @@ export function protectionOf(sp: Species, at: Date = new Date(), atSea = false) 
   return { hasPeriod: true, active, label };
 }
 
-export const OKREG_FORK: Record<string, Record<string, { min: number; max?: number }>> = {
+const OKREG_FORK: Record<string, Record<string, { min: number; max?: number }>> = {
   Szczecin: {
     szczupak: { min: 50, max: 80 },
     sandacz: { min: 50, max: 80 },
@@ -839,5 +851,10 @@ export function protectHint(id: string, okrag?: string, sea = false) {
       : p.size === "zakaz zabierania"
         ? "Zakaz zabierania"
         : `Wymiar ochronny: ${p.size}`;
-  return `${size} · ${p.limit}${p.period.active ? " · ochrona trwa" : ""}`;
+  const extra = p.period.active
+    ? " · ochrona trwa"
+    : sp.seaBan
+      ? ` · ${p.period.label}`
+      : "";
+  return `${size} · ${p.limit}${extra}`;
 }

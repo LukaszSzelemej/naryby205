@@ -90,3 +90,17 @@ export async function fetchHydro(w: Water): Promise<HydroRow[]> {
     })
     .filter((r) => r.cm != null);
 }
+
+export async function fetchHydroSnapshot() {
+  const all = await loadAll();
+  return STATIONS.map((s) => {
+    const hit = all.get(s.kod);
+    return {
+      kod: s.kod,
+      stacja: s.stacja,
+      rzeka: s.rzeka,
+      cm: hit?.cm ?? null,
+      at: hit?.at ?? null,
+    };
+  }).filter((r): r is { kod: string; stacja: string; rzeka: string; cm: number; at: string | null } => r.cm != null);
+}

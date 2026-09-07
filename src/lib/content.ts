@@ -27,8 +27,12 @@ export const COOKIES_TEXT = {
       d: "zapytania do Open-Meteo ze współrzędnymi łowiska albo przybliżonego terenu — to dostawca zewnętrzny, jego serwery mogą zapisać logi techniczne.",
     },
     {
+      t: "Stany rzek",
+      d: "przy karcie rzeki atlas pyta IMGW-PIB (danepubliczne.imgw.pl) o wodowskazy. Powiadomienia o skoku stanu idą przez serwer atlasu, bez Twojej lokalizacji.",
+    },
+    {
       t: "Mapa",
-      d: "OpenStreetMap (kafelki osm.org, polskie nazwy miejsc). Offline zapisujesz je sam, w zakładce Offline.",
+      d: "OpenStreetMap (kafelki osm.org, polskie nazwy). Ciemna mapa to te same kafelki, przyciemnione w aplikacji — bez zewnętrznego API. Offline zapisujesz OSM sam, w zakładce Offline.",
     },
   ],
   thirdTitle: "Ciasteczka stron trzecich",
@@ -212,7 +216,7 @@ export const LICENSES_COPY = {
   items: [
     {
       t: "OpenStreetMap",
-      d: "Kafelki mapy i nazwy miejsc © OpenStreetMap contributors. Dane na licencji ODbL 1.0.",
+      d: "Kafelki mapy i nazwy miejsc © OpenStreetMap contributors. Dane na licencji ODbL 1.0. Ciemna mapa używa tych samych kafelków (bez dodatkowego dostawcy).",
       href: "https://www.openstreetmap.org/copyright",
     },
     {
@@ -234,6 +238,11 @@ export const LICENSES_COPY = {
       t: "RAPR i rozporządzenie",
       d: "Wymiary i okresy ochronne: Regulamin Amatorskiego Połowu Ryb PZW oraz rozporządzenie MRiRW.",
       href: "https://www.gov.pl/web/wody-polskie-szczecin/regulamin-amatorskiego-polowu-ryb",
+    },
+    {
+      t: "IMGW-PIB",
+      d: "Stany wody na rzekach — dane publiczne Instytutu Meteorologii i Gospodarki Wodnej.",
+      href: "https://danepubliczne.imgw.pl",
     },
   ],
 };

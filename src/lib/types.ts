@@ -23,6 +23,7 @@ export type Water = {
   areaHa?: number | null;
   lengthKm?: number | null;
   maxDepthM?: number | null;
+  avgDepthM?: number | null;
   species: string[];
   methods: string[];
   night?: boolean;

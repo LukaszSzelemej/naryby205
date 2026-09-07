@@ -37,7 +37,7 @@ import { useAtlas } from "@/lib/store";
 import { setTarloPref, tarloPref } from "@/lib/tarlo";
 import { cn, openExternal, phonesIn } from "@/lib/utils";
 import { clearOffline, downloadOffline, offlineCount } from "@/lib/offline";
-import { EmptyState, Meter, ScreenFrame } from "@/components/States";
+import { EmptyState, FeedSkeleton, Meter, ScreenFrame } from "@/components/States";
 
 const TABS: { id: NonNullable<ReturnType<typeof tabId>>; label: string; alwaysOrange?: boolean }[] = [
   { id: "gatunki", label: "Gatunki" },
@@ -468,7 +468,7 @@ export function SpeciesWaters() {
   const id = useAtlas((s) => s.selectedSpeciesId);
   const setScreen = useAtlas((s) => s.setScreen);
   const openSpot = useAtlas((s) => s.openSpot);
-  useAtlas((s) => s.catalogReady);
+  const catalogReady = useAtlas((s) => s.catalogReady);
   const sp = SPECIES.find((s) => s.id === id);
   const list = id ? watersForSpecies(id) : [];
   let last = "";
@@ -511,6 +511,7 @@ export function SpeciesWaters() {
             );
           })}
           {list.length === 0 && (
+            catalogReady ? (
             <EmptyState
               icon={<FishOutline size={26} />}
               title="Brak łowisk"
@@ -518,6 +519,9 @@ export function SpeciesWaters() {
               action={() => setScreen("kit")}
               actionLabel="Wróć do gatunków"
             />
+            ) : (
+              <FeedSkeleton />
+            )
           )}
         </div>
         <p className="mt-6 text-center text-xs text-faint">{DISCLAIMER}</p>
@@ -530,7 +534,7 @@ export function HostWaters() {
   const key = useAtlas((s) => s.selectedHostKey);
   const back = useAtlas((s) => s.back);
   const openSpot = useAtlas((s) => s.openSpot);
-  useAtlas((s) => s.catalogReady);
+  const catalogReady = useAtlas((s) => s.catalogReady);
   const list = key ? watersOfHost(key) : [];
   const label = list[0] ? hostGroupOf(list[0]).label : "Gospodarz";
   let last = "";
@@ -570,6 +574,7 @@ export function HostWaters() {
             );
           })}
           {list.length === 0 && (
+            catalogReady ? (
             <EmptyState
               icon={<FishOutline size={26} />}
               title="Brak łowisk"
@@ -577,6 +582,9 @@ export function HostWaters() {
               action={back}
               actionLabel="Wróć"
             />
+            ) : (
+              <FeedSkeleton />
+            )
           )}
         </div>
         <p className="mt-6 text-center text-xs text-faint">{DISCLAIMER}</p>

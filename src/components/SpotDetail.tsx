@@ -41,6 +41,7 @@ import type { WeatherNow } from "@/lib/types";
 import { cn, copyText, openExternal, phonesIn } from "@/lib/utils";
 import { EmptyState, FeedSkeleton, ScreenFrame, useFlash } from "@/components/States";
 import { fetchHydro, hydroRiverKey, type HydroRow } from "@/lib/hydro";
+import { OSM_URL } from "@/lib/tiles";
 import { shareWaterCard } from "@/lib/share-card";
 
 function toneClass(tone: "ok" | "primary" | "warn" | "danger") {
@@ -95,9 +96,7 @@ function MiniMap({
         dragging: full,
         scrollWheelZoom: full,
       }).setView([lat, lng], full ? 15 : 14);
-      L.tileLayer(
-        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      ).addTo(map);
+      L.tileLayer(OSM_URL, { maxZoom: 19 }).addTo(map);
       L.marker([lat, lng], {
         icon: L.divIcon({
           className: "fish-marker",

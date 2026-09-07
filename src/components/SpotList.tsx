@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CoffeeIcon, FishOutline, SearchGlyph, StarGlyph } from "@/components/icons";
 import { SearchField, requestLocation } from "@/components/Chrome";
-import { EmptyState, ScreenFrame } from "@/components/States";
+import { EmptyState, FeedSkeleton, ScreenFrame } from "@/components/States";
 import {
   ALPHABET,
   categoryTags,
@@ -18,6 +18,7 @@ import {
   SPECIES_BY_ID,
   matchesFilter,
   matchesObwod,
+  retryCatalog,
   allObwody,
   classifyObwod,
   obwodLabel,
@@ -115,6 +116,7 @@ export function SpotList() {
   const screen = useAtlas((s) => s.screen);
   const setScreen = useAtlas((s) => s.setScreen);
   const catalogReady = useAtlas((s) => s.catalogReady);
+  const catalogError = useAtlas((s) => s.catalogError);
 
   const tabScope: MapFilter =
     screen === "pzw" ? "pzw" : screen === "specjalne" ? "specjalne" : "all";
@@ -268,6 +270,20 @@ export function SpotList() {
   };
 
   const empty = (() => {
+    if (!catalogReady) {
+      if (catalogError) {
+        return (
+          <EmptyState
+            icon={<FishOutline size={26} />}
+            title="Nie udało się wczytać katalogu"
+            body="Sprawdź połączenie i spróbuj ponownie."
+            action={() => void retryCatalog()}
+            actionLabel="Spróbuj ponownie"
+          />
+        );
+      }
+      return <FeedSkeleton />;
+    }
     if (pool.length > 0) return null;
     if (q.trim()) {
       return (

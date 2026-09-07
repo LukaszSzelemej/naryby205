@@ -25,7 +25,6 @@ import { useAtlas } from "@/lib/store";
 import { fetchWeather } from "@/lib/weather";
 import type { WeatherNow } from "@/lib/types";
 import { loadConsent, loadFavorites, loadJournal, loadLastGeo } from "@/lib/storage";
-import { resetView } from "@/lib/map-api";
 import { cn } from "@/lib/utils";
 
 export function App() {
@@ -35,6 +34,7 @@ export function App() {
   const openSpot = useAtlas((s) => s.openSpot);
   const openSheet = useAtlas((s) => s.openSheet);
   const nearbyPending = useAtlas((s) => s.nearbyPending);
+  const catalogReady = useAtlas((s) => s.catalogReady);
   const geo = useAtlas((s) => s.geo);
   const [online, setOnline] = useState(1);
   const [weather, setWeather] = useState<WeatherNow | null>(null);
@@ -57,7 +57,6 @@ export function App() {
       /* ignore */
     }
     const t = window.setTimeout(() => {
-      resetView();
       requestLocation();
     }, 80);
     return () => window.clearTimeout(t);
@@ -76,10 +75,11 @@ export function App() {
   }, [geo?.lat, geo?.lng]);
 
   useEffect(() => {
-    if (!nearbyPending || !geo) return;
+    if (!nearbyPending || !geo || !catalogReady) return;
     const ids = nearestTo(geo.lat, geo.lng, 5).map((w) => w.id);
+    if (!ids.length) return;
     openSheet({ kind: "nearby", title: "Najbliższe", ids });
-  }, [nearbyPending, geo, openSheet]);
+  }, [nearbyPending, geo, catalogReady, openSheet]);
 
   useEffect(() => {
     const vv = window.visualViewport;
@@ -124,7 +124,7 @@ export function App() {
         />
       </div>
 
-      {catalogError && (
+      {showMap && catalogError && (
         <div className="absolute top-[max(3.5rem,env(safe-area-inset-top))] left-3 right-3 z-50 rounded-2xl bg-card p-3 ring-1 ring-danger/40">
           <p className="text-sm font-medium">{catalogError}</p>
           <button

@@ -226,11 +226,10 @@ function fillWaters(rows: Water[]) {
   for (const k of Object.keys(NAME_COUNTS)) delete NAME_COUNTS[k];
   for (const w of rows) NAME_COUNTS[w.name] = (NAME_COUNTS[w.name] ?? 0) + 1;
   void import("@/lib/store").then(({ useAtlas }) => {
-    useAtlas.setState((s) => ({
+    useAtlas.setState({
       catalogReady: true,
       catalogError: null,
-      mapNonce: s.mapNonce + 1,
-    }));
+    });
   });
 }
 
@@ -420,7 +419,7 @@ export function searchWaters(query: string, pool: Water[] = WATERS): Water[] {
   const n = foldPl(sanitizeQuery(query).trim());
   if (!n) return pool;
   const strip = (s: string) =>
-    s.replace(/^(jezioro|rzeka|kanał|kanal|staw|zalew|łowisko)\s+/i, "");
+    s.replace(/^(jezioro|rzeka|kanal|staw|zalew|lowisko)\s+/i, "");
   return pool
     .map((w) => {
       const names = [w.name, ...(w.aliases ?? [])].map((x) => foldPl(x));
@@ -432,9 +431,9 @@ export function searchWaters(query: string, pool: Water[] = WATERS): Water[] {
       );
       let score = 0;
       if (names.some((x) => x === n)) score = 100;
-      else if (names.some((x) => foldPl(strip(x)) === n)) score = 90;
+      else if (names.some((x) => strip(x) === n)) score = 90;
       else if (
-        names.some((x) => x.startsWith(n) || foldPl(strip(x)).startsWith(n))
+        names.some((x) => x.startsWith(n) || strip(x).startsWith(n))
       )
         score = 80;
       else if (gmina === n || okrag === n || powiat === n) score = 70;
@@ -519,9 +518,7 @@ const DEAD_HOSTS = new Set([
   "gruba-rybka.pl",
   "karas2015.pl",
   "dolinainy.pl",
-  "icr.com.pl",
   "zlocryb.hg.pl",
-  "rybactwo.com.pl",
 ]);
 
 export function safeHttpUrl(raw: string | null | undefined) {
@@ -610,7 +607,7 @@ export function parseObwod(w: Water): string[] {
     addNum(m[1]);
     if (m[2]) addNum(m[2]);
   }
-  for (const m of blob.matchAll(/ko[lł][ea][^0-9]{0,18}nr\.?\s*(\d{1,3})/gi)) {
+  for (const m of blob.matchAll(/ko[lł][eao][^0-9]{0,18}nr\.?\s*(\d{1,3})/gi)) {
     addNum(m[1]);
   }
   for (const m of blob.matchAll(/\b([JR])-(\d{1,3})\b/g)) {

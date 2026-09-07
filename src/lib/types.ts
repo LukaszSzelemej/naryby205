@@ -148,5 +148,3 @@ export type WeatherDay = {
   weatherCode: number;
   wind: number;
 };
-
-export type Geo = { lat: number; lng: number } | null;

@@ -109,7 +109,6 @@ export function ComparePage() {
               }}
               dark
               autoFocus
-              dropUp
               pool={aId ? WATERS.filter((w) => w.id !== aId) : WATERS}
             />
           </div>

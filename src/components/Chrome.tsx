@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  CoffeeIcon,
   MapGlyph,
   ListGlyph,
   BadgeGlyph,
@@ -591,14 +590,22 @@ export function RightMenu({ weather }: { weather: WeatherNow | null }) {
   const icon = weather ? weatherIcon(weather.weatherCode) : "partly";
 
   const showNearby = () => {
-    const geo = useAtlas.getState().geo;
-    if (!geo) {
-      useAtlas.getState().setNearbyPending(true);
+    const st = useAtlas.getState();
+    if (!st.geo) {
+      st.setNearbyPending(true);
       locateOnMap();
       return;
     }
-    const ids = nearestTo(geo.lat, geo.lng, 5).map((w) => w.id);
-    useAtlas.getState().openSheet({ kind: "nearby", title: "Najbliższe", ids });
+    if (!st.catalogReady) {
+      st.setNearbyPending(true);
+      return;
+    }
+    const ids = nearestTo(st.geo.lat, st.geo.lng, 5).map((w) => w.id);
+    if (!ids.length) {
+      st.setNearbyPending(true);
+      return;
+    }
+    st.openSheet({ kind: "nearby", title: "Najbliższe", ids });
   };
 
   const Btn = ({

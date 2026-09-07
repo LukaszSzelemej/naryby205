@@ -15,6 +15,7 @@ import {
   managerOf,
   METHOD_LABEL,
   nearestWaters,
+  obwodLabel,
   waterTitle,
   hostGroupOf,
   watersOfHost,
@@ -40,7 +41,6 @@ import type { WeatherNow } from "@/lib/types";
 import { cn, copyText, openExternal, phonesIn } from "@/lib/utils";
 import { EmptyState, FeedSkeleton, ScreenFrame, useFlash } from "@/components/States";
 import { fetchHydro, hydroRiverKey, type HydroRow } from "@/lib/hydro";
-import { satThumb } from "@/lib/tiles";
 import { shareWaterCard } from "@/lib/share-card";
 
 function toneClass(tone: "ok" | "primary" | "warn" | "danger") {
@@ -280,19 +280,6 @@ export function SpotDetail() {
           </div>
         )}
 
-        {(w.featured && w.kind !== "komercyjne") && (
-          <div className="relative mt-4 mx-1 overflow-hidden rounded-2xl ring-1 ring-border">
-            <img
-              src={satThumb(w.lat, w.lng)}
-              alt=""
-              className="aspect-[16/9] w-full object-cover"
-            />
-            <p className="absolute bottom-1.5 left-2 rounded-full bg-black/55 px-2 py-0.5 text-[10px] text-white">
-              Ortofoto Esri — brzeg i tafla
-            </p>
-          </div>
-        )}
-
         <button
           type="button"
           onClick={() => setFull(true)}
@@ -365,7 +352,7 @@ export function SpotDetail() {
             )}
           </Box>
           {w.obwod && w.obwod.length > 0 && (
-            <Box title="Obwód PZW">
+            <Box title="Koło / obwód PZW">
               <div className="flex flex-wrap gap-1.5">
                 {w.obwod.map((o) => (
                   <button
@@ -378,11 +365,11 @@ export function SpotDetail() {
                     }}
                     className="tap min-h-9 rounded-full bg-card-2 px-3 text-xs font-semibold tabular-nums ring-1 ring-border"
                   >
-                    {o}
+                    {obwodLabel(o)}
                   </button>
                 ))}
               </div>
-              <p className="mt-1.5 text-[11px] text-faint">Numer obwodu z regulaminu — otwiera listę.</p>
+              <p className="mt-1.5 text-[11px] text-faint">Numer koła lub obwodu z regulaminu — otwiera listę.</p>
             </Box>
           )}
           <Box title="Zasady i zezwolenia">

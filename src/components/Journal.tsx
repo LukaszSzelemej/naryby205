@@ -93,7 +93,7 @@ function WaterPicker({
                 setQ(e.target.value);
                 if (!open) setOpen(true);
               }}
-              placeholder="Szukaj nazwy, gminy albo okręgu PZW…"
+              placeholder="Szukaj nazwy, gminy albo nr koła…"
               autoComplete="off"
               autoCapitalize="none"
               autoCorrect="off"

@@ -4,7 +4,6 @@ const FAV = "atlas.fav";
 const JOURNAL = "atlas.journal";
 const CONSENT = "atlas.consent";
 const GEO = "atlas.geo";
-const RECENT = "atlas.recent";
 
 function readJson<T>(key: string, fallback: T): T {
   try {
@@ -61,12 +60,4 @@ export function loadLastGeo(): { lat: number; lng: number } | null {
   } catch {
     return null;
   }
-}
-
-export function loadRecent(): string[] {
-  return readJson<string[]>(RECENT, []).filter((id) => typeof id === "string").slice(0, 5);
-}
-
-export function saveRecent(ids: string[]) {
-  localStorage.setItem(RECENT, JSON.stringify(ids.slice(0, 5)));
 }

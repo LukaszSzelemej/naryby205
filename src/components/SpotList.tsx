@@ -19,13 +19,14 @@ import {
   matchesFilter,
   matchesObwod,
   allObwody,
+  classifyObwod,
+  obwodLabel,
   sanitizeQuery,
   searchWaters,
   sortName,
   speciesName,
   waterTitle,
   WATERS,
-  WATERS_BY_ID,
 } from "@/lib/catalog";
 import { useAtlas } from "@/lib/store";
 import type { MapFilter, SortMode, Water } from "@/lib/types";
@@ -114,7 +115,6 @@ export function SpotList() {
   const screen = useAtlas((s) => s.screen);
   const setScreen = useAtlas((s) => s.setScreen);
   const catalogReady = useAtlas((s) => s.catalogReady);
-  const recentIds = useAtlas((s) => s.recentIds);
 
   const tabScope: MapFilter =
     screen === "pzw" ? "pzw" : screen === "specjalne" ? "specjalne" : "all";
@@ -323,21 +323,6 @@ export function SpotList() {
           </h1>
           <CoffeeLink />
         </header>
-        {recentIds.length > 0 && !q.trim() && !letter && (
-          <section className="mt-3">
-            <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-faint">
-              Ostatnio oglądane
-            </h2>
-            <div className="mt-2 grid gap-2">
-              {recentIds
-                .map((id) => WATERS_BY_ID[id])
-                .filter(Boolean)
-                .map((w) => (
-                  <WaterCard key={`r-${w.id}`} w={w} onOpen={openSpot} />
-                ))}
-            </div>
-          </section>
-        )}
         <p className="mt-2 text-xs leading-relaxed text-faint">{DISCLAIMER}</p>
         <div className="mt-3">
           <SearchField
@@ -428,23 +413,53 @@ export function SpotList() {
           </p>
         )}
         {obwody.length > 0 && (
-          <div className="mt-3 flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">
-            {obwody.map((o) => {
-              const on = listObwod === o;
+          <div className="mt-3 space-y-2">
+            <label className="block">
+              <span className="sr-only">Numer koła lub obwodu</span>
+              <input
+                value={listObwod}
+                onChange={(e) => setListObwod(sanitizeQuery(e.target.value))}
+                placeholder="Nr koła / obwodu, np. 86 albo J-89"
+                inputMode="search"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                className="min-h-11 w-full rounded-full bg-card px-4 text-sm ring-1 ring-border outline-none placeholder:text-faint"
+              />
+            </label>
+            {(["kolo", "jezioro", "rzeka"] as const).map((g) => {
+              const items = obwody
+                .filter((o) => classifyObwod(o) === g)
+                .filter((o) => !listObwod.trim() || matchesObwod({ obwod: [o] }, listObwod));
+              if (!items.length) return null;
+              const title =
+                g === "kolo" ? "Koła PZW" : g === "jezioro" ? "Jeziora J-" : "Rzeki R-";
               return (
-                <button
-                  key={o}
-                  type="button"
-                  onClick={() => setListObwod(on ? "" : o)}
-                  className={cn(
-                    "tap min-h-8 rounded-full px-2.5 text-[11px] font-semibold tabular-nums ring-1",
-                    on
-                      ? "bg-card-2 text-foreground ring-white"
-                      : "bg-card-2 text-foreground ring-border",
-                  )}
-                >
-                  {o}
-                </button>
+                <div key={g}>
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-faint">
+                    {title}
+                  </p>
+                  <div className="flex gap-1.5 overflow-x-auto pb-1">
+                    {items.map((o) => {
+                      const on = Boolean(listObwod.trim()) && matchesObwod({ obwod: [o] }, listObwod);
+                      return (
+                        <button
+                          key={o}
+                          type="button"
+                          onClick={() => setListObwod(on ? "" : o)}
+                          className={cn(
+                            "tap min-h-8 shrink-0 rounded-full px-2.5 text-[11px] font-semibold tabular-nums ring-1",
+                            on
+                              ? "bg-card-2 text-foreground ring-white"
+                              : "bg-card-2 text-foreground ring-border",
+                          )}
+                        >
+                          {obwodLabel(o)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               );
             })}
           </div>

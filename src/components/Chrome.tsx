@@ -252,7 +252,7 @@ export function SearchField({
   onChange,
   onPick,
   dark,
-  placeholder = "Szukaj nazwy, gminy, okręgu…",
+  placeholder = "Szukaj nazwy, gminy, nr koła…",
   autoFocus,
   dropUp,
   pool,
@@ -581,8 +581,6 @@ export function FilterBar() {
 
 export function RightMenu({ weather }: { weather: WeatherNow | null }) {
   const setScreen = useAtlas((s) => s.setScreen);
-  const satellite = useAtlas((s) => s.satellite);
-  const toggleSatellite = useAtlas((s) => s.toggleSatellite);
   const setOfflineOpen = useAtlas((s) => s.setOfflineOpen);
   const startBoot = useAtlas((s) => s.startBoot);
   const filter = useAtlas((s) => s.filter);
@@ -668,12 +666,6 @@ export function RightMenu({ weather }: { weather: WeatherNow | null }) {
           <circle cx="12" cy="12" r="7" stroke="currentColor" strokeWidth="1.7" />
           <circle cx="12" cy="12" r="2.2" fill="currentColor" />
           <path d="M12 5v2M12 17v2M5 12h2M17 12h2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-        </svg>
-      </Btn>
-      <Btn label="Warstwa mapy" className={satellite ? "is-on" : ""} onClick={toggleSatellite}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M3 8.5 12 4l9 4.5-9 4.5L3 8.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
-          <path d="M3 13.5 12 18l9-4.5" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
         </svg>
       </Btn>
       <Btn label="Mapa offline" onClick={() => setOfflineOpen(true)}>

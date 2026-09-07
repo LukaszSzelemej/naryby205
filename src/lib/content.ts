@@ -28,7 +28,7 @@ export const COOKIES_TEXT = {
     },
     {
       t: "Mapa",
-      d: "OpenStreetMap (kafelki osm.org, polskie nazwy miejsc). Zdjęcia satelitarne — Esri. Offline zapisujesz je sam, w zakładce Offline.",
+      d: "OpenStreetMap (kafelki osm.org, polskie nazwy miejsc). Offline zapisujesz je sam, w zakładce Offline.",
     },
   ],
   thirdTitle: "Ciasteczka stron trzecich",
@@ -214,11 +214,6 @@ export const LICENSES_COPY = {
       t: "OpenStreetMap",
       d: "Kafelki mapy i nazwy miejsc © OpenStreetMap contributors. Dane na licencji ODbL 1.0.",
       href: "https://www.openstreetmap.org/copyright",
-    },
-    {
-      t: "Esri World Imagery",
-      d: "Warstwa satelitarna — Esri, Maxar, Earthstar Geographics i wspólnoty GIS.",
-      href: "https://www.esri.com/en-us/legal/terms/full",
     },
     {
       t: "Leaflet",

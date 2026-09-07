@@ -10,6 +10,7 @@ import {
   KIND_LABEL,
   managerOf,
   METHOD_LABEL,
+  obwodLabel,
   speciesName,
   waterTitle,
   WATERS,
@@ -58,8 +59,8 @@ function Side({ w }: { w: Water }) {
         </div>
         {w.obwod?.length ? (
           <div>
-            <dt className="text-faint">Obwód</dt>
-            <dd>{w.obwod.join(", ")}</dd>
+            <dt className="text-faint">Koło / obwód</dt>
+            <dd>{w.obwod.map(obwodLabel).join(", ")}</dd>
           </div>
         ) : null}
       </dl>

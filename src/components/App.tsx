@@ -24,7 +24,7 @@ import { startPresence } from "@/lib/presence";
 import { useAtlas } from "@/lib/store";
 import { fetchWeather } from "@/lib/weather";
 import type { WeatherNow } from "@/lib/types";
-import { loadConsent, loadFavorites, loadJournal, loadLastGeo, loadRecent } from "@/lib/storage";
+import { loadConsent, loadFavorites, loadJournal, loadLastGeo } from "@/lib/storage";
 import { resetView } from "@/lib/map-api";
 import { cn } from "@/lib/utils";
 
@@ -50,7 +50,6 @@ export function App() {
       favorites: loadFavorites(),
       journal: loadJournal(),
       geo: loadLastGeo(),
-      recentIds: loadRecent(),
     });
     const t = window.setTimeout(() => {
       resetView();

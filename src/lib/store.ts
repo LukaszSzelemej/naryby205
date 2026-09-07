@@ -5,7 +5,6 @@ import {
   saveFavorites,
   saveJournal,
   saveLastGeo,
-  saveRecent,
   type ConsentState,
 } from "@/lib/storage";
 
@@ -48,7 +47,6 @@ type AtlasState = {
   listNight: boolean;
   listBoats: boolean;
   moreOpen: boolean;
-  satellite: boolean;
   showCoords: boolean;
   spotMapFull: boolean;
   offlineOpen: boolean;
@@ -77,7 +75,6 @@ type AtlasState = {
   consent: ConsentState;
   favorites: string[];
   journal: JournalEntry[];
-  recentIds: string[];
   sheet: MapSheet;
   nearbyPending: boolean;
   startBoot: () => void;
@@ -100,8 +97,6 @@ type AtlasState = {
   setListFilter: (f: MapFilter) => void;
   toggleMore: () => void;
   setMoreOpen: (v: boolean) => void;
-  setSatellite: (v: boolean) => void;
-  toggleSatellite: () => void;
   setShowCoords: (v: boolean) => void;
   setSpotMapFull: (v: boolean) => void;
   setOfflineOpen: (v: boolean) => void;
@@ -149,7 +144,6 @@ export const useAtlas = create<AtlasState>((set, get) => ({
   listNight: false,
   listBoats: false,
   moreOpen: false,
-  satellite: false,
   showCoords: false,
   spotMapFull: false,
   offlineOpen: false,
@@ -169,7 +163,6 @@ export const useAtlas = create<AtlasState>((set, get) => ({
   consent: null,
   favorites: [],
   journal: [],
-  recentIds: [],
   sheet: null,
   nearbyPending: false,
   startBoot: () =>
@@ -199,20 +192,15 @@ export const useAtlas = create<AtlasState>((set, get) => ({
       spotMapFull: false,
     })),
   openSpot: (id, from) =>
-    set((s) => {
-      const recentIds = [id, ...s.recentIds.filter((x) => x !== id)].slice(0, 5);
-      saveRecent(recentIds);
-      return {
-        prevScreen:
-          from ??
-          (s.screen === "spot" || s.screen === "compare" ? s.prevScreen : s.screen),
-        screen: "spot",
-        selectedId: id,
-        spotMapFull: false,
-        sheet: null,
-        recentIds,
-      };
-    }),
+    set((s) => ({
+      prevScreen:
+        from ??
+        (s.screen === "spot" || s.screen === "compare" ? s.prevScreen : s.screen),
+      screen: "spot",
+      selectedId: id,
+      spotMapFull: false,
+      sheet: null,
+    })),
   openHost: (key) =>
     set((s) => ({
       prevScreen: s.screen,
@@ -318,8 +306,6 @@ export const useAtlas = create<AtlasState>((set, get) => ({
     }),
   toggleMore: () => set((s) => ({ moreOpen: !s.moreOpen })),
   setMoreOpen: (moreOpen) => set({ moreOpen }),
-  setSatellite: (satellite) => set({ satellite }),
-  toggleSatellite: () => set((s) => ({ satellite: !s.satellite })),
   setShowCoords: (showCoords) => set({ showCoords }),
   setSpotMapFull: (spotMapFull) => set({ spotMapFull }),
   setOfflineOpen: (offlineOpen) => set({ offlineOpen }),

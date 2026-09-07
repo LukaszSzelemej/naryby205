@@ -6,18 +6,6 @@ export const TILE_CACHE = "atlas-tiles-v4";
 export const OSM_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 /** Zapas: OSM.de, też Carto, bez klucza. */
 export const OSM_FALLBACK_URL = "https://tile.openstreetmap.de/{z}/{x}/{y}.png";
-export const SAT_URL =
-  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
-
-export function satThumb(lat: number, lng: number, z = 16) {
-  const n = 2 ** z;
-  const x = Math.floor(((lng + 180) / 360) * n);
-  const r = (lat * Math.PI) / 180;
-  const y = Math.floor(
-    ((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2) * n,
-  );
-  return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`;
-}
 
 export function osmTile(z: number, x: number, y: number) {
   return `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;

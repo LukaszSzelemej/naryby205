@@ -8,7 +8,7 @@ import {
   pinColor,
   WATERS,
 } from "@/lib/catalog";
-import { OSM_URL, OSM_FALLBACK_URL, SAT_URL } from "@/lib/tiles";
+import { OSM_URL, OSM_FALLBACK_URL } from "@/lib/tiles";
 import { useAtlas } from "@/lib/store";
 import type { MapFilter, Water } from "@/lib/types";
 import { flyToUser, resetView } from "@/lib/map-api";
@@ -188,7 +188,6 @@ export function MapCanvas({
   const mapRef = useRef<LeafletMap | null>(null);
   const hereRef = useRef<Marker | null>(null);
   const osmRef = useRef<TileLayer | null>(null);
-  const satRef = useRef<TileLayer | null>(null);
   const listRef = useRef<Water[]>([]);
   const shownRef = useRef<{ w: Water; pack: Water[] }[]>([]);
   const favRef = useRef<Set<string>>(new Set());
@@ -203,7 +202,6 @@ export function MapCanvas({
   const [ready, setReady] = useState(false);
   const [veilOut, setVeilOut] = useState(false);
   const [hideVeil, setHideVeil] = useState(false);
-  const satellite = useAtlas((s) => s.satellite);
   const geo = useAtlas((s) => s.geo);
   const favs = useAtlas((s) => s.favorites);
   const mapNonce = useAtlas((s) => s.mapNonce);
@@ -421,38 +419,6 @@ export function MapCanvas({
     }, 40);
     return () => window.clearTimeout(t);
   }, [ready, visible]);
-
-  useEffect(() => {
-    if (!ready) return;
-    const map = mapRef.current;
-    if (!map) return;
-    let cancelled = false;
-    (async () => {
-      const pack = await leafletReady;
-      if (!pack || cancelled) return;
-      const L = pack[0].default;
-      if (satellite) {
-        if (!satRef.current) {
-          satRef.current = L.tileLayer(SAT_URL, {
-            maxZoom: 19,
-            keepBuffer: 1,
-            updateWhenIdle: true,
-            updateWhenZooming: false,
-          }).addTo(map);
-        }
-        osmRef.current?.setOpacity(0);
-      } else {
-        osmRef.current?.setOpacity(1);
-        if (satRef.current) {
-          map.removeLayer(satRef.current);
-          satRef.current = null;
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [satellite, ready]);
 
   useEffect(() => {
     if (!ready) return;

@@ -446,6 +446,9 @@ export function searchWaters(query: string, pool: Water[] = WATERS): Water[] {
       )
         score = 50;
       else if (hay.includes(n)) score = 20;
+      if (matchesObwod(w, query) && /(?:^|\s)(?:j-?|r-?)?\d{1,3}$/i.test(n)) {
+        score = Math.max(score, 88);
+      }
       if (w.featured && score >= 60) score += 8;
       return { w, score };
     })
@@ -596,17 +599,60 @@ export function watersOfHost(key: string) {
 export function parseObwod(w: Water): string[] {
   const blob = [...(w.rules ?? []), w.ticket ?? "", w.summary ?? ""].join(" ");
   const out = new Set<string>();
-  for (const m of blob.matchAll(/PZW[^0-9]{0,28}nr\.?\s*(\d{2,3})(?:\s*i\s*(\d{2,3}))?/gi)) {
-    out.add(m[1].padStart(3, "0"));
-    if (m[2]) out.add(m[2].padStart(3, "0"));
+  const addNum = (raw: string) => {
+    const n = Number(raw);
+    if (Number.isFinite(n) && n > 0 && n < 1000) out.add(String(n).padStart(3, "0"));
+  };
+  for (const m of blob.matchAll(/PZW[^0-9]{0,28}nr\.?\s*(\d{1,3})(?:\s*i\s*(\d{1,3}))?/gi)) {
+    addNum(m[1]);
+    if (m[2]) addNum(m[2]);
+  }
+  for (const m of blob.matchAll(/ko[lł][ea][^0-9]{0,18}nr\.?\s*(\d{1,3})/gi)) {
+    addNum(m[1]);
   }
   for (const m of blob.matchAll(/\b([JR])-(\d{1,3})\b/g)) {
-    out.add(`${m[1].toUpperCase()}-${m[2]}`);
+    out.add(`${m[1].toUpperCase()}-${Number(m[2])}`);
   }
   for (const m of blob.matchAll(/obw[oó]d(?:zie)?\s*(?:nr\.?\s*)?(\d{1,3})/gi)) {
-    out.add(m[1]);
+    addNum(m[1]);
   }
   return [...out];
+}
+
+export function classifyObwod(o: string): "kolo" | "jezioro" | "rzeka" {
+  if (/^J-/i.test(o)) return "jezioro";
+  if (/^R-/i.test(o)) return "rzeka";
+  return "kolo";
+}
+
+export function obwodLabel(o: string) {
+  if (/^J-/i.test(o)) return `J-${Number(o.slice(2))}`;
+  if (/^R-/i.test(o)) return `R-${Number(o.slice(2))}`;
+  const n = Number(String(o).replace(/\D/g, ""));
+  return Number.isFinite(n) && n > 0 ? `Koło ${n}` : o;
+}
+
+function obwodDigits(o: string) {
+  const d = String(o).replace(/\D/g, "");
+  return d ? String(Number(d)) : "";
+}
+
+export function matchesObwod(w: { obwod?: string[] }, q: string) {
+  const raw = foldPl(q.trim()).replace(/^kolo\s+/, "").replace(/^obwod\s+/, "").trim();
+  if (!raw) return true;
+  const list = w.obwod ?? [];
+  if (!list.length) return false;
+  const j = raw.match(/^j-?(\d{1,3})$/);
+  const r = raw.match(/^r-?(\d{1,3})$/);
+  const num = raw.match(/^(\d{1,3})$/);
+  return list.some((o) => {
+    const kind = classifyObwod(o);
+    const dig = obwodDigits(o);
+    if (j) return kind === "jezioro" && dig === String(Number(j[1]));
+    if (r) return kind === "rzeka" && dig === String(Number(r[1]));
+    if (num) return dig === String(Number(num[1]));
+    return foldPl(o).includes(raw) || foldPl(obwodLabel(o)).includes(raw);
+  });
 }
 
 export function nearestWaters(w: Water, n = 5): { w: Water; km: number }[] {
@@ -622,12 +668,6 @@ export function nearestTo(lat: number, lng: number, n = 5): Water[] {
     .sort((a, b) => a.km - b.km)
     .slice(0, n)
     .map((x) => x.w);
-}
-
-export function matchesObwod(w: Water, q: string) {
-  const n = foldPl(q.trim());
-  if (!n) return true;
-  return (w.obwod ?? []).some((o) => foldPl(o) === n || foldPl(o).includes(n));
 }
 
 export function allObwody(pool: Water[] = WATERS) {

@@ -140,7 +140,7 @@ export function OnlinePill({
 }) {
   const setScreen = useAtlas((s) => s.setScreen);
   return (
-    <div className="pointer-events-none absolute top-[max(0.55rem,env(safe-area-inset-top))] left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-1">
+    <div className="pointer-events-none absolute top-[max(0.55rem,env(safe-area-inset-top))] left-1/2 z-40 flex -translate-x-1/2 flex-col items-center gap-1">
       <div className="flex items-center gap-1.5 rounded-full bg-background/75 px-3 py-1 text-xs font-medium text-foreground ring-1 ring-border backdrop-blur-sm">
         <span className="online-dot" />
         <span>

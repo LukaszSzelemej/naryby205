@@ -281,7 +281,7 @@
   left: 0;
   right: 0;
   bottom: var(--down-h);
-  z-index: 20;
+  z-index: 30;
   pointer-events: none;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -897,6 +897,14 @@
 
 .chrome-in {
   animation: fade-in var(--motion-slow) var(--ease-smooth-out) both;
+}
+.map-hud {
+  position: relative;
+  z-index: 40;
+  pointer-events: none;
+}
+.map-hud > * {
+  pointer-events: auto;
 }
 
 .banner-in {

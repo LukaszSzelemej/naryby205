@@ -123,7 +123,7 @@ export function App() {
     >
       <div
         className={cn(
-          "absolute inset-0",
+          "absolute inset-0 z-0 isolate",
           !showMap && "invisible pointer-events-none",
         )}
       >
@@ -155,7 +155,7 @@ export function App() {
       )}
       {showMap && (
         <>
-          <div className="chrome-in">
+          <div className="chrome-in map-hud">
             <FishFab />
             <OnlinePill n={online} weather={weather} />
           </div>

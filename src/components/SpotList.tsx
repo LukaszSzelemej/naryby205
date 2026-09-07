@@ -449,11 +449,6 @@ export function SpotList() {
             Łodzie
           </button>
         </div>
-        {listSpecies.length > 0 && (
-          <p className="mt-1.5 text-[11px] text-muted">
-            Gatunki AND: {listSpecies.map((id) => SPECIES_BY_ID[id]?.name ?? id).join(" + ")}
-          </p>
-        )}
         {obwody.length > 0 && (
           <div className="mt-3 space-y-2">
             <label className="block">

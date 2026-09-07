@@ -538,9 +538,6 @@ export function FilterBar() {
               );
             })}
           </div>
-          <p className="pb-1.5 text-[11px] text-muted">
-            Kilka gatunków naraz = łowisko ma wszystkie (AND).
-          </p>
         </div>
       </div>
       <div className="grid grid-cols-3 gap-1.5">

@@ -102,6 +102,53 @@
   --down-h: calc(4.35rem + env(safe-area-inset-bottom, 0px));
 }
 
+.phone-portrait-gate {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--color-background) 92%, transparent);
+  color: var(--color-foreground);
+}
+.phone-portrait-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1.35rem 1.6rem;
+  border-radius: var(--radius-xl);
+  background: var(--color-card);
+  box-shadow: 0 1px 2px #3c40434d;
+  text-align: center;
+}
+.phone-portrait-card p {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.phone-tilt {
+  color: var(--color-primary);
+  animation: 1.7s var(--ease-in-out) infinite phone-tilt;
+}
+@keyframes phone-tilt {
+  0%,
+  16% {
+    transform: rotate(90deg);
+  }
+  42%,
+  100% {
+    transform: rotate(0deg);
+  }
+}
+@media (orientation: landscape) and (max-height: 540px) and (hover: none) {
+  .phone-portrait-gate {
+    display: flex;
+  }
+}
+
 .squircle {
   border-radius: 22.5%;
 }
@@ -1027,6 +1074,7 @@
   .pressure-arrow,
   .map-compass,
   .compass-wind-nudge,
+  .phone-tilt,
   .here-ring,
   .page-enter,
   .chrome-in,

@@ -93,6 +93,27 @@ export function App() {
     };
   }, []);
 
+  useEffect(() => {
+    const tryLock = () => {
+      const phone = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+      if (!phone) return;
+      const short = Math.min(window.innerWidth, window.innerHeight);
+      if (short > 540) return;
+      const o = window.screen.orientation as ScreenOrientation & {
+        lock?: (mode: "portrait") => Promise<void>;
+      };
+      if (typeof o.lock !== "function") return;
+      void o.lock("portrait").catch(() => {});
+    };
+    tryLock();
+    document.addEventListener("visibilitychange", tryLock);
+    window.addEventListener("orientationchange", tryLock);
+    return () => {
+      document.removeEventListener("visibilitychange", tryLock);
+      window.removeEventListener("orientationchange", tryLock);
+    };
+  }, []);
+
   const showMap = screen === "map";
 
   return (
@@ -166,6 +187,29 @@ export function App() {
       {screen === "install" && <InstallPage />}
       {screen === "compare" && <ComparePage />}
       <DownMenu />
+      <div
+        className="phone-portrait-gate"
+        role="alertdialog"
+        aria-live="polite"
+        aria-label="Obróć telefon w pion"
+      >
+        <div className="phone-portrait-card">
+          <svg className="phone-tilt" viewBox="0 0 64 64" width="52" height="52" aria-hidden>
+            <rect
+              x="20"
+              y="8"
+              width="24"
+              height="48"
+              rx="5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+            />
+            <circle cx="32" cy="49" r="1.7" fill="currentColor" />
+          </svg>
+          <p>Obróć telefon w pion</p>
+        </div>
+      </div>
     </div>
   );
 }

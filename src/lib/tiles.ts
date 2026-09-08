@@ -4,8 +4,9 @@ export const TILE_CACHE = "atlas-tiles-v7";
 
 /** OSM Carto (osm.org) — w Polsce lokalne nazwy polskie. Bez klucza API. Nie osm.de (tam Stettin/Swinemünde). */
 export const TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-export const TILE_FALLBACK_URL = TILE_URL;
-export const OSM_URL = TILE_URL;
+/** Zapas przy 403/429 osm.org — te same dane OSM, polskie nazwy, bez klucza. */
+export const TILE_FALLBACK_URL =
+  "https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png";
 export const TILE_OPTS = {
   maxZoom: 19,
   keepBuffer: 2,

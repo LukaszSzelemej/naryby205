@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { CoffeeIcon, FishOutline, SearchGlyph } from "@/components/icons";
-import { WaterCard } from "@/components/SpotList";
+import { WaterFeed } from "@/components/SpotList";
 import { BackBtn, OutLink, PhoneText, TelBtn } from "@/components/Chrome";
 import {
   ALPHABET,
@@ -145,8 +145,7 @@ const TABS: { id: KitTab; label: string; alwaysOrange?: boolean }[] = [
 
 export function SpeciesList() {
   const setScreen = useAtlas((s) => s.setScreen);
-  const letter = useAtlas((s) => s.letter);
-  const setLetter = useAtlas((s) => s.setLetter);
+  const [letter, setLetter] = useState<string | null>(null);
   const [q, setQ] = useState("");
 
   const species = useMemo(() => {
@@ -563,13 +562,18 @@ export function Toolkit() {
 export function SpeciesWaters() {
   const id = useAtlas((s) => s.selectedSpeciesId);
   const setScreen = useAtlas((s) => s.setScreen);
-  const openSpot = useAtlas((s) => s.openSpot);
   const catalogReady = useAtlas((s) => s.catalogReady);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const sp = SPECIES.find((s) => s.id === id);
-  const list = id ? watersForSpecies(id) : [];
-  let last = "";
+  const list = useMemo(() => {
+    if (!id || !catalogReady) return [];
+    return watersForSpecies(id);
+  }, [id, catalogReady]);
+  const onOpen = useCallback((wid: string) => {
+    useAtlas.getState().openSpot(wid, "species-waters");
+  }, []);
   return (
-    <ScreenFrame onBack={() => setScreen("ryby")}>
+    <ScreenFrame ref={scrollRef} onBack={() => setScreen("ryby")}>
       <div className="mx-auto max-w-lg px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-10">
         <header className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
@@ -592,22 +596,14 @@ export function SpeciesWaters() {
           </button>
         </header>
         <p className="mt-2 text-xs leading-relaxed text-faint">{DISCLAIMER}</p>
-        <div className="mt-4 space-y-2 list-rise">
-          {list.map((w) => {
-            const L = letterOf(w.name);
-            const show = L !== last;
-            last = L;
-            return (
-              <div key={w.id}>
-                {show && (
-                  <p className="mb-1 mt-3 text-xs font-semibold tracking-widest text-faint">{L}</p>
-                )}
-                <WaterCard w={w} onOpen={(wid) => openSpot(wid, "species-waters")} />
-              </div>
-            );
-          })}
-          {list.length === 0 && (
-            catalogReady ? (
+        <div className="mt-4">
+          {list.length > 0 ? (
+            <WaterFeed
+              waters={list}
+              onOpen={onOpen}
+              rootRef={scrollRef}
+            />
+          ) : catalogReady ? (
             <EmptyState
               icon={<FishOutline size={26} />}
               title="Brak łowisk"
@@ -615,9 +611,8 @@ export function SpeciesWaters() {
               action={() => setScreen("ryby")}
               actionLabel="Wróć do ryb"
             />
-            ) : (
-              <FeedSkeleton />
-            )
+          ) : (
+            <FeedSkeleton />
           )}
         </div>
         <p className="mt-6 text-center text-xs text-faint">{DISCLAIMER}</p>
@@ -630,9 +625,11 @@ export function HostWaters() {
   const key = useAtlas((s) => s.selectedHostKey);
   const hostFrom = useAtlas((s) => s.hostFrom);
   const setScreen = useAtlas((s) => s.setScreen);
-  const openSpot = useAtlas((s) => s.openSpot);
   const catalogReady = useAtlas((s) => s.catalogReady);
-  const list = key ? watersOfHost(key) : [];
+  const list = useMemo(() => {
+    if (!key || !catalogReady) return [];
+    return watersOfHost(key);
+  }, [key, catalogReady]);
   const label = list[0] ? hostGroupOf(list[0]).label : key ? labelOfHostKey(key) : "Gospodarz";
   const mgr = key ? managerFromHostKey(key) : null;
   const web = safeHttpUrl(mgr?.website);
@@ -643,9 +640,12 @@ export function HostWaters() {
     const to = hostFrom && hostFrom !== "host-waters" && hostFrom !== "spot" ? hostFrom : "map";
     setScreen(to);
   };
-  let last = "";
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const onOpen = useCallback((wid: string) => {
+    useAtlas.getState().openSpot(wid, "host-waters");
+  }, []);
   return (
-    <ScreenFrame onBack={goBack}>
+    <ScreenFrame ref={scrollRef} onBack={goBack}>
       <div className="mx-auto max-w-lg px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-10">
         <header className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
@@ -680,22 +680,14 @@ export function HostWaters() {
             {permit && <OutLink href={permit}>{mgr.permitLabel ?? "Zezwolenie"}</OutLink>}
           </div>
         )}
-        <div className="mt-4 space-y-2 list-rise">
-          {list.map((w) => {
-            const L = letterOf(w.name);
-            const show = L !== last;
-            last = L;
-            return (
-              <div key={w.id}>
-                {show && (
-                  <p className="mb-1 mt-3 text-xs font-semibold tracking-widest text-faint">{L}</p>
-                )}
-                <WaterCard w={w} onOpen={(wid) => openSpot(wid, "host-waters")} />
-              </div>
-            );
-          })}
-          {list.length === 0 && (
-            catalogReady ? (
+        <div className="mt-4">
+          {list.length > 0 ? (
+            <WaterFeed
+              waters={list}
+              onOpen={onOpen}
+              rootRef={scrollRef}
+            />
+          ) : catalogReady ? (
             <EmptyState
               icon={<FishOutline size={26} />}
               title="Brak łowisk"
@@ -703,9 +695,8 @@ export function HostWaters() {
               action={goBack}
               actionLabel="Wróć"
             />
-            ) : (
-              <FeedSkeleton />
-            )
+          ) : (
+            <FeedSkeleton />
           )}
         </div>
         <p className="mt-6 text-center text-xs text-faint">{DISCLAIMER}</p>

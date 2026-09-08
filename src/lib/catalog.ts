@@ -31,6 +31,21 @@ export const MANAGERS = MANAGERS_FILE.managers;
 export const OKRAG_TO_MANAGER = MANAGERS_FILE.okragToManager;
 const HOST_BY_ID = MANAGERS_FILE.hostById;
 
+const MANAGER_KIND_KEY: Record<string, string> = {
+  girm: "girm",
+  "rzgw-szczecin": "wir",
+  modehpolmo: "modehpolmo",
+  "gr-czaplinek": "gr-czaplinek",
+  "gr-insko": "gr-insko",
+  "pr-zlocieniec": "pr-zlocieniec",
+  "pr-szczecinek": "pr-szczecinek",
+  "jis-walcz": "jis-walcz",
+  "ntw-bialy-bor": "ntw",
+  "mtw-mysliborz": "mtw",
+};
+
+const hostKindCache = new Map<string, HostKind>();
+
 export const BOUNDS = { south: 52.62, west: 14.12, north: 54.58, east: 16.98 };
 export const MAP_CENTER: [number, number] = [53.52, 15.35];
 export const DEFAULT_ZOOM = 8;
@@ -153,8 +168,6 @@ export function hostKindOf(w: Water): HostKind {
   hostKindCache.set(w.id, k);
   return k;
 }
-
-const hostKindCache = new Map<string, HostKind>();
 
 function hostKindUncached(w: Water): HostKind {
   const t = joinedText(w);
@@ -408,8 +421,12 @@ export function pinColor(w: Water, f: MapFilter) {
 }
 
 export function sanitizeQuery(raw: string) {
-  return raw
-    .replace(/[\u0000-\u001F<>]/g, "")
+  let s = "";
+  for (const ch of raw) {
+    if (ch < " " || ch === "<" || ch === ">") continue;
+    s += ch;
+  }
+  return s
     .replace(/javascript:/gi, "")
     .replace(/data:/gi, "")
     .replace(/on\w+=/gi, "")
@@ -600,19 +617,6 @@ export function hostGroupOf(w: Water): { key: string; label: string } {
   }
   return { key: `kind:${k}`, label: mgr.name };
 }
-
-const MANAGER_KIND_KEY: Record<string, string> = {
-  girm: "girm",
-  "rzgw-szczecin": "wir",
-  modehpolmo: "modehpolmo",
-  "gr-czaplinek": "gr-czaplinek",
-  "gr-insko": "gr-insko",
-  "pr-zlocieniec": "pr-zlocieniec",
-  "pr-szczecinek": "pr-szczecinek",
-  "jis-walcz": "jis-walcz",
-  "ntw-bialy-bor": "ntw",
-  "mtw-mysliborz": "mtw",
-};
 
 export function hostKeyOfManager(id: string) {
   if (id.startsWith("pzw-")) return `pzw:${id}`;

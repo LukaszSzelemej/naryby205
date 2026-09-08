@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { CoffeeIcon, FishOutline, SearchGlyph, StarGlyph } from "@/components/icons";
 import { SearchField, requestLocation } from "@/components/Chrome";
 import { EmptyState, FeedSkeleton, ScreenFrame } from "@/components/States";
@@ -48,20 +48,51 @@ function CoffeeLink() {
   );
 }
 
-export function WaterCard({ w, onOpen }: { w: Water; onOpen: (id: string) => void }) {
-  const geo = useAtlas((s) => s.geo);
-  const favs = useAtlas((s) => s.favorites);
-  const toggleFav = useAtlas((s) => s.toggleFav);
-  const dist =
-    geo != null ? formatDistance(haversineKm(geo.lat, geo.lng, w.lat, w.lng)) : null;
+type CardBits = {
+  tags: string;
+  title: string;
+  place: string;
+  size: string;
+  fish: string;
+  web: string | null;
+};
+
+const CARD_BITS = new WeakMap<Water, CardBits>();
+
+function cardBits(w: Water): CardBits {
+  const hit = CARD_BITS.get(w);
+  if (hit) return hit;
   const size = formatSize(w);
   const depth = formatDepth(w);
-  const fish = [...new Set(w.species)]
-    .map(speciesName)
-    .sort((a, b) => a.localeCompare(b, "pl"))
-    .join(", ");
-  const on = favs.includes(w.id);
-  const web = safeHttpUrl(w.website);
+  const bits: CardBits = {
+    tags: categoryTags(w).join(" · "),
+    title: waterTitle(w),
+    place: [w.gmina, w.powiat].filter(Boolean).join(" · "),
+    size: [size, depth ? `gł. ${depth}` : null].filter(Boolean).join(" · ") || "—",
+    fish: [...new Set(w.species)]
+      .map(speciesName)
+      .sort((a, b) => a.localeCompare(b, "pl"))
+      .join(", "),
+    web: safeHttpUrl(w.website),
+  };
+  CARD_BITS.set(w, bits);
+  return bits;
+}
+
+export const WaterCard = memo(function WaterCard({
+  w,
+  onOpen,
+}: {
+  w: Water;
+  onOpen: (id: string) => void;
+}) {
+  const on = useAtlas((s) => s.favorites.includes(w.id));
+  const dist = useAtlas((s) => {
+    const g = s.geo;
+    return g ? formatDistance(haversineKm(g.lat, g.lng, w.lat, w.lng)) : null;
+  });
+  const toggleFav = useAtlas((s) => s.toggleFav);
+  const bits = cardBits(w);
   return (
     <article className="water-card relative rounded-2xl bg-card p-3 pr-10 ring-1 ring-border">
       <button
@@ -73,26 +104,134 @@ export function WaterCard({ w, onOpen }: { w: Water; onOpen: (id: string) => voi
         <StarGlyph size={20} filled={on} />
       </button>
       <button type="button" onClick={() => onOpen(w.id)} className="block w-full text-left">
-        <p className="text-xs font-medium text-primary">{categoryTags(w).join(" · ")}</p>
-        <h3 className="mt-0.5 text-base font-semibold text-foreground">{waterTitle(w)}</h3>
+        <p className="text-xs font-medium text-primary">{bits.tags}</p>
+        <h3 className="mt-0.5 text-base font-semibold text-foreground">{bits.title}</h3>
         <p className="mt-1 text-xs text-muted">
-          {[w.gmina, w.powiat, dist].filter(Boolean).join(" · ")}
+          {[bits.place, dist].filter(Boolean).join(" · ")}
         </p>
-        <p className="mt-1 text-xs text-muted">
-          {[size, depth ? `gł. ${depth}` : null].filter(Boolean).join(" · ") || "—"}
-        </p>
-        <p className="mt-1 line-clamp-2 text-xs text-faint">{fish}</p>
+        <p className="mt-1 text-xs text-muted">{bits.size}</p>
+        <p className="mt-1 line-clamp-2 text-xs text-faint">{bits.fish}</p>
       </button>
-      {web && (
+      {bits.web && (
         <button
           type="button"
-          onClick={() => openExternal(web)}
+          onClick={() => openExternal(bits.web!)}
           className="tap mt-1.5 text-xs font-semibold text-primary underline decoration-primary/40 underline-offset-2"
         >
-          {linkLabel(web, "host")}
+          {linkLabel(bits.web, "host")}
         </button>
       )}
     </article>
+  );
+});
+
+const CARD_H = 118;
+const GAP_H = 8;
+const LETTER_H = 24;
+const WEB_H = 26;
+const OVERSCAN = 900;
+
+type FeedRow = { w: Water; letter: boolean; L: string; h: number };
+
+export function WaterFeed({
+  waters,
+  onOpen,
+  rootRef,
+}: {
+  waters: Water[];
+  onOpen: (id: string) => void;
+  rootRef: RefObject<HTMLElement | null>;
+}) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const rows = useMemo<FeedRow[]>(() => {
+    let last = "";
+    return waters.map((w) => {
+      const L = letterOf(w.name);
+      const letter = L !== last;
+      last = L;
+      const h = CARD_H + GAP_H + (letter ? LETTER_H : 0) + (w.website ? WEB_H : 0);
+      return { w, letter, L, h };
+    });
+  }, [waters]);
+  const layout = useMemo(() => {
+    const tops = new Array<number>(rows.length);
+    let y = 0;
+    for (let i = 0; i < rows.length; i++) {
+      tops[i] = y;
+      y += rows[i].h;
+    }
+    return { tops, height: y };
+  }, [rows]);
+  const [range, setRange] = useState({ start: 0, end: Math.min(24, waters.length) });
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const wrap = wrapRef.current;
+      const top0 = wrap ? wrap.offsetTop : 0;
+      const from = root.scrollTop - top0 - OVERSCAN;
+      const to = root.scrollTop - top0 + root.clientHeight + OVERSCAN;
+      const tops = layout.tops;
+      const n = rows.length;
+      if (!n) {
+        setRange((r) => (r.start === 0 && r.end === 0 ? r : { start: 0, end: 0 }));
+        return;
+      }
+      let lo = 0;
+      let hi = n;
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (tops[mid] + rows[mid].h < from) lo = mid + 1;
+        else hi = mid;
+      }
+      const start = lo;
+      lo = start;
+      hi = n;
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (tops[mid] < to) lo = mid + 1;
+        else hi = mid;
+      }
+      const end = lo;
+      setRange((r) => (r.start === start && r.end === end ? r : { start, end }));
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    root.addEventListener("scroll", onScroll, { passive: true });
+    const ro = new ResizeObserver(onScroll);
+    ro.observe(root);
+    return () => {
+      root.removeEventListener("scroll", onScroll);
+      ro.disconnect();
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [rootRef, layout, rows]);
+
+  if (!rows.length) return null;
+  const slice = rows.slice(range.start, range.end);
+  return (
+    <div ref={wrapRef} className="relative" style={{ height: layout.height }}>
+      {slice.map((row, i) => {
+        const idx = range.start + i;
+        return (
+          <div
+            key={row.w.id}
+            className="absolute right-0 left-0"
+            style={{ top: layout.tops[idx] }}
+          >
+            {row.letter && (
+              <p className="mb-1 text-xs font-semibold tracking-widest text-faint">{row.L}</p>
+            )}
+            <WaterCard w={row.w} onOpen={onOpen} />
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -148,6 +287,7 @@ export function SpotList() {
             : "Łowiska";
 
   const tabPool = useMemo(() => {
+    if (!catalogReady) return [];
     if (tabScope === "all") return WATERS;
     return WATERS.filter((w) => matchesFilter(w, tabScope, favSet));
   }, [tabScope, favSet, catalogReady]);
@@ -225,7 +365,10 @@ export function SpotList() {
     return set;
   }, [scoped]);
 
-  const obwody = useMemo(() => allObwody(tabPool), [tabPool, catalogReady]);
+  const obwody = useMemo(
+    () => (catalogReady ? allObwody(tabPool) : []),
+    [tabPool, catalogReady],
+  );
   const categoryCount = scoped.length;
 
   const pool = useMemo(() => {
@@ -263,33 +406,10 @@ export function SpotList() {
     return rows;
   }, [scoped, q, letter, sort, favSet, geo, usedLetters]);
 
-  const [shown, setShown] = useState(160);
-  const [rise, setRise] = useState(true);
-  useEffect(() => {
-    setShown(letter || q.trim() ? pool.length : 160);
-  }, [host, listKind, listFavOnly, tabScope, q, letter, sort, pool.length, listSpecies, listObwod, listNight, listBoats]);
-  useEffect(() => {
-    const t = window.setTimeout(() => setRise(false), 700);
-    return () => window.clearTimeout(t);
-  }, []);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const sentinelRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const root = scrollRef.current;
-    const target = sentinelRef.current;
-    if (!root || !target) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          setShown((n) => Math.min(pool.length, n + 160));
-        }
-      },
-      { root, rootMargin: "600px" },
-    );
-    io.observe(target);
-    return () => io.disconnect();
-  }, [pool.length]);
-  const visible = letter || q.trim() ? pool : pool.slice(0, shown);
+  const onOpenCard = useCallback((id: string) => {
+    useAtlas.getState().openSpot(id);
+  }, []);
 
   const sorts: { id: SortMode; label: string }[] = [
     { id: "az", label: "A-Z" },
@@ -297,8 +417,6 @@ export function SpotList() {
     { id: "nearest", label: "Najbliższe" },
     { id: "fav", label: "Ulubione" },
   ];
-
-  let lastLetter = "";
 
   const isOn = (id: MapFilter) => {
     if (id === "all") {
@@ -608,32 +726,11 @@ export function SpotList() {
             </div>
           ))}
         </div>
-        <div className={cn("mt-4 space-y-2", rise && "list-rise")}>
-          {visible.map((w) => {
-            const L = letterOf(w.name);
-            const show = L !== lastLetter;
-            lastLetter = L;
-            return (
-              <div key={w.id}>
-                {show && (
-                  <p className="mb-1 mt-3 text-xs font-semibold tracking-widest text-faint">
-                    {L}
-                  </p>
-                )}
-                <WaterCard w={w} onOpen={(id) => openSpot(id)} />
-              </div>
-            );
-          })}
-          {empty}
-          <div ref={sentinelRef} className="h-4" />
-          {shown < pool.length && (
-            <button
-              type="button"
-              className="tap mt-1 min-h-10 w-full rounded-full bg-card-2 text-sm font-medium text-muted"
-              onClick={() => setShown((n) => Math.min(pool.length, n + 160))}
-            >
-              Pokaż kolejne ({pool.length - shown})
-            </button>
+        <div className="mt-4">
+          {pool.length > 0 ? (
+            <WaterFeed waters={pool} onOpen={onOpenCard} rootRef={scrollRef} />
+          ) : (
+            empty
           )}
         </div>
         <p className="mt-6 text-center text-xs leading-relaxed text-faint">{DISCLAIMER}</p>

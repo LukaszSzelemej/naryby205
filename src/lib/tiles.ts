@@ -15,11 +15,6 @@ export const TILE_OPTS = {
   crossOrigin: true as const,
 };
 
-/** @deprecated use TILE_URL */
-export const OSM_URL = TILE_FALLBACK_URL;
-/** @deprecated Wikimedia 403 — kept so old imports don't break */
-export const OSM_FALLBACK_URL = TILE_URL;
-
 export function cartoTile(z: number, x: number, y: number) {
   const s = "abcd"[(Math.abs(x + y) % 4)];
   return `https://${s}.basemaps.cartocdn.com/rastertiles/voyager/${z}/${x}/${y}.png`;

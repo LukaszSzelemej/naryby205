@@ -601,6 +601,39 @@ export function hostGroupOf(w: Water): { key: string; label: string } {
   return { key: `kind:${k}`, label: mgr.name };
 }
 
+const MANAGER_KIND_KEY: Record<string, string> = {
+  girm: "girm",
+  "rzgw-szczecin": "wir",
+  modehpolmo: "modehpolmo",
+  "gr-czaplinek": "gr-czaplinek",
+  "gr-insko": "gr-insko",
+  "pr-zlocieniec": "pr-zlocieniec",
+  "pr-szczecinek": "pr-szczecinek",
+  "jis-walcz": "jis-walcz",
+  "ntw-bialy-bor": "ntw",
+  "mtw-mysliborz": "mtw",
+};
+
+export function hostKeyOfManager(id: string) {
+  if (id.startsWith("pzw-")) return `pzw:${id}`;
+  const k = MANAGER_KIND_KEY[id];
+  return k ? `kind:${k}` : `pzw:${id}`;
+}
+
+export function labelOfHostKey(key: string) {
+  return managerFromHostKey(key)?.name ?? (key.startsWith("web:") ? key.slice(4) : "Gospodarz");
+}
+
+export function managerFromHostKey(key: string) {
+  if (key.startsWith("pzw:")) return MANAGERS[key.slice(4)] ?? null;
+  if (key.startsWith("kind:")) {
+    const k = key.slice(5);
+    const id = Object.keys(MANAGER_KIND_KEY).find((m) => MANAGER_KIND_KEY[m] === k);
+    return id ? (MANAGERS[id] ?? null) : null;
+  }
+  return null;
+}
+
 export function watersOfHost(key: string) {
   return WATERS.filter((w) => hostGroupOf(w).key === key).sort((a, b) =>
     sortName(a.name).localeCompare(sortName(b.name), "pl"),

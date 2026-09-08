@@ -20,6 +20,9 @@ import {
   watersForSpecies,
   watersOfHost,
   hostGroupOf,
+  hostKeyOfManager,
+  labelOfHostKey,
+  managerFromHostKey,
   foldPl,
 } from "@/lib/catalog";
 import {
@@ -41,6 +44,7 @@ import { clearOffline, downloadOffline, offlineCount } from "@/lib/offline";
 import { EmptyState, FeedSkeleton, Meter, ScreenFrame } from "@/components/States";
 
 function ManagersList() {
+  const openHost = useAtlas((s) => s.openHost);
   return (
     <>
       {Object.values(MANAGERS).map((m) => {
@@ -49,10 +53,20 @@ function ManagersList() {
         const permit = safeHttpUrl(m.permitUrl);
         const socialBtn = social && social !== web ? social : null;
         const phones = phonesIn(m.priceNote, m.name);
+        const hostKey = hostKeyOfManager(m.id);
         return (
           <article key={m.id} className="rounded-2xl bg-card p-3 ring-1 ring-border">
-            <p className="font-semibold">{m.shortName}</p>
-            <p className="text-sm text-muted">{m.name}</p>
+            <button
+              type="button"
+              onClick={() => openHost(hostKey)}
+              className="tap block w-full text-left"
+            >
+              <p className="font-semibold text-primary underline decoration-primary/40 underline-offset-2">
+                {m.shortName}
+              </p>
+              <p className="text-sm text-muted">{m.name}</p>
+              <p className="mt-0.5 text-xs text-faint">Łowiska tego gospodarza</p>
+            </button>
             {m.priceNote && (
               <p className="mt-1 text-sm text-faint">
                 <PhoneText text={m.priceNote} />
@@ -614,18 +628,28 @@ export function SpeciesWaters() {
 
 export function HostWaters() {
   const key = useAtlas((s) => s.selectedHostKey);
-  const back = useAtlas((s) => s.back);
+  const hostFrom = useAtlas((s) => s.hostFrom);
+  const setScreen = useAtlas((s) => s.setScreen);
   const openSpot = useAtlas((s) => s.openSpot);
   const catalogReady = useAtlas((s) => s.catalogReady);
   const list = key ? watersOfHost(key) : [];
-  const label = list[0] ? hostGroupOf(list[0]).label : "Gospodarz";
+  const label = list[0] ? hostGroupOf(list[0]).label : key ? labelOfHostKey(key) : "Gospodarz";
+  const mgr = key ? managerFromHostKey(key) : null;
+  const web = safeHttpUrl(mgr?.website);
+  const social = safeHttpUrl(mgr?.socialUrl);
+  const permit = safeHttpUrl(mgr?.permitUrl);
+  const socialBtn = social && social !== web ? social : null;
+  const goBack = () => {
+    const to = hostFrom && hostFrom !== "host-waters" && hostFrom !== "spot" ? hostFrom : "map";
+    setScreen(to);
+  };
   let last = "";
   return (
-    <ScreenFrame onBack={back}>
+    <ScreenFrame onBack={goBack}>
       <div className="mx-auto max-w-lg px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-10">
         <header className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
-            <BackBtn onClick={back} />
+            <BackBtn onClick={goBack} />
             <h1 className="min-w-0 text-lg font-semibold">
               {label}{" "}
               <span className="tabular-nums text-muted">({list.length})</span>
@@ -641,6 +665,21 @@ export function HostWaters() {
           </button>
         </header>
         <p className="mt-2 text-xs leading-relaxed text-faint">{DISCLAIMER}</p>
+        {mgr && (web || socialBtn || permit) && (
+          <div className="mt-3 flex flex-col gap-2 min-[380px]:flex-row">
+            {web && (
+              <OutLink href={web} tone="primary">
+                {linkLabel(web, "host")}
+              </OutLink>
+            )}
+            {socialBtn && (
+              <OutLink href={socialBtn} tone={web ? "secondary" : "primary"}>
+                {linkLabel(socialBtn, "social")}
+              </OutLink>
+            )}
+            {permit && <OutLink href={permit}>{mgr.permitLabel ?? "Zezwolenie"}</OutLink>}
+          </div>
+        )}
         <div className="mt-4 space-y-2 list-rise">
           {list.map((w) => {
             const L = letterOf(w.name);
@@ -661,7 +700,7 @@ export function HostWaters() {
               icon={<FishOutline size={26} />}
               title="Brak łowisk"
               body="Ten gospodarz nie ma innych wpisów w atlasie."
-              action={back}
+              action={goBack}
               actionLabel="Wróć"
             />
             ) : (

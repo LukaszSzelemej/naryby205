@@ -16,6 +16,8 @@ import {
   LIST_CATEGORIES,
   MAP_SPECIES,
   SPECIES_BY_ID,
+  linkLabel,
+  safeHttpUrl,
   matchesFilter,
   matchesObwod,
   retryCatalog,
@@ -59,6 +61,7 @@ export function WaterCard({ w, onOpen }: { w: Water; onOpen: (id: string) => voi
     .sort((a, b) => a.localeCompare(b, "pl"))
     .join(", ");
   const on = favs.includes(w.id);
+  const web = safeHttpUrl(w.website);
   return (
     <article className="water-card relative rounded-2xl bg-card p-3 pr-10 ring-1 ring-border">
       <button
@@ -80,6 +83,15 @@ export function WaterCard({ w, onOpen }: { w: Water; onOpen: (id: string) => voi
         </p>
         <p className="mt-1 line-clamp-2 text-xs text-faint">{fish}</p>
       </button>
+      {web && (
+        <button
+          type="button"
+          onClick={() => openExternal(web)}
+          className="tap mt-1.5 text-xs font-semibold text-primary underline decoration-primary/40 underline-offset-2"
+        >
+          {linkLabel(web, "host")}
+        </button>
+      )}
     </article>
   );
 }

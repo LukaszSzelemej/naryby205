@@ -192,6 +192,9 @@ export function DownMenu() {
   const setScreen = useAtlas((s) => s.setScreen);
   const setKitTab = useAtlas((s) => s.setKitTab);
   const openList = useAtlas((s) => s.openList);
+  const hostFrom = useAtlas((s) => s.hostFrom);
+  const fromPermits = screen === "host-waters" && hostFrom === "pozwolenia";
+  const fromKit = screen === "host-waters" && hostFrom === "kit";
 
   const items: { id: Screen | "map"; label: string; icon: ReactNode; on: boolean; go: () => void }[] = [
     {
@@ -212,7 +215,7 @@ export function DownMenu() {
         screen === "compare" ||
         screen === "specjalne" ||
         screen === "pzw" ||
-        screen === "host-waters",
+        (screen === "host-waters" && !fromPermits && !fromKit),
       go: () => openList("list"),
     },
     {
@@ -226,7 +229,7 @@ export function DownMenu() {
       id: "pozwolenia",
       label: "Pozwolenia",
       icon: <PermitGlyph size={18} />,
-      on: screen === "pozwolenia",
+      on: screen === "pozwolenia" || fromPermits,
       go: () => setScreen("pozwolenia"),
     },
     {
@@ -240,7 +243,7 @@ export function DownMenu() {
       id: "kit",
       label: "Niezbędnik",
       icon: <PackGlyph size={18} />,
-      on: screen === "kit",
+      on: screen === "kit" || fromKit,
       go: () => setKitTab("kawa"),
     },
   ];

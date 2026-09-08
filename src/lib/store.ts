@@ -66,6 +66,7 @@ type AtlasState = {
   selectedId: string | null;
   selectedSpeciesId: string | null;
   selectedHostKey: string | null;
+  hostFrom: Screen | null;
   compareA: string | null;
   compareB: string | null;
   kitTab: KitTab | null;
@@ -156,6 +157,7 @@ export const useAtlas = create<AtlasState>((set, get) => ({
   selectedId: null,
   selectedSpeciesId: null,
   selectedHostKey: null,
+  hostFrom: null,
   compareA: null,
   compareB: null,
   kitTab: null,
@@ -209,7 +211,8 @@ export const useAtlas = create<AtlasState>((set, get) => ({
     })),
   openHost: (key) =>
     set((s) => ({
-      prevScreen: s.screen,
+      hostFrom: s.screen === "host-waters" ? s.hostFrom : s.screen,
+      prevScreen: s.screen === "host-waters" ? s.prevScreen : s.screen,
       screen: "host-waters",
       selectedHostKey: key,
     })),

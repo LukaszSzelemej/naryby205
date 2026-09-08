@@ -8,7 +8,7 @@ import {
   pinColor,
   WATERS,
 } from "@/lib/catalog";
-import { OSM_URL, OSM_FALLBACK_URL } from "@/lib/tiles";
+import { TILE_URL, TILE_FALLBACK_URL, TILE_OPTS } from "@/lib/tiles";
 import { useAtlas } from "@/lib/store";
 import type { MapFilter, Water } from "@/lib/types";
 import { flyToUser, resetView } from "@/lib/map-api";
@@ -188,7 +188,6 @@ export function MapCanvas({
   const mapRef = useRef<LeafletMap | null>(null);
   const hereRef = useRef<Marker | null>(null);
   const osmRef = useRef<TileLayer | null>(null);
-  const tileUrlRef = useRef<string>(OSM_URL);
   const listRef = useRef<Water[]>([]);
   const shownRef = useRef<{ w: Water; pack: Water[] }[]>([]);
   const favRef = useRef<Set<string>>(new Set());
@@ -207,7 +206,6 @@ export function MapCanvas({
   const favs = useAtlas((s) => s.favorites);
   const mapNonce = useAtlas((s) => s.mapNonce);
   const catalogReady = useAtlas((s) => s.catalogReady);
-  const catalogError = useAtlas((s) => s.catalogError);
   const mapSpecies = useAtlas((s) => s.mapSpecies);
   const mapNight = useAtlas((s) => s.mapNight);
   const mapBoats = useAtlas((s) => s.mapBoats);
@@ -285,30 +283,30 @@ export function MapCanvas({
       }).setView(MAP_CENTER, DEFAULT_ZOOM);
 
       let usedFallback = false;
-      osmRef.current = L.tileLayer(OSM_URL, {
-        maxZoom: 19,
-        keepBuffer: 1,
-        updateWhenIdle: true,
-        updateWhenZooming: false,
-        crossOrigin: true,
-      });
-      tileUrlRef.current = OSM_URL;
+      const dropVeil = () => {
+        if (cancelled) return;
+        setVeilOut(true);
+        window.setTimeout(() => setHideVeil(true), 280);
+      };
+      osmRef.current = L.tileLayer(TILE_URL, TILE_OPTS);
       osmRef.current.on("tileerror", () => {
         if (usedFallback || cancelled) return;
         usedFallback = true;
         const live = mapRef.current;
         if (!live || !osmRef.current) return;
         live.removeLayer(osmRef.current);
-        osmRef.current = L.tileLayer(OSM_FALLBACK_URL, {
+        osmRef.current = L.tileLayer(TILE_FALLBACK_URL, {
           maxZoom: 19,
-          keepBuffer: 1,
-          updateWhenIdle: true,
-          updateWhenZooming: false,
+          keepBuffer: 2,
+          updateWhenIdle: false,
+          updateWhenZooming: true,
+          crossOrigin: true,
         });
-        tileUrlRef.current = OSM_FALLBACK_URL;
+        osmRef.current.on("load", dropVeil);
         osmRef.current.addTo(live);
         osmRef.current.bringToBack();
       });
+      osmRef.current.on("load", dropVeil);
       osmRef.current.addTo(map);
       mapRef.current = map;
       window.__atlasMap = map;
@@ -398,7 +396,8 @@ export function MapCanvas({
         if (cancelled || !map) return;
         map.invalidateSize({ animate: false });
         redraw();
-      }, 1300);
+        dropVeil();
+      }, 500);
     };
 
     const maybeStart = () => {
@@ -427,14 +426,13 @@ export function MapCanvas({
 
   useEffect(() => {
     if (!ready) return;
-    if (!catalogReady && !catalogError) return;
-    const fade = window.setTimeout(() => setVeilOut(true), 80);
-    const hide = window.setTimeout(() => setHideVeil(true), 480);
+    const fade = window.setTimeout(() => setVeilOut(true), 420);
+    const hide = window.setTimeout(() => setHideVeil(true), 720);
     return () => {
       window.clearTimeout(fade);
       window.clearTimeout(hide);
     };
-  }, [ready, catalogReady, catalogError]);
+  }, [ready]);
 
   useEffect(() => {
     if (!ready || !visible) return;

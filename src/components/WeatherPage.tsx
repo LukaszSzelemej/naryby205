@@ -87,17 +87,19 @@ export function WeatherPage({ weather }: { weather: WeatherNow | null }) {
 
         <section className="mt-3 rounded-2xl bg-card p-4 ring-1 ring-border">
           <div className="flex items-center gap-4">
-            {weather.pressureTrend !== "flat" && (
-              <div
-                className={cn(
-                  "grid size-16 shrink-0 place-items-center rounded-2xl pressure-mark",
-                  weather.pressureTrend === "down" ? "is-down" : "is-up",
-                )}
-                title={`Ciśnienie ${pressureTrendLabel(weather.pressureTrend)}`}
-              >
-                <PressureGlyph trend={weather.pressureTrend} size={32} />
-              </div>
-            )}
+            <div
+              className={cn(
+                "grid size-16 shrink-0 place-items-center rounded-2xl pressure-mark",
+                weather.pressureTrend === "down"
+                  ? "is-down"
+                  : weather.pressureTrend === "up"
+                    ? "is-up"
+                    : "is-flat",
+              )}
+              title={`Ciśnienie ${pressureTrendLabel(weather.pressureTrend)}`}
+            >
+              <PressureGlyph trend={weather.pressureTrend} size={32} />
+            </div>
             <div className="grid size-16 shrink-0 place-items-center rounded-2xl bg-card-2 text-primary">
               <WeatherGlyph kind={icon} size={32} />
             </div>

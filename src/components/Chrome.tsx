@@ -2,14 +2,14 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   MapGlyph,
   ListGlyph,
-  BadgeGlyph,
-  StarGlyph,
   BookGlyph,
   PackGlyph,
   WeatherGlyph,
   PressureGlyph,
   SearchGlyph,
   CoffeeIcon,
+  FishOutline,
+  PermitGlyph,
 } from "@/components/icons";
 import {
   CUPLINK,
@@ -17,8 +17,6 @@ import {
   formatCoords,
   formatProtect,
   googlePin,
-  hostGroupOf,
-  hostKindOf,
   INSTAGRAM,
   MAP_SPECIES,
   nearestTo,
@@ -192,29 +190,8 @@ export function FishFab() {
 export function DownMenu() {
   const screen = useAtlas((s) => s.screen);
   const setScreen = useAtlas((s) => s.setScreen);
+  const setKitTab = useAtlas((s) => s.setKitTab);
   const openList = useAtlas((s) => s.openList);
-  const openHost = useAtlas((s) => s.openHost);
-  const selectedId = useAtlas((s) => s.selectedId);
-  const selectedHostKey = useAtlas((s) => s.selectedHostKey);
-  const w = selectedId ? WATERS_BY_ID[selectedId] : null;
-  const ctx = w
-    ? hostGroupOf(w)
-    : selectedHostKey
-      ? { key: selectedHostKey, label: "" }
-      : null;
-  const ctxKind = w ? hostKindOf(w) : null;
-
-  const goSpec = () => {
-    if (ctx && ctxKind && ctxKind !== "pzw" && ctxKind !== "pzw-special") {
-      openHost(ctx.key);
-      return;
-    }
-    if (ctx?.key && !ctx.key.startsWith("pzw:") && screen === "host-waters") {
-      openHost(ctx.key);
-      return;
-    }
-    openList("specjalne");
-  };
 
   const items: { id: Screen | "map"; label: string; icon: ReactNode; on: boolean; go: () => void }[] = [
     {
@@ -230,26 +207,27 @@ export function DownMenu() {
       id: "list",
       label: "Łowiska",
       icon: <ListGlyph size={18} />,
-      on: screen === "list" || screen === "compare",
+      on:
+        screen === "list" ||
+        screen === "compare" ||
+        screen === "specjalne" ||
+        screen === "pzw" ||
+        screen === "host-waters",
       go: () => openList("list"),
     },
     {
-      id: "pzw",
-      label: "PZW",
-      icon: <BadgeGlyph size={18} />,
-      on:
-        screen === "pzw" ||
-        (screen === "host-waters" && Boolean(selectedHostKey?.startsWith("pzw:"))),
-      go: () => openList("pzw"),
+      id: "ryby",
+      label: "Ryby",
+      icon: <FishOutline size={18} />,
+      on: screen === "ryby" || screen === "species-waters",
+      go: () => setScreen("ryby"),
     },
     {
-      id: "specjalne",
-      label: "Specjalne",
-      icon: <StarGlyph size={18} />,
-      on:
-        screen === "specjalne" ||
-        (screen === "host-waters" && Boolean(selectedHostKey && !selectedHostKey.startsWith("pzw:"))),
-      go: goSpec,
+      id: "pozwolenia",
+      label: "Pozwolenia",
+      icon: <PermitGlyph size={18} />,
+      on: screen === "pozwolenia",
+      go: () => setScreen("pozwolenia"),
     },
     {
       id: "journal",
@@ -262,8 +240,8 @@ export function DownMenu() {
       id: "kit",
       label: "Niezbędnik",
       icon: <PackGlyph size={18} />,
-      on: screen === "kit" || screen === "species-waters",
-      go: () => setScreen("kit"),
+      on: screen === "kit",
+      go: () => setKitTab("kawa"),
     },
   ];
 
@@ -345,6 +323,7 @@ export function SearchField({
         autoCorrect="off"
         spellCheck={false}
         enterKeyHint="search"
+        suppressHydrationWarning
         className={cn(
           "w-full rounded-full bg-white shadow-[0_1px_2px_#3c40434d] ring-1 ring-black/5 outline-none",
           dark ? "search-input-dark bg-card-2 text-foreground ring-border" : "search-input",
@@ -685,18 +664,27 @@ export function RightMenu({ weather }: { weather: WeatherNow | null }) {
     <div className="map-right-col">
       <div className="map-right-tools">
       <div className="map-weather-row">
-        {trend !== "flat" && (
-          <Btn
-            label={trend === "down" ? "Ciśnienie spada" : "Ciśnienie rośnie"}
-            className={cn("map-btn-pressure pressure-mark", trend === "down" ? "is-down" : "is-up")}
-            onClick={() => setScreen("weather")}
-          >
-            <PressureGlyph trend={trend} size={16} />
-          </Btn>
-        )}
         <Btn
           label={
-            trend === "flat"
+            !weather
+              ? "Ciśnienie"
+              : trend === "down"
+                ? "Ciśnienie spada"
+                : trend === "up"
+                  ? "Ciśnienie rośnie"
+                  : "Ciśnienie stabilne"
+          }
+          className={cn(
+            "map-btn-pressure pressure-mark",
+            !weather ? "is-wait" : trend === "down" ? "is-down" : trend === "up" ? "is-up" : "is-flat",
+          )}
+          onClick={() => setScreen("weather")}
+        >
+          <PressureGlyph trend={weather ? trend : "flat"} size={18} />
+        </Btn>
+        <Btn
+          label={
+            !weather
               ? "Pogoda"
               : `Pogoda, ciśnienie ${pressureTrendLabel(trend)}`
           }
@@ -706,7 +694,7 @@ export function RightMenu({ weather }: { weather: WeatherNow | null }) {
           )}
           onClick={() => setScreen("weather")}
         >
-          <WeatherGlyph kind={icon} size={16} />
+          <WeatherGlyph kind={icon} size={18} />
         </Btn>
       </div>
       <Btn label="Jak dodać do ekranu" onClick={() => setScreen("install")}>

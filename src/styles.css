@@ -420,7 +420,14 @@
   display: flex;
   flex-direction: row;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.38rem;
+  flex-shrink: 0;
+}
+.map-btn-pressure,
+.map-btn-weather {
+  overflow: visible;
+  flex-shrink: 0;
 }
 .map-compass {
   width: 3.25rem;
@@ -509,6 +516,14 @@
   background: var(--color-warn);
   color: #1c1917;
 }
+.pressure-mark.is-flat {
+  background: #fff;
+  color: #3c4043;
+}
+.pressure-mark.is-wait {
+  background: #64748b;
+  color: #fff;
+}
 .map-btn-pressure.is-down {
   animation:
     pressure-pop 0.32s var(--ease-out) both,
@@ -519,15 +534,11 @@
     pressure-pop 0.32s var(--ease-out) both,
     pressure-glow-up 2.4s ease-in-out 0.32s infinite;
 }
-.pressure-arrow {
-  transform-box: fill-box;
-  transform-origin: center;
-}
-.pressure-arrow.is-up {
-  animation: 1.15s ease-in-out infinite pressure-nudge-up;
-}
-.pressure-arrow.is-down {
+.map-btn-pressure.is-down svg {
   animation: 1.15s ease-in-out infinite pressure-nudge-down;
+}
+.map-btn-pressure.is-up svg {
+  animation: 1.15s ease-in-out infinite pressure-nudge-up;
 }
 @keyframes pressure-pop {
   from {
@@ -544,19 +555,19 @@
 @keyframes pressure-nudge-up {
   0%,
   100% {
-    transform: translateY(2px);
+    transform: translateY(1.5px);
   }
   50% {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
   }
 }
 @keyframes pressure-nudge-down {
   0%,
   100% {
-    transform: translateY(-2px);
+    transform: translateY(-1.5px);
   }
   50% {
-    transform: translateY(3px);
+    transform: translateY(2px);
   }
 }
 @keyframes pressure-glow-down {
@@ -1090,7 +1101,7 @@
   .splash-meter,
   .map-btn-weather,
   .map-btn-pressure,
-  .pressure-arrow,
+  .map-btn-pressure svg,
   .map-compass,
   .compass-wind-nudge,
   .phone-tilt,

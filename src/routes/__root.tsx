@@ -33,6 +33,7 @@ export const Route = createRootRoute({
       { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png?v=139" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png?v=139" },
       { rel: "preload", href: "/brand/logo-karp-circle.png", as: "image" },
+      { rel: "preload", href: "/brand/fish-pin.png?v=origami", as: "image" },
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
     ],

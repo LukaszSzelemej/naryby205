@@ -60,6 +60,22 @@ export function BadgeGlyph({ size = 20, ...p }: IconProps) {
   );
 }
 
+export function PermitGlyph({ size = 20, ...p }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden {...p}>
+      <path
+        d="M7 3.5h8.2L19 7.3V20.5H7A1.5 1.5 0 0 1 5.5 19V5A1.5 1.5 0 0 1 7 3.5Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+      <path d="M15.2 3.5V7.3H19" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+      <circle cx="12" cy="13.2" r="2.6" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M8.5 18.2h7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function StarGlyph({ size = 20, filled = false, ...p }: IconProps & { filled?: boolean }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} aria-hidden {...p}>
@@ -121,38 +137,31 @@ export function WeatherGlyph({
 
 export function PressureGlyph({
   trend,
-  size = 16,
+  size = 18,
   ...p
-}: IconProps & { trend: "up" | "down" }) {
-  const up = trend === "up";
+}: IconProps & { trend: "up" | "down" | "flat" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden {...p}>
-      <path
-        d="M6.2 16.4a7.2 7.2 0 1 1 11.6 0"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        opacity="0.4"
-      />
-      <g className={up ? "pressure-arrow is-up" : "pressure-arrow is-down"}>
-        {up ? (
-          <path
-            d="M12 16.2V8.2M8.2 11.6 12 7.6l3.8 4"
-            stroke="currentColor"
-            strokeWidth="2.1"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        ) : (
-          <path
-            d="M12 7.8v8M8.2 12.4 12 16.4l3.8-4"
-            stroke="currentColor"
-            strokeWidth="2.1"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        )}
-      </g>
+      <circle cx="12" cy="12" r="8.4" stroke="currentColor" strokeWidth="1.7" />
+      {trend === "flat" ? (
+        <path d="M7.8 12h8.4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      ) : trend === "up" ? (
+        <path
+          d="M12 16.4V8.2M8.2 11.8 12 8l3.8 3.8"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      ) : (
+        <path
+          d="M12 8.2v8.2M8.2 12.2 12 16l3.8-3.8"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      )}
     </svg>
   );
 }

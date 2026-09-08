@@ -15,7 +15,7 @@ import {
 import { SpotList } from "@/components/SpotList";
 import { SpotDetail } from "@/components/SpotDetail";
 import { Journal } from "@/components/Journal";
-import { InstallPage, SpeciesWaters, HostWaters, Toolkit } from "@/components/Toolkit";
+import { InstallPage, SpeciesWaters, HostWaters, Toolkit, SpeciesList, PermitsPage } from "@/components/Toolkit";
 import { WeatherPage } from "@/components/WeatherPage";
 import { ComparePage } from "@/components/Compare";
 import { MapSheet } from "@/components/MapSheet";
@@ -180,6 +180,8 @@ export function App() {
         <SpotList key={screen} />
       )}
       {screen === "journal" && <Journal />}
+      {screen === "ryby" && <SpeciesList />}
+      {screen === "pozwolenia" && <PermitsPage />}
       {screen === "kit" && <Toolkit />}
       {screen === "species-waters" && <SpeciesWaters />}
       {screen === "host-waters" && <HostWaters />}

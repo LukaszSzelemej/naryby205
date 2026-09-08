@@ -13,9 +13,9 @@ import {
 type Geo = { lat: number; lng: number } | null;
 
 export type KitTab =
-  | "gatunki"
   | "dokumenty"
   | "etykieta"
+  | "feeder"
   | "poradnik"
   | "offline"
   | "zapis"

@@ -42,7 +42,7 @@ import type { WeatherNow } from "@/lib/types";
 import { cn, copyText, openExternal, phonesIn } from "@/lib/utils";
 import { EmptyState, FeedSkeleton, ScreenFrame, useFlash } from "@/components/States";
 import { fetchHydro, hydroRiverKey, type HydroRow } from "@/lib/hydro";
-import { OSM_URL } from "@/lib/tiles";
+import { TILE_URL, TILE_OPTS } from "@/lib/tiles";
 import { shareWaterCard } from "@/lib/share-card";
 
 function toneClass(tone: "ok" | "primary" | "warn" | "danger") {
@@ -97,7 +97,7 @@ function MiniMap({
         dragging: full,
         scrollWheelZoom: full,
       }).setView([lat, lng], full ? 15 : 14);
-      L.tileLayer(OSM_URL, { maxZoom: 19 }).addTo(map);
+      L.tileLayer(TILE_URL, TILE_OPTS).addTo(map);
       L.marker([lat, lng], {
         icon: L.divIcon({
           className: "fish-marker",
@@ -495,17 +495,19 @@ export function SpotDetail() {
               <h2 className="text-sm font-semibold">Pogoda na łowisku</h2>
               <div className="mt-2 rounded-2xl bg-card p-4 ring-1 ring-border">
                 <div className="flex items-center gap-4">
-                  {weather.pressureTrend !== "flat" && (
-                    <div
-                      className={cn(
-                        "grid size-14 shrink-0 place-items-center rounded-2xl pressure-mark",
-                        weather.pressureTrend === "down" ? "is-down" : "is-up",
-                      )}
-                      title={`Ciśnienie ${pressureTrendLabel(weather.pressureTrend)}`}
-                    >
-                      <PressureGlyph trend={weather.pressureTrend} size={28} />
-                    </div>
-                  )}
+                  <div
+                    className={cn(
+                      "grid size-14 shrink-0 place-items-center rounded-2xl pressure-mark",
+                      weather.pressureTrend === "down"
+                        ? "is-down"
+                        : weather.pressureTrend === "up"
+                          ? "is-up"
+                          : "is-flat",
+                    )}
+                    title={`Ciśnienie ${pressureTrendLabel(weather.pressureTrend)}`}
+                  >
+                    <PressureGlyph trend={weather.pressureTrend} size={28} />
+                  </div>
                   <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-card-2 text-primary">
                     <WeatherGlyph kind={weatherIcon(weather.weatherCode)} size={28} />
                   </div>

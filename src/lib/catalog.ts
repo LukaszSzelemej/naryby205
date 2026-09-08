@@ -240,7 +240,7 @@ async function fetchJson<T>(url: string, ms = 6000): Promise<T> {
   const ctrl = new AbortController();
   const timer = window.setTimeout(() => ctrl.abort(), ms);
   try {
-    const res = await fetch(url, { cache: "no-cache", signal: ctrl.signal });
+    const res = await fetch(url, { cache: "force-cache", signal: ctrl.signal });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const text = await res.text();
     if (!text || text.charCodeAt(0) === 0x3c) {
@@ -275,7 +275,7 @@ export function loadCatalog() {
     const base = catalogBase();
     const idx = await fetchJson<CatalogIndex>(`${base}index.json`, 5000);
     if (!idx?.shards?.length) throw new Error("Pusty katalog łowisk");
-    const parts = await mapPool(idx.shards, 6, (name) =>
+    const parts = await mapPool(idx.shards, 12, (name) =>
       fetchJson<Water[]>(`${base}${name}`, 6000),
     );
     const rows = parts.flat();
@@ -530,7 +530,6 @@ const DEAD_HOSTS = new Set([
   "gruba-rybka.pl",
   "karas2015.pl",
   "dolinainy.pl",
-  "zlocryb.hg.pl",
 ]);
 
 export function safeHttpUrl(raw: string | null | undefined) {

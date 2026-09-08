@@ -93,6 +93,63 @@ export const ETYKIETA = [
   },
 ];
 
+export const METHOD_FEEDER: { title: string; body?: string; items?: string[] }[] = [
+  {
+    title: "Co to jest",
+    body: "Method feeder to grunt z płaskim koszykiem. Zanęta siedzi na koszyku, haczyk w zanęcie albo tuż obok, przypon krótki — 8 do 12 cm. Ryba podpływa do talerzyka, żeruje i bierze. To nie klasyczny feeder: tam klatka i długi przypon, tu wszystko w jednym miejscu.",
+  },
+  {
+    title: "Sprzęt",
+    items: [
+      "Wędka method / feeder 3,3–3,9 m, akcja progresywna, ciężar wyrzutu 40–80 g. Na Dąbiu i wietrze — sztywniejsza.",
+      "Kołowrotek 4000–6000, równy hamulec. Klip na szpuli, żeby wracać w to samo miejsce.",
+      "Żyłka 0,22–0,28 albo plecionka z fluorocarbonowym przyponem. Na karpia grubiej, na leszcza cieniej.",
+      "Koszyk method 20–50 g: płytka woda i cisza — lżejszy; głębiej, prąd, wiatr — cięższy.",
+      "Haczyki 10–16. Na komercyjnych często bez zadziora. Przypon 0,16–0,22, krótki.",
+    ],
+  },
+  {
+    title: "Zanęta i przynęta",
+    items: [
+      "Mix method: klei się w locie, na dnie puszcza chmurę. Za sypka spada z koszyka, za twarda leży jak cegła.",
+      "Pellet, kukurydza, pinka, white worm, wafters, dumbells. Hair rig albo haczyk schowany w kulce.",
+      "Kilo na sesję, nie taczka. Woda nie jest kompostownikiem — i tak lepiej bierze na mniej.",
+      "Na leszcza i płoć: drobniejsza frakcja, słodsza. Na karpia i lina: pellet, kukurydza, cięższy mix.",
+    ],
+  },
+  {
+    title: "Technika",
+    items: [
+      "Wyrzut w to samo miejsce. Klip. Po 15–25 minutach ściągasz i nowy koszyk — chyba że tip już pracuje.",
+      "Nie zacinaj jak spinning. Method często zaciąga sam: najpierw delikatne kiwnięcia, potem wyciąga.",
+      "Czekaj. Ciągłe przerzucanie to nie method, to spławik bez spławika.",
+      "Po wzroście ciśnienia — mniej zanęty, dłuższe czekanie. Po spadku drapieżnik może przeszkadzać, ale leszcz lubi chmurę.",
+    ],
+  },
+  {
+    title: "Gatunki i wody",
+    body: "Leszcz, płoć, karp, lin, karaś, amur. W Zachodniopomorskiem: Odra, Dąbie, zalewy, jeziora leszczowe i komercyjne. Na Miedwiu, Drawsku i Ińsku method działa, ale karnet gospodarza, nie składka PZW. Na komercyjnych method jest królową — czytaj regulamin: często no-kill, mata, haczyk bez zadziora.",
+  },
+  {
+    title: "Pory",
+    items: [
+      "Zimna woda: drobna zanęta, mały haczyk, płoć i leszcz. Czekasz dłużej.",
+      "10–16 °C: klasyczny method na leszcza. Okno, które w atlasie lubi grunt.",
+      "Ciepło: karp, lin, amur. Świt, zmierzch, noc. W południe — cień i głębiej.",
+      "Gorąco: mniej zanęty, wafters zamiast kukurydzy, noc jeśli gospodarz pozwala.",
+    ],
+  },
+  {
+    title: "Częste błędy",
+    items: [
+      "Za długi przypon — to już feeder, nie method. Haczyk ma być w zanęcie.",
+      "Za dużo zanęty. Ryba syta nie bierze, a dno ginie pod ciastem.",
+      "Inne miejsce co rzut. Method żyje z regularności.",
+      "Twarda jak kamień albo sypka jak mąka. Mix ma trzymać lot i sypać na dnie.",
+    ],
+  },
+];
+
 export const PORADNIK = [
   {
     title: "Świt i zmierzch",

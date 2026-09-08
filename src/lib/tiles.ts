@@ -1,14 +1,28 @@
 import { BOUNDS } from "@/lib/catalog";
 
-export const TILE_CACHE = "atlas-tiles-v5";
+export const TILE_CACHE = "atlas-tiles-v6";
 
-/** OSM Carto standard (osm.org) — w Polsce lokalne nazwy polskie, bez pary DE. Bez API. */
-export const OSM_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-/** Zapas: Wikimedia OSM-intl, też lokalne nazwy. Nie osm.de (tam Stettin / Swinemünde). */
-export const OSM_FALLBACK_URL = "https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png";
+/** Carto Voyager — szybki CDN, lokalne nazwy OSM. osm.org bywa wolny i limituje. */
+export const TILE_URL =
+  "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png";
+export const TILE_FALLBACK_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+export const TILE_OPTS = {
+  maxZoom: 19,
+  subdomains: "abcd",
+  keepBuffer: 2,
+  updateWhenIdle: false,
+  updateWhenZooming: true,
+  crossOrigin: true as const,
+};
 
-export function osmTile(z: number, x: number, y: number) {
-  return `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
+/** @deprecated use TILE_URL */
+export const OSM_URL = TILE_FALLBACK_URL;
+/** @deprecated Wikimedia 403 — kept so old imports don't break */
+export const OSM_FALLBACK_URL = TILE_URL;
+
+export function cartoTile(z: number, x: number, y: number) {
+  const s = "abcd"[(Math.abs(x + y) % 4)];
+  return `https://${s}.basemaps.cartocdn.com/rastertiles/voyager/${z}/${x}/${y}.png`;
 }
 
 function lng2tile(lng: number, z: number) {
@@ -30,7 +44,7 @@ export function tileList(zMin = 8, zMax = 11) {
     const y1 = lat2tile(BOUNDS.south, z);
     for (let x = x0; x <= x1; x++) {
       for (let y = y0; y <= y1; y++) {
-        urls.push(osmTile(z, x, y));
+        urls.push(cartoTile(z, x, y));
       }
     }
   }

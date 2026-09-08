@@ -99,8 +99,10 @@
       "id": "pr-zlocieniec",
       "name": "Przedsiębiorstwo Rybackie Złocieniec",
       "shortName": "PR Złocieniec",
-      "permitLabel": "Zezwolenie PR Złocieniec",
-      "priceNote": "Osobny cennik dzierżawcy. Składka PZW nie obejmuje tych wód."
+      "website": "http://www.zlocryb.hg.pl/",
+      "permitUrl": "http://www.zlocryb.hg.pl/index.php/cennik-zezwolen",
+      "permitLabel": "Cennik zezwoleń",
+      "priceNote": "Biuro ul. Staszica 19, pn–pt 7:00–13:00, tel. 943 671 558. Osobny cennik dzierżawcy. Składka PZW nie obejmuje tych wód. Sprawdź aktualność na stronie przed wyjazdem."
     },
     "pr-szczecinek": {
       "id": "pr-szczecinek",
@@ -133,8 +135,10 @@
       "id": "mtw-mysliborz",
       "name": "Myśliborskie Towarzystwo Wędkarskie",
       "shortName": "MTW Myślibórz",
+      "website": "https://www.facebook.com/mtwmysliborz",
+      "socialUrl": "https://www.facebook.com/mtwmysliborz",
       "permitLabel": "Karnet MTW",
-      "priceNote": "Karnet MTW Myślibórz (dzień / kilka dni / miesiąc) albo składka stowarzyszenia. Nie PZW."
+      "priceNote": "Karnet MTW (dzień / kilka dni / miesiąc) albo składka stowarzyszenia. Opłaty w sklepie wędkarskim przy Os. Powstańców Wlkp. w Myśliborzu. Aktualności na Facebooku. Nie PZW."
     }
   },
   "okragToManager": {

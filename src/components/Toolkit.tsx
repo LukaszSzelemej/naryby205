@@ -29,6 +29,7 @@ import {
   ETYKIETA,
   INSTALL_COPY,
   LICENSES_COPY,
+  METHOD_FEEDER,
   OFFLINE_COPY,
   PORADNIK,
   ZAPIS_COPY,
@@ -39,10 +40,88 @@ import { cn, openExternal, phonesIn } from "@/lib/utils";
 import { clearOffline, downloadOffline, offlineCount } from "@/lib/offline";
 import { EmptyState, FeedSkeleton, Meter, ScreenFrame } from "@/components/States";
 
+function ManagersList() {
+  return (
+    <>
+      {Object.values(MANAGERS).map((m) => {
+        const web = safeHttpUrl(m.website);
+        const social = safeHttpUrl(m.socialUrl);
+        const permit = safeHttpUrl(m.permitUrl);
+        const socialBtn = social && social !== web ? social : null;
+        const phones = phonesIn(m.priceNote, m.name);
+        return (
+          <article key={m.id} className="rounded-2xl bg-card p-3 ring-1 ring-border">
+            <p className="font-semibold">{m.shortName}</p>
+            <p className="text-sm text-muted">{m.name}</p>
+            {m.priceNote && (
+              <p className="mt-1 text-sm text-faint">
+                <PhoneText text={m.priceNote} />
+              </p>
+            )}
+            <div className="mt-3 flex flex-col gap-2 min-[380px]:flex-row">
+              {web && (
+                <OutLink href={web} tone="primary">
+                  {linkLabel(web, "host")}
+                </OutLink>
+              )}
+              {socialBtn && (
+                <OutLink href={socialBtn} tone={web ? "secondary" : "primary"}>
+                  {linkLabel(socialBtn, "social")}
+                </OutLink>
+              )}
+              {permit && (
+                <OutLink href={permit}>{m.permitLabel ?? "Zezwolenie"}</OutLink>
+              )}
+            </div>
+            {phones.length > 0 && (
+              <div className="mt-2 flex flex-col gap-2 min-[380px]:flex-row">
+                {phones.map((n) => (
+                  <TelBtn key={n} number={n} />
+                ))}
+              </div>
+            )}
+          </article>
+        );
+      })}
+    </>
+  );
+}
+
+export function PermitsPage() {
+  const setScreen = useAtlas((s) => s.setScreen);
+  const n = Object.keys(MANAGERS).length;
+  return (
+    <ScreenFrame onBack={() => setScreen("map")}>
+      <div className="mx-auto max-w-lg px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-10">
+        <header className="flex items-center justify-between">
+          <h1 className="text-lg font-semibold">
+            Pozwolenia <span className="tabular-nums text-muted">({n})</span>
+          </h1>
+          <button
+            type="button"
+            onClick={() => openExternal(CUPLINK)}
+            className="tap grid size-10 place-items-center rounded-full bg-coffee text-coffee-fg"
+            aria-label="Postaw kawę"
+          >
+            <CoffeeIcon size={18} />
+          </button>
+        </header>
+        <p className="mt-2 text-xs leading-relaxed text-faint">{DISCLAIMER}</p>
+        <div className="kit-pane mt-4 space-y-3 text-sm">
+          <p className="text-sm text-muted">{DOKUMENTY.clubs}</p>
+          <p className="text-sm text-muted">{DOKUMENTY.privateNote}</p>
+          <ManagersList />
+        </div>
+        <p className="mt-8 text-center text-xs text-faint">{DISCLAIMER}</p>
+      </div>
+    </ScreenFrame>
+  );
+}
+
 const TABS: { id: KitTab; label: string; alwaysOrange?: boolean }[] = [
-  { id: "gatunki", label: "Gatunki" },
   { id: "dokumenty", label: "Dokumenty" },
   { id: "etykieta", label: "Etykieta" },
+  { id: "feeder", label: "Method Feeder" },
   { id: "poradnik", label: "Poradnik" },
   { id: "offline", label: "Mapa offline" },
   { id: "zapis", label: "Zapis" },
@@ -50,19 +129,11 @@ const TABS: { id: KitTab; label: string; alwaysOrange?: boolean }[] = [
   { id: "kawa", label: "Postaw kawę", alwaysOrange: true },
 ];
 
-export function Toolkit() {
-  const tab = useAtlas((s) => s.kitTab) ?? "gatunki";
-  const setTab = useAtlas((s) => s.setKitTab);
+export function SpeciesList() {
   const setScreen = useAtlas((s) => s.setScreen);
   const letter = useAtlas((s) => s.letter);
   const setLetter = useAtlas((s) => s.setLetter);
-  const setSpecies = (id: string) => {
-    useAtlas.setState({ selectedSpeciesId: id, screen: "species-waters", prevScreen: "kit" });
-  };
   const [q, setQ] = useState("");
-  const [offMsg, setOffMsg] = useState<string | null>(null);
-  const [offPct, setOffPct] = useState<number | null>(null);
-  const [offBusy, setOffBusy] = useState(false);
 
   const species = useMemo(() => {
     const n = foldPl(sanitizeQuery(q).trim());
@@ -77,6 +148,150 @@ export function Toolkit() {
   }, [q, letter]);
 
   let last = "";
+
+  return (
+    <ScreenFrame onBack={() => setScreen("map")}>
+      <div className="mx-auto max-w-lg px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-10">
+        <header className="flex items-center justify-between">
+          <h1 className="text-lg font-semibold">
+            Ryby <span className="tabular-nums text-muted">({species.length})</span>
+          </h1>
+          <button
+            type="button"
+            onClick={() => openExternal(CUPLINK)}
+            className="tap grid size-10 place-items-center rounded-full bg-coffee text-coffee-fg"
+            aria-label="Postaw kawę"
+          >
+            <CoffeeIcon size={18} />
+          </button>
+        </header>
+
+        <p className="mt-2 text-xs leading-relaxed text-faint">{DISCLAIMER}</p>
+
+        <div className="kit-pane mt-4">
+          <div className="relative">
+            <input
+              value={q}
+              onChange={(e) => setQ(sanitizeQuery(e.target.value))}
+              placeholder="Szukaj gatunku…"
+              className={cn(
+                "search-input-dark w-full rounded-full bg-card-2 ring-1 ring-border outline-none",
+                q ? "pr-11" : "",
+              )}
+            />
+            {q.length > 0 && (
+              <button
+                type="button"
+                aria-label="Wyczyść"
+                onClick={() => setQ("")}
+                className="absolute top-1/2 right-1.5 grid size-8 -translate-y-1/2 place-items-center text-lg leading-none text-muted"
+              >
+                ×
+              </button>
+            )}
+          </div>
+          <div className="mt-3 space-y-1">
+            {ALPHABET.map((row, i) => (
+              <div key={i} className="grid grid-cols-10 gap-1">
+                {row.map((L) => (
+                  <button
+                    key={L}
+                    type="button"
+                    disabled={!SPECIES_LETTERS.has(L)}
+                    onClick={() => {
+                      if (!SPECIES_LETTERS.has(L)) return;
+                      setLetter(letter === L ? null : L);
+                    }}
+                    className={cn(
+                      "tap min-h-8 rounded-md text-xs font-semibold",
+                      !SPECIES_LETTERS.has(L)
+                        ? "cursor-not-allowed bg-background text-faint/40 opacity-30"
+                        : letter === L
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-card-2 text-muted",
+                    )}
+                  >
+                    {L}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 space-y-2">
+            {species.map((s) => {
+              const L = letterOf(s.name);
+              const show = L !== last;
+              last = L;
+              const p = protectionOf(s);
+              const dim = formatProtect(s, "Szczecin");
+              const left = closedEndingDays(s);
+              return (
+                <div key={s.id}>
+                  {show && (
+                    <p className="mb-1 mt-3 text-xs font-semibold tracking-widest text-faint">{L}</p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      useAtlas.setState({
+                        selectedSpeciesId: s.id,
+                        screen: "species-waters",
+                        prevScreen: "ryby",
+                      })
+                    }
+                    className="water-card block w-full rounded-2xl bg-card p-3 text-left ring-1 ring-border"
+                  >
+                    <p className="font-semibold">{s.name}</p>
+                    <p className="text-xs italic text-muted">{s.latin}</p>
+                    <p className="mt-1 text-xs font-medium tabular-nums text-foreground">
+                      Wymiar: {dim.size} · {dim.limit}
+                      {dim.fork ? " · okręgi ZP" : ""}
+                    </p>
+                    <p className={cn("mt-0.5 text-xs font-medium", p.active ? "text-danger" : "text-ok")}>
+                      {p.hasPeriod ? p.label : "Brak okresu ochronnego"}
+                    </p>
+                    {left != null && left <= 3 && (
+                      <p className="mt-0.5 text-xs font-medium text-warn">
+                        {left === 0
+                          ? "Okres ochronny kończy się dziś"
+                          : `Okres ochronny kończy się za ${left} dni`}
+                      </p>
+                    )}
+                  </button>
+                </div>
+              );
+            })}
+            {species.length === 0 && (
+              <EmptyState
+                icon={<SearchGlyph size={26} />}
+                title="Brak gatunków"
+                body={
+                  q.trim()
+                    ? `Nic nie pasuje do „${q.trim()}”.`
+                    : "Dla wybranej litery nie ma gatunku w atlasie."
+                }
+                action={() => {
+                  setQ("");
+                  setLetter(null);
+                }}
+                actionLabel="Wyczyść filtry"
+              />
+            )}
+          </div>
+        </div>
+        <p className="mt-8 text-center text-xs text-faint">{DISCLAIMER}</p>
+      </div>
+    </ScreenFrame>
+  );
+}
+
+export function Toolkit() {
+  const tab = useAtlas((s) => s.kitTab) ?? "kawa";
+  const setTab = useAtlas((s) => s.setKitTab);
+  const setScreen = useAtlas((s) => s.setScreen);
+  const [offMsg, setOffMsg] = useState<string | null>(null);
+  const [offPct, setOffPct] = useState<number | null>(null);
+  const [offBusy, setOffBusy] = useState(false);
 
   return (
     <ScreenFrame onBack={() => setScreen("map")}>
@@ -102,12 +317,11 @@ export function Toolkit() {
               type="button"
               onClick={() => {
                 setTab(t.id);
-                setLetter(null);
               }}
               className={cn(
                 "tap min-h-11 rounded-xl px-1 text-xs font-semibold leading-tight",
                 t.alwaysOrange
-                  ? "bg-coffee text-coffee-fg"
+                  ? cn("bg-coffee text-coffee-fg", tab === t.id && "ring-2 ring-white")
                   : tab === t.id
                     ? "bg-primary text-primary-foreground"
                     : "bg-card text-foreground ring-1 ring-border",
@@ -117,114 +331,6 @@ export function Toolkit() {
             </button>
           ))}
         </div>
-
-        {tab === "gatunki" && (
-          <div className="kit-pane mt-4">
-            <div className="relative">
-              <input
-                value={q}
-                onChange={(e) => setQ(sanitizeQuery(e.target.value))}
-                placeholder="Szukaj gatunku…"
-                className={cn(
-                  "search-input-dark w-full rounded-full bg-card-2 ring-1 ring-border outline-none",
-                  q ? "pr-11" : "",
-                )}
-              />
-              {q.length > 0 && (
-                <button
-                  type="button"
-                  aria-label="Wyczyść"
-                  onClick={() => setQ("")}
-                  className="absolute top-1/2 right-1.5 grid size-8 -translate-y-1/2 place-items-center text-lg leading-none text-muted"
-                >
-                  ×
-                </button>
-              )}
-            </div>
-            <div className="mt-3 space-y-1">
-              {ALPHABET.map((row, i) => (
-                <div key={i} className="grid grid-cols-10 gap-1">
-                  {row.map((L) => (
-                    <button
-                      key={L}
-                      type="button"
-                      disabled={!SPECIES_LETTERS.has(L)}
-                      onClick={() => {
-                        if (!SPECIES_LETTERS.has(L)) return;
-                        setLetter(letter === L ? null : L);
-                      }}
-                      className={cn(
-                        "tap min-h-8 rounded-md text-xs font-semibold",
-                        !SPECIES_LETTERS.has(L)
-                          ? "cursor-not-allowed bg-background text-faint/40 opacity-30"
-                          : letter === L
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-card-2 text-muted",
-                      )}
-                    >
-                      {L}
-                    </button>
-                  ))}
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 space-y-2">
-              {species.map((s) => {
-                const L = letterOf(s.name);
-                const show = L !== last;
-                last = L;
-                const p = protectionOf(s);
-                const dim = formatProtect(s, "Szczecin");
-                const left = closedEndingDays(s);
-                return (
-                  <div key={s.id}>
-                    {show && (
-                      <p className="mb-1 mt-3 text-xs font-semibold tracking-widest text-faint">{L}</p>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setSpecies(s.id)}
-                      className="water-card block w-full rounded-2xl bg-card p-3 text-left ring-1 ring-border"
-                    >
-                      <p className="font-semibold">{s.name}</p>
-                      <p className="text-xs italic text-muted">{s.latin}</p>
-                      <p className="mt-1 text-xs font-medium tabular-nums text-foreground">
-                        Wymiar: {dim.size} · {dim.limit}
-                        {dim.fork ? " · okręgi ZP" : ""}
-                      </p>
-                      <p className={cn("mt-0.5 text-xs font-medium", p.active ? "text-danger" : "text-ok")}>
-                        {p.hasPeriod ? p.label : "Brak okresu ochronnego"}
-                      </p>
-                      {left != null && left <= 3 && (
-                        <p className="mt-0.5 text-xs font-medium text-warn">
-                          {left === 0
-                            ? "Okres ochronny kończy się dziś"
-                            : `Okres ochronny kończy się za ${left} dni`}
-                        </p>
-                      )}
-                    </button>
-                  </div>
-                );
-              })}
-              {species.length === 0 && (
-                <EmptyState
-                  icon={<SearchGlyph size={26} />}
-                  title="Brak gatunków"
-                  body={
-                    q.trim()
-                      ? `Nic nie pasuje do „${q.trim()}”.`
-                      : "Dla wybranej litery nie ma gatunku w atlasie."
-                  }
-                  action={() => {
-                    setQ("");
-                    setLetter(null);
-                  }}
-                  actionLabel="Wyczyść filtry"
-                />
-              )}
-            </div>
-          </div>
-        )}
 
         {tab === "dokumenty" && (
           <div className="kit-pane mt-4 space-y-3 text-sm">
@@ -247,48 +353,7 @@ export function Toolkit() {
             </section>
             <p className="text-sm text-muted">{DOKUMENTY.clubs}</p>
             <p className="text-sm text-muted">{DOKUMENTY.privateNote}</p>
-            {Object.values(MANAGERS).map((m) => {
-              const web = safeHttpUrl(m.website);
-              const social = safeHttpUrl(m.socialUrl);
-              const permit = safeHttpUrl(m.permitUrl);
-              const socialBtn = social && social !== web ? social : null;
-              const phones = phonesIn(m.priceNote, m.name);
-              return (
-              <article key={m.id} className="rounded-2xl bg-card p-3 ring-1 ring-border">
-                <p className="font-semibold">{m.shortName}</p>
-                <p className="text-sm text-muted">{m.name}</p>
-                {m.priceNote && (
-                  <p className="mt-1 text-sm text-faint">
-                    <PhoneText text={m.priceNote} />
-                  </p>
-                )}
-                <div className="mt-3 flex flex-col gap-2 min-[380px]:flex-row">
-                  {web && (
-                    <OutLink href={web} tone="primary">
-                      {linkLabel(web, "host")}
-                    </OutLink>
-                  )}
-                  {socialBtn && (
-                    <OutLink href={socialBtn} tone={web ? "secondary" : "primary"}>
-                      {linkLabel(socialBtn, "social")}
-                    </OutLink>
-                  )}
-                  {permit && (
-                    <OutLink href={permit}>
-                      {m.permitLabel ?? "Zezwolenie"}
-                    </OutLink>
-                  )}
-                </div>
-                {phones.length > 0 && (
-                  <div className="mt-2 flex flex-col gap-2 min-[380px]:flex-row">
-                    {phones.map((n) => (
-                      <TelBtn key={n} number={n} />
-                    ))}
-                  </div>
-                )}
-              </article>
-              );
-            })}
+            <ManagersList />
           </div>
         )}
 
@@ -302,6 +367,26 @@ export function Toolkit() {
                     <li key={it}>• {it}</li>
                   ))}
                 </ul>
+              </section>
+            ))}
+          </div>
+        )}
+
+        {tab === "feeder" && (
+          <div className="kit-pane mt-4 space-y-3">
+            {METHOD_FEEDER.map((s) => (
+              <section key={s.title} className="rounded-2xl bg-card p-3 ring-1 ring-border">
+                <h2 className="font-semibold">{s.title}</h2>
+                {s.body && (
+                  <p className="mt-2 text-sm leading-relaxed text-muted">{s.body}</p>
+                )}
+                {s.items && (
+                  <ul className="mt-2 space-y-1.5 text-sm leading-relaxed text-muted">
+                    {s.items.map((it) => (
+                      <li key={it}>• {it}</li>
+                    ))}
+                  </ul>
+                )}
               </section>
             ))}
           </div>
@@ -470,11 +555,11 @@ export function SpeciesWaters() {
   const list = id ? watersForSpecies(id) : [];
   let last = "";
   return (
-    <ScreenFrame onBack={() => setScreen("kit")}>
+    <ScreenFrame onBack={() => setScreen("ryby")}>
       <div className="mx-auto max-w-lg px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-10">
         <header className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
-            <BackBtn onClick={() => setScreen("kit")} />
+            <BackBtn onClick={() => setScreen("ryby")} />
             <div className="min-w-0">
               <h1 className="text-lg font-semibold">
                 {sp?.name ?? "Gatunek"}{" "}
@@ -513,8 +598,8 @@ export function SpeciesWaters() {
               icon={<FishOutline size={26} />}
               title="Brak łowisk"
               body="Ten gatunek nie jest przypisany do żadnego łowiska w atlasie."
-              action={() => setScreen("kit")}
-              actionLabel="Wróć do gatunków"
+              action={() => setScreen("ryby")}
+              actionLabel="Wróć do ryb"
             />
             ) : (
               <FeedSkeleton />

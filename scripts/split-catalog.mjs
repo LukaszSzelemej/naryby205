@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * Write public/atlas/waters/*.json shards (≤16 KB, sorted by name).
+ * Write public/atlas/packs/zp/waters/*.json shards (≤16 KB, sorted by name).
  * Never dump the full catalog into src/.
  */
 import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
-const DIR = resolve("public/atlas/waters");
+const DIR = resolve("public/atlas/packs/zp/waters");
 const MAX = 16_000;
 
 export function writeShards(waters) {

@@ -5,7 +5,7 @@ export const COOKIES_TEXT = {
   intro:
     "Ta informacja spełnia obowiązek z art. 13 RODO oraz przepisów o poufności komunikacji elektronicznej (Prawo komunikacji elektronicznej — zgoda na zapisywanie informacji na urządzeniu końcowym, z wyjątkiem zapisu ściśle niezbędnego do świadczenia usługi, o którą prosisz).",
   about:
-    "Atlas wędkarski — regionalna aplikacja mapy łowisk województwa zachodniopomorskiego. Kontakt: Instagram @method_feeder_szczecin.",
+    "Atlas wędkarski — regionalna aplikacja mapy łowisk. Dziś wczytany jest pakiet województwa zachodniopomorskiego. Kontakt: Instagram @method_feeder_szczecin.",
   useTitle: "Czego używamy",
   useLead:
     "Atlas nie wstawia reklamowych trackerów ani pikseli analitycznych. Nie sprzedajemy danych. W praktyce zapis na Twoim telefonie to nie klasyczne ciasteczka marketingowe, tylko pamięć przeglądarki potrzebna do działania aplikacji.",
@@ -314,6 +314,10 @@ export const LICENSES_COPY = {
           d: "Wymiary i okresy ochronne: Regulamin Amatorskiego Połowu Ryb PZW oraz rozporządzenie Ministra Rolnictwa i Rozwoju Wsi. To przepisy, nie licencja otwarta — przed wyjazdem sprawdź aktualny tekst.",
           href: "https://www.gov.pl/web/wody-polskie-szczecin/regulamin-amatorskiego-polowu-ryb",
         },
+        {
+          t: "Pakiet województwa",
+          d: "Katalog łowisk, gospodarzy i zarybień ładuje się jako pakiet JSON (dziś: Zachodniopomorskie). Dane własne atlasu, nie licencja otwarta — przed wyjazdem sprawdź gospodarza.",
+        },
       ],
     },
     {
@@ -338,6 +342,11 @@ export const LICENSES_COPY = {
           t: "Tailwind CSS",
           d: "Warstwa stylów. Licencja MIT.",
           href: "https://github.com/tailwindlabs/tailwindcss/blob/main/LICENSE",
+        },
+        {
+          t: "Lucide",
+          d: "Ikony systemowe (m.in. ekran błędu). Licencja ISC.",
+          href: "https://github.com/lucide-icons/lucide/blob/main/LICENSE",
         },
         {
           t: "Zod",

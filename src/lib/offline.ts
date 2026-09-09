@@ -1,12 +1,7 @@
+import { atlasPackRoot } from "@/lib/catalog";
 import { tileList, TILE_CACHE } from "@/lib/tiles";
 
-export const DATA_CACHE = "atlas-data-v1";
-
-function catalogBase() {
-  const base = import.meta.env.BASE_URL || "/";
-  const root = base.endsWith("/") ? base : `${base}/`;
-  return `${root}atlas/waters/`;
-}
+export const DATA_CACHE = "atlas-data-v2";
 
 export async function registerAtlasSw() {
   if (!("serviceWorker" in navigator)) return null;
@@ -20,14 +15,34 @@ export async function registerAtlasSw() {
 }
 
 async function catalogUrls() {
-  const base = catalogBase();
+  const root = atlasPackRoot();
   const origin = typeof window === "undefined" ? "" : window.location.origin;
-  const idxUrl = `${origin}${base}index.json`;
-  const res = await fetch(idxUrl, { cache: "reload" });
-  if (!res.ok) throw new Error("Brak indeksu katalogu");
-  const idx = (await res.json()) as { shards?: string[] };
-  const shards = idx.shards ?? [];
-  return [idxUrl, ...shards.map((s) => `${origin}${base}${s}`)];
+  const idxUrl = `${origin}${root}index.json`;
+  const idx = (await (await fetch(idxUrl, { cache: "reload" })).json()) as {
+    default?: string;
+    packs?: { id: string }[];
+  };
+  const packId = idx.default || idx.packs?.[0]?.id;
+  if (!packId) throw new Error("Brak pakietu województwa");
+  const packDir = `${origin}${root}${packId}/`;
+  const manifest = (await (await fetch(`${packDir}manifest.json`, { cache: "reload" })).json()) as {
+    watersDir?: string;
+    managers?: string;
+    stocking?: string;
+  };
+  const watersBase = `${packDir}${manifest.watersDir || "waters"}/`;
+  const watersIdx = (await (await fetch(`${watersBase}index.json`, { cache: "reload" })).json()) as {
+    shards?: string[];
+  };
+  const urls = [
+    idxUrl,
+    `${packDir}manifest.json`,
+    manifest.managers ? `${packDir}${manifest.managers}` : "",
+    manifest.stocking ? `${packDir}${manifest.stocking}` : "",
+    `${watersBase}index.json`,
+    ...(watersIdx.shards ?? []).map((s) => `${watersBase}${s}`),
+  ];
+  return urls.filter(Boolean);
 }
 
 const PACK_KEY = "atlas.offlinePack";

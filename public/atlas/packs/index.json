@@ -1,0 +1,13 @@
+{
+  "default": "zp",
+  "packs": [
+    {
+      "id": "zp",
+      "name": "Zachodniopomorskie",
+      "shortName": "Zachodniopomorskie",
+      "teryt": "32",
+      "n": 1204,
+      "version": "2026.09"
+    }
+  ]
+}

@@ -1,9 +1,10 @@
 import speciesJson from "@/data/species.json";
-import managersJson from "@/data/managers.json";
 import type {
   HostKind,
   MapFilter,
   Manager,
+  PackIndexEntry,
+  PackManifest,
   Species,
   Water,
   WaterKind,
@@ -24,31 +25,30 @@ type ManagersFile = {
   managers: Record<string, Manager>;
   okragToManager: Record<string, string>;
   hostById: Record<string, string>;
+  kindKeys?: Record<string, string>;
+  paperOrder?: string[];
 };
 
-const MANAGERS_FILE = managersJson as ManagersFile;
-export const MANAGERS = MANAGERS_FILE.managers;
-export const OKRAG_TO_MANAGER = MANAGERS_FILE.okragToManager;
-const HOST_BY_ID = MANAGERS_FILE.hostById;
-
-const MANAGER_KIND_KEY: Record<string, string> = {
-  girm: "girm",
-  "rzgw-szczecin": "wir",
-  modehpolmo: "modehpolmo",
-  "gr-czaplinek": "gr-czaplinek",
-  "gr-insko": "gr-insko",
-  "pr-zlocieniec": "pr-zlocieniec",
-  "pr-szczecinek": "pr-szczecinek",
-  "jis-walcz": "jis-walcz",
-  "ntw-bialy-bor": "ntw",
-  "mtw-mysliborz": "mtw",
-};
-
+export const MANAGERS: Record<string, Manager> = {};
+export const OKRAG_TO_MANAGER: Record<string, string> = {};
+let HOST_BY_ID: Record<string, string> = {};
+const MANAGER_KIND_KEY: Record<string, string> = {};
+let PAPER_ORDER: string[] = [];
 const hostKindCache = new Map<string, HostKind>();
 
+/** Fallback until the pack manifest loads — Zachodniopomorskie. */
 export const BOUNDS = { south: 52.62, west: 14.12, north: 54.58, east: 16.98 };
 export const MAP_CENTER: [number, number] = [53.52, 15.35];
-export const DEFAULT_ZOOM = 8;
+export let DEFAULT_ZOOM = 8;
+export let ACTIVE_PACK: PackManifest | null = null;
+export const PACK_LIST: PackIndexEntry[] = [];
+let DEFAULT_MANAGER = "pzw-szczecin";
+
+const FALLBACK_MGR: Manager = {
+  id: "gospodarz",
+  name: "Gospodarz łowiska",
+  shortName: "Gospodarz",
+};
 
 export const DISCLAIMER =
   "Atlas wędkarski ma charakter poglądowy. Przed wyjazdem zawsze sprawdź pozwolenia, regulaminy i zasady u gospodarza wody.";
@@ -227,33 +227,62 @@ function hostKindUncached(w: Water): HostKind {
   return "pzw";
 }
 
-function catalogBase() {
+function catalogRoot() {
   const base = import.meta.env.BASE_URL || "/";
-  return `${base.endsWith("/") ? base : `${base}/`}atlas/waters/`;
+  return `${base.endsWith("/") ? base : `${base}/`}atlas/packs/`;
+}
+
+export function atlasPackRoot() {
+  return catalogRoot();
 }
 
 let catalogLoading: Promise<void> | null = null;
+let loadGen = 0;
 
-function fillWaters(rows: Water[]) {
+function applyManifest(m: PackManifest) {
+  ACTIVE_PACK = m;
+  Object.assign(BOUNDS, m.bounds);
+  MAP_CENTER[0] = m.center[0];
+  MAP_CENTER[1] = m.center[1];
+  DEFAULT_ZOOM = m.zoom;
+  DEFAULT_MANAGER = m.defaultManager || "pzw-szczecin";
+}
+
+function fillManagers(file: ManagersFile) {
+  for (const k of Object.keys(MANAGERS)) delete MANAGERS[k];
+  for (const k of Object.keys(OKRAG_TO_MANAGER)) delete OKRAG_TO_MANAGER[k];
+  for (const k of Object.keys(MANAGER_KIND_KEY)) delete MANAGER_KIND_KEY[k];
+  Object.assign(MANAGERS, file.managers ?? {});
+  Object.assign(OKRAG_TO_MANAGER, file.okragToManager ?? {});
+  Object.assign(MANAGER_KIND_KEY, file.kindKeys ?? {});
+  HOST_BY_ID = { ...(file.hostById ?? {}) };
+  PAPER_ORDER = file.paperOrder?.length ? [...file.paperOrder] : Object.keys(MANAGERS);
+}
+
+function fillWaters(rows: Water[], woj: string) {
   if (WATERS.length) return;
   for (const w of rows) {
     if (w.species?.length) w.species = [...new Set(w.species)];
     w.obwod = normObwodList([...(w.obwod ?? []), ...parseObwod(w)]);
     w.night = Boolean(w.night) || inferNight(w);
+    w.woj = woj;
   }
   WATERS.push(...rows);
   for (const w of rows) WATERS_BY_ID[w.id] = w;
   for (const k of Object.keys(NAME_COUNTS)) delete NAME_COUNTS[k];
   for (const w of rows) NAME_COUNTS[w.name] = (NAME_COUNTS[w.name] ?? 0) + 1;
   void import("@/lib/store").then(({ useAtlas }) => {
+    const mapNonce = useAtlas.getState().mapNonce + 1;
     useAtlas.setState({
       catalogReady: true,
       catalogError: null,
+      mapNonce,
     });
   });
 }
 
 type CatalogIndex = { n: number; shards: string[] };
+type PacksFile = { default: string; packs: PackIndexEntry[] };
 
 async function fetchJson<T>(url: string, ms = 6000): Promise<T> {
   const ctrl = new AbortController();
@@ -285,22 +314,45 @@ async function mapPool<T, R>(items: T[], limit: number, fn: (item: T) => Promise
   return out;
 }
 
-/** Load fishing catalog from small alphabetical JSON shards. Safe to call twice. */
+/** Load voivodeship pack (manifest, managers, water shards). Safe to call twice. */
 export function loadCatalog() {
   if (typeof window === "undefined") return Promise.resolve();
   if (WATERS.length) return Promise.resolve();
   if (catalogLoading) return catalogLoading;
+  const gen = ++loadGen;
   catalogLoading = (async () => {
-    const base = catalogBase();
-    const idx = await fetchJson<CatalogIndex>(`${base}index.json`, 5000);
+    const root = catalogRoot();
+    const index = await fetchJson<PacksFile>(`${root}index.json`, 5000);
+    if (gen !== loadGen) return;
+    PACK_LIST.length = 0;
+    PACK_LIST.push(...(index.packs ?? []));
+    const packId = index.default || index.packs?.[0]?.id;
+    if (!packId) throw new Error("Brak pakietu województwa");
+    const packDir = `${root}${packId}/`;
+    const manifest = await fetchJson<PackManifest>(`${packDir}manifest.json`, 5000);
+    if (gen !== loadGen) return;
+    applyManifest(manifest);
+    const mgrFile = await fetchJson<ManagersFile>(`${packDir}${manifest.managers}`, 5000);
+    if (gen !== loadGen) return;
+    fillManagers(mgrFile);
+    if (manifest.stocking) {
+      const stock = await fetchJson<unknown>(`${packDir}${manifest.stocking}`, 5000);
+      if (gen !== loadGen) return;
+      const mod = await import("@/lib/stocking");
+      mod.loadStockingPack(stock);
+    }
+    const watersBase = `${packDir}${manifest.watersDir || "waters"}/`;
+    const idx = await fetchJson<CatalogIndex>(`${watersBase}index.json`, 5000);
     if (!idx?.shards?.length) throw new Error("Pusty katalog łowisk");
     const parts = await mapPool(idx.shards, 12, (name) =>
-      fetchJson<Water[]>(`${base}${name}`, 6000),
+      fetchJson<Water[]>(`${watersBase}${name}`, 6000),
     );
+    if (gen !== loadGen) return;
     const rows = parts.flat();
     if (rows.length < 10) throw new Error("Pusty katalog łowisk");
-    fillWaters(rows);
+    fillWaters(rows, packId);
   })().catch((err) => {
+    if (gen !== loadGen) return;
     catalogLoading = null;
     console.warn("catalog", err);
     void import("@/lib/store").then(({ useAtlas }) => {
@@ -311,11 +363,20 @@ export function loadCatalog() {
 }
 
 export function retryCatalog() {
+  loadGen += 1;
   catalogLoading = null;
   WATERS.length = 0;
   for (const k of Object.keys(WATERS_BY_ID)) delete WATERS_BY_ID[k];
   for (const k of Object.keys(NAME_COUNTS)) delete NAME_COUNTS[k];
+  for (const k of Object.keys(MANAGERS)) delete MANAGERS[k];
+  for (const k of Object.keys(OKRAG_TO_MANAGER)) delete OKRAG_TO_MANAGER[k];
+  for (const k of Object.keys(MANAGER_KIND_KEY)) delete MANAGER_KIND_KEY[k];
+  HOST_BY_ID = {};
+  PAPER_ORDER = [];
+  ACTIVE_PACK = null;
+  PACK_LIST.length = 0;
   hostKindCache.clear();
+  void import("@/lib/stocking").then(({ resetStockingPack }) => resetStockingPack());
   void import("@/lib/store").then(({ useAtlas }) => {
     useAtlas.setState({ catalogError: null, catalogReady: false });
   });
@@ -323,18 +384,20 @@ export function retryCatalog() {
 }
 
 export function managerOf(w: Water): Manager {
+  const take = (id: string | undefined) =>
+    (id && MANAGERS[id]) || MANAGERS[DEFAULT_MANAGER] || FALLBACK_MGR;
   const k = hostKindOf(w);
-  if (k === "girm") return MANAGERS.girm;
-  if (k === "wir") return MANAGERS["rzgw-szczecin"];
-  if (k === "modehpolmo") return MANAGERS.modehpolmo;
-  if (k === "gr-czaplinek") return MANAGERS["gr-czaplinek"];
-  if (k === "gr-insko") return MANAGERS["gr-insko"];
-  if (k === "pr-zlocieniec") return MANAGERS["pr-zlocieniec"];
-  if (k === "pr-szczecinek") return MANAGERS["pr-szczecinek"];
-  if (k === "jis-walcz") return MANAGERS["jis-walcz"];
-  if (k === "ntw") return MANAGERS["ntw-bialy-bor"];
-  if (k === "mtw") return MANAGERS["mtw-mysliborz"];
-  if (k === "pzw-special") return MANAGERS["pzw-szczecin"];
+  if (k === "girm") return take("girm");
+  if (k === "wir") return take("rzgw-szczecin");
+  if (k === "modehpolmo") return take("modehpolmo");
+  if (k === "gr-czaplinek") return take("gr-czaplinek");
+  if (k === "gr-insko") return take("gr-insko");
+  if (k === "pr-zlocieniec") return take("pr-zlocieniec");
+  if (k === "pr-szczecinek") return take("pr-szczecinek");
+  if (k === "jis-walcz") return take("jis-walcz");
+  if (k === "ntw") return take("ntw-bialy-bor");
+  if (k === "mtw") return take("mtw-mysliborz");
+  if (k === "pzw-special") return take("pzw-szczecin");
   if (k === "private") {
     return {
       id: "gospodarz",
@@ -347,8 +410,8 @@ export function managerOf(w: Water): Manager {
         w.ticket ?? "Karnet u gospodarza, na miejscu albo przez stronę.",
     };
   }
-  const id = OKRAG_TO_MANAGER[w.okrag ?? ""] ?? "pzw-szczecin";
-  return MANAGERS[id] ?? MANAGERS["pzw-szczecin"];
+  const id = OKRAG_TO_MANAGER[w.okrag ?? ""] ?? DEFAULT_MANAGER;
+  return take(id);
 }
 
 function isPrivate(w: Water) {
@@ -650,41 +713,33 @@ export function watersOfHost(key: string) {
   );
 }
 
-const PAPER_MANAGER_IDS = [
-  "pzw-szczecin",
-  "pzw-koszalin",
-  "pzw-pila",
-  "pzw-gorzow",
-  "pzw-slupsk",
-  "girm",
-  "rzgw-szczecin",
-  "modehpolmo",
-  "gr-czaplinek",
-  "gr-insko",
-  "pr-zlocieniec",
-  "pr-szczecinek",
-  "jis-walcz",
-  "ntw-bialy-bor",
-  "mtw-mysliborz",
-] as const;
-
 export const PAPER_PRIVATE = "kind:private";
 
-export const PAPER_OPTIONS: { key: string; label: string; name: string }[] = [
-  ...PAPER_MANAGER_IDS.map((id) => {
-    const m = MANAGERS[id];
-    return {
-      key: hostKeyOfManager(id),
-      label: m?.shortName ?? id,
-      name: m?.name ?? id,
-    };
-  }),
-  {
-    key: PAPER_PRIVATE,
-    label: "Karnet komercyjny",
-    name: "Łowiska z karnetem gospodarza — nie PZW",
-  },
-];
+export function paperOptions(): { key: string; label: string; name: string }[] {
+  const ids = PAPER_ORDER.length ? PAPER_ORDER : Object.keys(MANAGERS);
+  return [
+    ...ids
+      .filter((id) => MANAGERS[id])
+      .map((id) => {
+        const m = MANAGERS[id];
+        return {
+          key: hostKeyOfManager(id),
+          label: m.shortName,
+          name: m.name,
+        };
+      }),
+    {
+      key: PAPER_PRIVATE,
+      label: "Karnet komercyjny",
+      name: "Łowiska z karnetem gospodarza — nie PZW",
+    },
+  ];
+}
+
+export function orderedManagers(): Manager[] {
+  const ids = PAPER_ORDER.length ? PAPER_ORDER : Object.keys(MANAGERS);
+  return ids.map((id) => MANAGERS[id]).filter((m): m is Manager => Boolean(m));
+}
 
 export function waterMatchesPapers(w: Water, papers: string[]) {
   if (!papers.length) return true;
@@ -695,7 +750,7 @@ export function waterMatchesPapers(w: Water, papers: string[]) {
 }
 
 export function paperLabel(key: string) {
-  return PAPER_OPTIONS.find((p) => p.key === key)?.label ?? labelOfHostKey(key);
+  return paperOptions().find((p) => p.key === key)?.label ?? labelOfHostKey(key);
 }
 
 function parseObwod(w: Water): string[] {

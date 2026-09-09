@@ -6,8 +6,6 @@ import appCss from "../styles.css?url";
 
 const APP_NAME = "Atlas wędkarski";
 
-const SPLASH_HIDE = `setTimeout(function(){var e=document.getElementById("atlas-splash");if(e)e.classList.add("is-out");},900);`;
-
 export const Route = createRootRoute({
   head: () => ({
     meta: [
@@ -21,7 +19,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Łowiska województwa zachodniopomorskiego. Mapa, PZW, dziennik i niezbędnik wędkarza.",
+          "Łowiska województwa zachodniopomorskiego. Mapa, zezwolenia, dziennik i niezbędnik wędkarza.",
       },
       { name: "theme-color", content: "#080c10" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
@@ -45,7 +43,6 @@ export const Route = createRootRoute({
       </head>
       <body>
         <SplashOverlay />
-        <script dangerouslySetInnerHTML={{ __html: SPLASH_HIDE }} />
         <PreviewHostBridge />
         <AuthProvider>
           <Outlet />

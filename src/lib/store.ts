@@ -15,6 +15,7 @@ type Geo = { lat: number; lng: number } | null;
 
 export type KitTab =
   | "dokumenty"
+  | "wojewodztwo"
   | "etykieta"
   | "feeder"
   | "poradnik"

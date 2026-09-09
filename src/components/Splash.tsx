@@ -12,7 +12,13 @@ export function SplashOverlay() {
   }, []);
 
   return (
-    <div id="atlas-splash" className="atlas-splash" role="status" aria-label="Ładowanie">
+    <div
+      id="atlas-splash"
+      className="atlas-splash"
+      role="status"
+      aria-label="Ładowanie"
+      suppressHydrationWarning
+    >
       <div
         className="pointer-events-none absolute inset-0"
         style={{

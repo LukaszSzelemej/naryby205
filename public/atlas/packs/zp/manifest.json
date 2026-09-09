@@ -1,0 +1,15 @@
+{
+  "id": "zp",
+  "name": "województwo zachodniopomorskie",
+  "shortName": "Zachodniopomorskie",
+  "teryt": "32",
+  "bounds": { "south": 52.62, "west": 14.12, "north": 54.58, "east": 16.98 },
+  "center": [53.52, 15.35],
+  "zoom": 8,
+  "n": 1204,
+  "version": "2026.09",
+  "defaultManager": "pzw-szczecin",
+  "watersDir": "waters",
+  "managers": "managers.json",
+  "stocking": "stocking.json"
+}

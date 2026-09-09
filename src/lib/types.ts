@@ -39,6 +39,7 @@ export type Water = {
   website?: string | null;
   socialUrl?: string | null;
   obwod?: string[];
+  woj?: string;
 };
 
 export type ClosedPeriod = { from: string; to: string; note?: string };
@@ -82,6 +83,31 @@ export type HostKind =
   | "ntw"
   | "mtw"
   | "private";
+
+export type PackManifest = {
+  id: string;
+  name: string;
+  shortName: string;
+  teryt: string;
+  bounds: { south: number; west: number; north: number; east: number };
+  center: [number, number];
+  zoom: number;
+  n: number;
+  version: string;
+  defaultManager: string;
+  watersDir: string;
+  managers: string;
+  stocking?: string;
+};
+
+export type PackIndexEntry = {
+  id: string;
+  name: string;
+  shortName: string;
+  teryt: string;
+  n: number;
+  version: string;
+};
 
 export type MapFilter =
   | "location"

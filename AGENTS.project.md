@@ -5,11 +5,13 @@ lands in `src/` or when a single JSON/bin blob is too heavy.
 
 ## Catalog
 
-- 1204 łowisk live in `public/atlas/waters/00.json` … (alphabetical by name, each ≤16 KB)
-- Manifest: `public/atlas/waters/index.json`
+- Engine loads a voivodeship **pack**. Registry: `public/atlas/packs/index.json`
+- Today: pack `zp` — **1204** łowisk in `public/atlas/packs/zp/waters/00.json` …
+  (alphabetical by name, each ≤16 KB)
+- Pack files: `manifest.json`, `managers.json`, `stocking.json`, `waters/`
 - NEVER write `src/data/waters.json`, `.json.gz`, `public/data/waters.bin`, or `all.json`
 - NEVER concatenate shards into one file to “inspect” them
-- NEVER serve `/atlas/waters/all.json` from Vite — 404 it
+- NEVER serve `/atlas/waters/all.json` or `/atlas/packs/*/waters/all.json` from Vite — 404 it
 - NEVER read a shard in full in the agent — use `scripts/patch-water.mjs`
 
 ```sh

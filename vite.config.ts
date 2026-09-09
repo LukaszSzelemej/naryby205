@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve, sep } from "node:path";
 import type { Plugin } from "vite";
 import { defineConfig } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
@@ -148,38 +148,69 @@ function catalogStaticPlugin(): Plugin {
     apply: "serve",
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
-        const raw = (req.url ?? "").split("?", 1)[0] ?? "";
-        const pathOnly = raw.startsWith("/atlas/waters/")
-          ? raw
-          : raw.includes("/atlas/waters/")
-            ? `/${raw.slice(raw.indexOf("atlas/waters/"))}`
-            : "";
-        if (!pathOnly.startsWith("/atlas/waters/")) {
-          next();
-          return;
+        const rawPath = (req.url ?? "").split("?", 1)[0] ?? "";
+        let raw = rawPath;
+        try {
+          raw = decodeURIComponent(rawPath);
+        } catch {
+          /* keep encoded */
         }
-        const file = pathOnly.slice("/atlas/waters/".length);
-        const dir = join(server.config.root, "public/atlas/waters");
+        const packsRoot = resolve(server.config.root, "public", "atlas", "packs");
         const send = (body: string | Buffer, code = 200) => {
           res.statusCode = code;
           res.setHeader("content-type", "application/json; charset=utf-8");
           res.setHeader("cache-control", "no-cache");
           res.end(body);
         };
-        if (file === "all.json") {
-          send('{"error":"no all.json"}', 404);
-          return;
-        }
-        if (!/^(index|[0-9]{2})\.json$/.test(file)) {
+        const serveRel = (rel: string) => {
+          if (
+            rel.includes("\0") ||
+            rel.includes("..") ||
+            rel.includes("\\") ||
+            !rel.endsWith(".json") ||
+            !/^atlas\/packs\/(index|[a-z0-9-]+(\/[a-z0-9-]+)*)\.json$/.test(rel)
+          ) {
+            send('{"error":"bad path"}', 400);
+            return;
+          }
+          const fp = resolve(server.config.root, "public", rel);
+          if (fp !== packsRoot && !fp.startsWith(packsRoot + sep)) {
+            send('{"error":"bad path"}', 400);
+            return;
+          }
+          if (!existsSync(fp)) {
+            send('{"error":"missing shard"}', 404);
+            return;
+          }
+          send(readFileSync(fp));
+        };
+        if (raw.includes("/atlas/packs/")) {
+          const rel = raw.slice(raw.indexOf("atlas/packs/"));
+          if (rel.endsWith("all.json")) {
+            send('{"error":"no all.json"}', 404);
+            return;
+          }
+          if (rel.endsWith(".json")) {
+            serveRel(rel);
+            return;
+          }
           next();
           return;
         }
-        const fp = join(dir, file);
-        if (!existsSync(fp)) {
-          send('{"error":"missing shard"}', 404);
+        if (raw.includes("/atlas/waters/")) {
+          const file = raw.slice(raw.indexOf("atlas/waters/") + "atlas/waters/".length);
+          if (file === "all.json") {
+            send('{"error":"no all.json"}', 404);
+            return;
+          }
+          if (!/^(index|[0-9]{2})\.json$/.test(file)) {
+            send('{"error":"bad path"}', 400);
+            return;
+          }
+          serveRel(`atlas/packs/zp/waters/${file}`);
           return;
         }
-        send(readFileSync(fp));
+        next();
       });
     },
   };

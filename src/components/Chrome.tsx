@@ -21,7 +21,7 @@ import {
   MAP_SPECIES,
   nearestTo,
   paperLabel,
-  PAPER_OPTIONS,
+  paperOptions,
   protectHint,
   sanitizeQuery,
   searchWaters,
@@ -612,6 +612,8 @@ export function FilterBar() {
 export function PaperPicker() {
   const papers = useAtlas((s) => s.papers);
   const toggle = useAtlas((s) => s.togglePaper);
+  useAtlas((s) => s.catalogReady);
+  const options = paperOptions();
   return (
     <section className="rounded-2xl bg-card p-3 ring-1 ring-border">
       <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-faint">Moje zezwolenie</h2>
@@ -619,7 +621,7 @@ export function PaperPicker() {
         Odhacz twoje zezwolenie. Przycisk najbliższych na mapie pokaże tylko te wody.
       </p>
       <div className="mt-2 flex flex-wrap gap-1.5">
-        {PAPER_OPTIONS.map((p) => {
+        {options.map((p) => {
           const on = papers.includes(p.key);
           return (
             <button

@@ -1,11 +1,11 @@
 # Specyfikacja — Atlas wędkarski
 
 **Nazwa:** Atlas wędkarski  
-**Wersja:** 1.9.0  
+**Wersja:** 2.0.0  
 **Adres:** https://www.atlaswedkarski.pl  
 **Kontakt / autor:** Instagram [@method_feeder_szczecin](https://www.instagram.com/method_feeder_szczecin)  
 **Wsparcie:** https://cuplink.to/atlaswedkarski („Postaw kawę”)  
-**Repozytorium (stan tej specyfikacji):** [github.com/LukaszSzelemej/naryby34](https://github.com/LukaszSzelemej/naryby34)  
+**Repozytorium (stan tej specyfikacji):** [github.com/LukaszSzelemej/naryby201](https://github.com/LukaszSzelemej/naryby201)  
 **Zasięg:** województwo zachodniopomorskie, Bałtyk, Zalew Szczeciński i wody ujęte w katalogu.
 
 Aplikacja webowa (PWA): mapa i katalog łowisk, dziennik połowów, niezbędnik. Bez kont, bez reklam, bez subskrypcji. Dziennik i ulubione zostają na telefonie.
@@ -26,7 +26,7 @@ Szybko znaleźć łowisko, sprawdzić gospodarza, pogodę, wymiary ochronne i do
 
 ### 2.1 Mapa
 
-- OpenStreetMap Carto (`tile.openstreetmap.org`) — lokalne nazwy polskie. Nie `openstreetmap.de` (tam Stettin / Swinemünde). Zapas: Wikimedia OSM-intl.
+- OpenStreetMap Carto (`tile.openstreetmap.org`) — lokalne nazwy polskie. Nie `openstreetmap.de` (tam Stettin / Swinemünde). Zapas: CARTO Voyager (te same dane OSM, bez klucza API).
 - Ciemna mapa = te same kafelki OSM, przyciemnione w CSS, bez API.
 - Pinezki-rybki (canvas); klastry → lista w arkuszu.
 - **HUD nad pinezkami:** online, wiatr (km/h), kompas NESW + strzałka wiatru.
@@ -36,15 +36,15 @@ Szybko znaleźć łowisko, sprawdzić gospodarza, pogodę, wymiary ochronne i do
 - Telefon tylko w pionie (CSS + blokada orientacji + manifest `portrait`).
 - Loader → mapa startuje przy realnym rozmiarze ramki; zasłona schodzi po katalogu.
 
-### 2.2 Lista / PZW / Specjalne
+### 2.2 Łowiska / Ryby / Pozwolenia
 
-| Zakładka  | Zakres |
-|-----------|--------|
-| Łowiska   | cały katalog |
-| PZW       | **zawsze główna lista PZW** (nie skok do koła) |
-| Specjalne | nie-PZW: prywatne, komercyjne, GR, GIRM, WIR |
+| Zakładka    | Zakres |
+|-------------|--------|
+| Łowiska     | cały katalog |
+| Ryby        | gatunki RAPR → łowiska gatunku |
+| Pozwolenia  | gospodarze wód + twoje zezwolenie |
 
-Filtry górne gasną przy 0 wyników. Gatunki gasną, gdy nie ma ich w puli. Obwody: koło / J- / R- (np. 86, J-89). Sort: A–Z, największe, najbliższe, ulubione. Szukaj: nazwa, alias, gmina, powiat, obwód.
+Filtry górne gasną przy 0 wyników. Gatunki gasną, gdy nie ma ich w puli. Obwody: koło / J- / R- (np. 86, J-89). Sort: A–Z, największe, najbliższe, ulubione. Szukaj: nazwa, alias, gmina, powiat, obwód. Na liście: noc i łódź — **brak zakazu** zielono, **zakaz** czerwono.
 
 ### 2.3 Karta łowiska
 
@@ -62,16 +62,16 @@ localStorage. Gatunek, łowisko, cm, kg, metoda, notatka. Suma kg/sezon, rekord,
 
 ### 2.6 Niezbędnik
 
-Gatunki, dokumenty (karta, GIRM, WIR), etykieta, poradnik, offline OSM, zapis (tarło + skok IMGW ≥ 30 cm), ciasteczka/RODO, kawa, licencje, zapis na iPhone/Android.
+Dokumenty (karta, GIRM, WIR, gospodarze), województwo (pakiet katalogu), etykieta, Method Feeder, poradnik, offline OSM, zapis (tarło + skok IMGW ≥ 30 cm), ciasteczka/RODO, kawa, licencje, zapis na iPhone/Android.
 
 ---
 
 ## 3. Dane
 
-- **1204** łowiska, 50 shardów `public/atlas/waters/00–49.json`, każdy **≤ 16 KB**. Manifest `index.json`.
+- **1204** łowiska, pakiet `zp` — 50 shardów `public/atlas/packs/zp/waters/00–49.json`, każdy **≤ 16 KB**. Rejestr `public/atlas/packs/index.json`.
 - **Zakaz** jednego `waters.json` / `all.json` / `.bin` — rozsadza workspace.
 - 31 gatunków w `src/data/species.json`. Filtry mapy/listy: 10 gatunków.
-- Gospodarze: `src/data/managers.json`. Martwe linki wycinane.
+- Gospodarze: `public/atlas/packs/zp/managers.json`. Martwe linki wycinane.
 
 Rodzaje: jezioro, rzeka, zalew, morze, kanał, staw, komercyjne.
 
@@ -82,14 +82,14 @@ Rodzaje: jezioro, rzeka, zalew, morze, kanał, staw, komercyjne.
 ```
 Mapa
  ├─ Łowiska
- ├─ PZW          → zawsze główna lista
- ├─ Specjalne
+ ├─ Ryby         → gatunki → łowiska
+ ├─ Pozwolenia   → gospodarze + twoje zezwolenie
  ├─ Dziennik
  └─ Niezbędnik
 Karta łowiska → porównanie | 5 najbliższych | gospodarz
 ```
 
-Dolny pasek: Mapa, Łowiska, PZW, Specjalne, Dziennik, Niezbędnik.
+Dolny pasek: Mapa, Łowiska, Ryby, Pozwolenia, Dziennik, Niezbędnik.
 
 ---
 

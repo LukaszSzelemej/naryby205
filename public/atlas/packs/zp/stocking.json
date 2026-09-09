@@ -1,0 +1,617 @@
+{
+  "sources": {
+    "szczecin2024": {
+      "url": "https://pzwszczecin.com/zarybienia-2/zestawienie-zarybien-2024/",
+      "label": "PZW Szczecin · tabela 2024"
+    },
+    "szczecin2025": {
+      "url": "https://zpw.pl/pzw-szczecin/zarybienia-2025-w-okregu-pzw-szczecin/",
+      "label": "PZW Szczecin · zarybienia 2025"
+    },
+    "jesiotr": {
+      "url": "https://pzw-szczecinek.pl/category/zarybienia/",
+      "label": "Koło Jesiotr · zarybienia"
+    },
+    "gorzow": {
+      "url": "https://gorzow.pzw.pl/brepo/panel_repo/2026/03/25/6i51jh/zestawienie-zarybien-gminami-za-2025.pdf",
+      "label": "PZW Gorzów · 2025"
+    }
+  },
+  "managers": {
+    "pzw-szczecin": {
+      "year": 2025,
+      "summary": "2025: m.in. Morzycko, Rega, Ina, Gowienica, Rejowice, Dolice, Mołstowa, Odra. Gatunki: szczupak, sandacz, węgorz, lin, karp, troć, łosoś. Ilości — tabela 2024 na stronie okręgu (2025 bez pełnego wykazu kg).",
+      "url": "https://pzwszczecin.com/zarybienia-2/zestawienie-zarybien-2024/",
+      "label": "Zarybienia PZW Szczecin"
+    },
+    "pzw-koszalin": {
+      "year": 2025,
+      "summary": "12.08.2025: 1008 kg narybku węgorza na jeziora okręgu (1259 ha), dofinansowanie WFOŚiGW. Koło Jesiotr (Szczecinek) rozwoziło największą partię. Brak pełnej tabeli po jeziorach za 2025.",
+      "url": "https://458.pzw.pl/szczegoly-artykulu/zarybianie-wegorzem_xs4lUXONAEBh58hJ42o4",
+      "label": "Zarybienie węgorzem 2025"
+    },
+    "pzw-gorzow": {
+      "year": 2025,
+      "summary": "2025: 20 341 600 szt. i 41 985 kg, wartość 2 078 026 zł. Wiosna: sielawa, szczupak, pstrąg, węgorz, sandacz; jesień: starszy narybek. PDF z podziałem na gminy na stronie okręgu.",
+      "url": "https://gorzow.pzw.pl/brepo/panel_repo/2026/03/25/6i51jh/zestawienie-zarybien-gminami-za-2025.pdf",
+      "label": "Zarybienia 2025 (PDF)"
+    }
+  },
+  "waters": [
+    {
+      "name": "Morzycko",
+      "year": 2024,
+      "again": 2025,
+      "species": [
+        "szczupak",
+        "wegorz"
+      ]
+    },
+    {
+      "name": "Koprowo",
+      "year": 2024,
+      "species": [
+        "szczupak",
+        "sandacz",
+        "wegorz"
+      ]
+    },
+    {
+      "name": "Kołczewo",
+      "year": 2024,
+      "species": [
+        "sandacz",
+        "wegorz",
+        "lin"
+      ]
+    },
+    {
+      "name": "Żółwino",
+      "year": 2024,
+      "species": [
+        "sandacz"
+      ]
+    },
+    {
+      "name": "Żółwińskie",
+      "year": 2024,
+      "species": [
+        "lin"
+      ]
+    },
+    {
+      "name": "Ostrowo",
+      "year": 2024,
+      "species": [
+        "szczupak",
+        "sandacz",
+        "wegorz"
+      ]
+    },
+    {
+      "name": "Liwia Łuża",
+      "year": 2024,
+      "species": [
+        "szczupak",
+        "wegorz",
+        "bolen"
+      ]
+    },
+    {
+      "name": "Kamienny Most",
+      "year": 2024,
+      "species": [
+        "szczupak"
+      ]
+    },
+    {
+      "name": "Nowogardzkie",
+      "year": 2024,
+      "species": [
+        "szczupak"
+      ]
+    },
+    {
+      "name": "Kiełbicze",
+      "year": 2024,
+      "species": [
+        "szczupak"
+      ]
+    },
+    {
+      "name": "Lubicz",
+      "year": 2024,
+      "species": [
+        "szczupak"
+      ]
+    },
+    {
+      "name": "Piaski",
+      "year": 2024,
+      "hint": "wolin",
+      "species": [
+        "szczupak",
+        "sandacz"
+      ]
+    },
+    {
+      "name": "Kościuszki",
+      "year": 2024,
+      "species": [
+        "szczupak",
+        "wegorz",
+        "lin",
+        "karp"
+      ]
+    },
+    {
+      "name": "Sierakowskie",
+      "year": 2024,
+      "species": [
+        "szczupak",
+        "lin",
+        "karp"
+      ]
+    },
+    {
+      "name": "Chociwel",
+      "year": 2024,
+      "species": [
+        "szczupak",
+        "sandacz",
+        "wegorz",
+        "lin",
+        "karp"
+      ]
+    },
+    {
+      "name": "Węgorzyno",
+      "year": 2024,
+      "species": [
+        "wegorz",
+        "lin",
+        "karp"
+      ]
+    },
+    {
+      "name": "Portowe",
+      "year": 2024,
+      "again": 2025,
+      "species": [
+        "sandacz",
+        "wegorz",
+        "lin",
+        "karp"
+      ]
+    },
+    {
+      "name": "Budzieszowice",
+      "year": 2024,
+      "again": 2025,
+      "species": [
+        "sandacz",
+        "wegorz",
+        "karp"
+      ]
+    },
+    {
+      "name": "Lechickie",
+      "year": 2024,
+      "species": [
+        "sandacz",
+        "wegorz",
+        "karp"
+      ]
+    },
+    {
+      "name": "Okonie",
+      "year": 2024,
+      "species": [
+        "sandacz",
+        "lin",
+        "karp"
+      ]
+    },
+    {
+      "name": "Szczucze",
+      "year": 2024,
+      "species": [
+        "sandacz",
+        "wegorz",
+        "lin",
+        "karp"
+      ]
+    },
+    {
+      "name": "Karsk",
+      "year": 2024,
+      "species": [
+        "sandacz",
+        "lin",
+        "karp"
+      ]
+    },
+    {
+      "name": "Rokity",
+      "year": 2024,
+      "species": [
+        "sandacz",
+        "lin",
+        "karp",
+        "karas"
+      ]
+    },
+    {
+      "name": "Pyrzyckie",
+      "year": 2024,
+      "species": [
+        "karp",
+        "karas"
+      ]
+    },
+    {
+      "name": "Rejowice",
+      "year": 2024,
+      "again": 2025,
+      "species": [
+        "szczupak",
+        "lin",
+        "karp"
+      ]
+    },
+    {
+      "name": "Dolice",
+      "year": 2024,
+      "again": 2025,
+      "species": [
+        "karp"
+      ]
+    },
+    {
+      "name": "Czarnogłowy",
+      "year": 2024,
+      "species": [
+        "pstrag-potokowy",
+        "pstrag-teczowy"
+      ]
+    },
+    {
+      "name": "Czarnogłowy Duże",
+      "year": 2024,
+      "species": [
+        "pstrag-teczowy"
+      ]
+    },
+    {
+      "name": "Maszewskie",
+      "year": 2024,
+      "species": [
+        "lin"
+      ]
+    },
+    {
+      "name": "Klępnickie",
+      "year": 2024,
+      "species": [
+        "lin",
+        "karp"
+      ]
+    },
+    {
+      "name": "Mielno",
+      "year": 2024,
+      "hint": "pzw",
+      "species": [
+        "lin"
+      ]
+    },
+    {
+      "name": "Dybrzno",
+      "year": 2024,
+      "species": [
+        "lin",
+        "karp"
+      ]
+    },
+    {
+      "name": "Jurkowo",
+      "year": 2024,
+      "species": [
+        "lin",
+        "karp"
+      ]
+    },
+    {
+      "name": "Barnkowskie",
+      "year": 2024,
+      "species": [
+        "lin",
+        "karp",
+        "karas"
+      ]
+    },
+    {
+      "name": "Bartoszewo",
+      "year": 2024,
+      "species": [
+        "lin",
+        "karp"
+      ]
+    },
+    {
+      "name": "Głębokie",
+      "year": 2024,
+      "hint": "szczecin",
+      "species": [
+        "lin"
+      ]
+    },
+    {
+      "name": "Parlino",
+      "year": 2024,
+      "species": [
+        "karp"
+      ]
+    },
+    {
+      "name": "Warchlino",
+      "year": 2024,
+      "species": [
+        "karp"
+      ]
+    },
+    {
+      "name": "Ziemomyśl",
+      "year": 2024,
+      "species": [
+        "karp"
+      ]
+    },
+    {
+      "name": "Brzezina",
+      "year": 2024,
+      "species": [
+        "karp"
+      ]
+    },
+    {
+      "name": "Tychowo",
+      "year": 2024,
+      "species": [
+        "karp",
+        "wegorz"
+      ]
+    },
+    {
+      "name": "Kiczarowo",
+      "year": 2024,
+      "species": [
+        "karp",
+        "lin"
+      ]
+    },
+    {
+      "name": "Łyse",
+      "year": 2024,
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ]
+    },
+    {
+      "name": "Piaseczno",
+      "year": 2024,
+      "hint": "szczecin",
+      "species": [
+        "szczupak",
+        "karp"
+      ]
+    },
+    {
+      "name": "Bukowe",
+      "year": 2024,
+      "species": [
+        "szczupak",
+        "wegorz",
+        "lin",
+        "karp",
+        "karas"
+      ]
+    },
+    {
+      "name": "Czarne",
+      "year": 2024,
+      "hint": "pyrzyc",
+      "species": [
+        "sandacz",
+        "wegorz",
+        "lin",
+        "karp",
+        "karas"
+      ]
+    },
+    {
+      "name": "Lubanowo",
+      "year": 2024,
+      "species": [
+        "karp"
+      ]
+    },
+    {
+      "name": "Wirów",
+      "year": 2024,
+      "species": [
+        "karp"
+      ]
+    },
+    {
+      "name": "Odra",
+      "year": 2024,
+      "again": 2025,
+      "species": [
+        "szczupak",
+        "wegorz",
+        "lin",
+        "bolen",
+        "certa",
+        "klen",
+        "losos",
+        "mietus"
+      ]
+    },
+    {
+      "name": "Ina",
+      "year": 2024,
+      "again": 2025,
+      "species": [
+        "szczupak",
+        "jaz",
+        "klen",
+        "mietus",
+        "pstrag-potokowy",
+        "sum"
+      ]
+    },
+    {
+      "name": "Rega",
+      "year": 2024,
+      "again": 2025,
+      "species": [
+        "certa",
+        "jaz",
+        "mietus",
+        "pstrag-potokowy"
+      ]
+    },
+    {
+      "name": "Płonia",
+      "year": 2024,
+      "species": [
+        "jaz",
+        "mietus"
+      ]
+    },
+    {
+      "name": "Gowienica",
+      "year": 2024,
+      "again": 2025,
+      "species": [
+        "jaz",
+        "pstrag-potokowy"
+      ]
+    },
+    {
+      "name": "Krępa",
+      "year": 2024,
+      "species": [
+        "szczupak",
+        "lin",
+        "jaz"
+      ]
+    },
+    {
+      "name": "Gunica",
+      "year": 2024,
+      "species": [
+        "jaz"
+      ]
+    },
+    {
+      "name": "Mołstowa",
+      "year": 2024,
+      "again": 2025,
+      "species": [
+        "pstrag-potokowy"
+      ]
+    },
+    {
+      "name": "Tywa",
+      "year": 2024,
+      "species": [
+        "pstrag-potokowy"
+      ]
+    },
+    {
+      "name": "Wołczenica",
+      "year": 2024,
+      "species": [
+        "jaz",
+        "pstrag-potokowy"
+      ]
+    },
+    {
+      "name": "Niemica",
+      "year": 2024,
+      "species": [
+        "jaz"
+      ]
+    },
+    {
+      "name": "Świniec",
+      "year": 2024,
+      "species": [
+        "jaz"
+      ]
+    },
+    {
+      "name": "Wilczkowo",
+      "year": 2024,
+      "species": [
+        "wegorz",
+        "sandacz"
+      ],
+      "source": "jesiotr"
+    },
+    {
+      "name": "Trzesiecko",
+      "year": 2024,
+      "species": [
+        "wegorz"
+      ],
+      "source": "jesiotr"
+    },
+    {
+      "name": "Ciemino",
+      "year": 2024,
+      "species": [
+        "wegorz"
+      ],
+      "source": "jesiotr"
+    },
+    {
+      "name": "Radacz",
+      "year": 2024,
+      "species": [
+        "wegorz"
+      ],
+      "source": "jesiotr"
+    },
+    {
+      "name": "Barlineckie",
+      "year": 2025,
+      "species": [
+        "szczupak",
+        "lin",
+        "wegorz"
+      ],
+      "source": "gorzow"
+    },
+    {
+      "name": "Uklejowe",
+      "year": 2025,
+      "species": [
+        "lin"
+      ],
+      "source": "gorzow"
+    },
+    {
+      "name": "Zauklejowe",
+      "year": 2025,
+      "species": [
+        "lin"
+      ],
+      "source": "gorzow"
+    }
+  ]
+}

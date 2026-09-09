@@ -3,7 +3,18 @@ self.addEventListener("install", (e) => {
   e.waitUntil(self.skipWaiting());
 });
 self.addEventListener("activate", (e) => {
-  e.waitUntil(self.clients.claim());
+  e.waitUntil(
+    (async () => {
+      const keep = new Set(["atlas-tiles-v7", "atlas-data-v2", "atlas-tarlo"]);
+      const names = await caches.keys();
+      await Promise.all(
+        names
+          .filter((n) => n.startsWith("atlas-") && !keep.has(n))
+          .map((n) => caches.delete(n)),
+      );
+      await self.clients.claim();
+    })(),
+  );
 });
 
 self.addEventListener("message", (e) => {
@@ -73,9 +84,10 @@ self.addEventListener("fetch", (e) => {
     url.hostname === "basemaps.cartocdn.com" ||
     url.hostname.endsWith(".basemaps.cartocdn.com");
   const catalog =
-    url.origin === self.location.origin && url.pathname.includes("/atlas/waters/");
+    url.origin === self.location.origin &&
+    (url.pathname.includes("/atlas/packs/") || url.pathname.includes("/atlas/waters/"));
   if (!tile && !catalog) return;
-  const cacheName = tile ? "atlas-tiles-v7" : "atlas-data-v1";
+  const cacheName = tile ? "atlas-tiles-v7" : "atlas-data-v2";
   e.respondWith(
     (async () => {
       const cache = await caches.open(cacheName);

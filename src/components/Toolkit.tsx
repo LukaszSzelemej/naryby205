@@ -4,12 +4,14 @@ import { WaterFeed } from "@/components/SpotList";
 import { BackBtn, OutLink, PaperPicker, PhoneText, TelBtn } from "@/components/Chrome";
 import {
   ALPHABET,
+  ACTIVE_PACK,
   CUPLINK,
   DISCLAIMER,
   INSTAGRAM,
   letterOf,
   linkLabel,
-  MANAGERS,
+  PACK_LIST,
+  plWaters,
   protectionOf,
   formatProtect,
   closedEndingDays,
@@ -19,12 +21,14 @@ import {
   SPECIES,
   SPECIES_LETTERS,
   sanitizeQuery,
+  WATERS,
   watersForSpecies,
   watersOfHost,
   hostGroupOf,
   hostKeyOfManager,
   labelOfHostKey,
   managerFromHostKey,
+  orderedManagers,
   foldPl,
 } from "@/lib/catalog";
 import {
@@ -48,9 +52,18 @@ import { EmptyState, FeedSkeleton, Meter, ScreenFrame } from "@/components/State
 
 function ManagersList() {
   const openHost = useAtlas((s) => s.openHost);
+  const ready = useAtlas((s) => s.catalogReady);
+  const err = useAtlas((s) => s.catalogError);
+  if (!ready) {
+    return (
+      <p className="text-sm text-muted">
+        {err ?? "Wczytuję gospodarzy województwa…"}
+      </p>
+    );
+  }
   return (
     <>
-      {Object.values(MANAGERS).map((m) => {
+      {orderedManagers().map((m) => {
         const web = safeHttpUrl(m.website);
         const social = safeHttpUrl(m.socialUrl);
         const permit = safeHttpUrl(m.permitUrl);
@@ -112,7 +125,8 @@ function ManagersList() {
 
 export function PermitsPage() {
   const setScreen = useAtlas((s) => s.setScreen);
-  const n = Object.keys(MANAGERS).length;
+  const ready = useAtlas((s) => s.catalogReady);
+  const n = ready ? orderedManagers().length : 0;
   return (
     <ScreenFrame onBack={() => setScreen("map")}>
       <div className="mx-auto max-w-lg px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-10">
@@ -146,6 +160,7 @@ export function PermitsPage() {
 
 const TABS: { id: KitTab; label: string; alwaysOrange?: boolean }[] = [
   { id: "dokumenty", label: "Dokumenty" },
+  { id: "wojewodztwo", label: "Województwo" },
   { id: "etykieta", label: "Etykieta" },
   { id: "feeder", label: "Method Feeder" },
   { id: "poradnik", label: "Poradnik" },
@@ -397,10 +412,65 @@ export function SpeciesList() {
   );
 }
 
+function WojewodztwoPane() {
+  const ready = useAtlas((s) => s.catalogReady);
+  const err = useAtlas((s) => s.catalogError);
+  const activeId = ACTIVE_PACK?.id;
+  const packs = PACK_LIST;
+  const loaded = ready ? WATERS.length : 0;
+  return (
+    <div className="kit-pane mt-4 space-y-3 text-sm">
+      <section className="rounded-2xl bg-card p-3 ring-1 ring-border">
+        <h2 className="font-semibold">Katalog województwa</h2>
+        <p className="mt-2 text-sm leading-relaxed text-muted">
+          Atlas to jeden silnik i osobne pakiety województw. Dziś wczytane jest
+          Zachodniopomorskie. Kolejne katalogi dołączą bez nowej aplikacji.
+        </p>
+      </section>
+      {err ? <p className="text-sm text-danger">{err}</p> : null}
+      {!ready && packs.length === 0 && !err ? (
+        <p className="text-sm text-muted">Wczytuję pakiet województwa…</p>
+      ) : (
+        packs.map((p) => {
+          const on = Boolean(ready && (activeId ? p.id === activeId : packs[0]?.id === p.id));
+          const n = on && loaded ? loaded : p.n;
+          return (
+            <article
+              key={p.id}
+              className="rounded-2xl bg-card p-3 ring-1 ring-border"
+              aria-current={on ? "true" : undefined}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-semibold">{p.shortName}</p>
+                  <p className="mt-0.5 text-sm text-muted">{plWaters(n)}</p>
+                  {p.version ? (
+                    <p className="mt-0.5 text-xs text-faint">wersja {p.version}</p>
+                  ) : null}
+                </div>
+                {on ? (
+                  <span className="shrink-0 rounded-full bg-ok/15 px-2.5 py-1 text-xs font-semibold text-ok">
+                    wczytane
+                  </span>
+                ) : (
+                  <span className="shrink-0 rounded-full bg-card-2 px-2.5 py-1 text-xs font-semibold text-faint">
+                    {ready ? "w paczce" : err ? "błąd" : "wczytuję…"}
+                  </span>
+                )}
+              </div>
+            </article>
+          );
+        })
+      )}
+    </div>
+  );
+}
+
 export function Toolkit() {
   const tab = useAtlas((s) => s.kitTab) ?? "kawa";
   const setTab = useAtlas((s) => s.setKitTab);
   const setScreen = useAtlas((s) => s.setScreen);
+  useAtlas((s) => s.catalogReady);
   const [offMsg, setOffMsg] = useState<string | null>(null);
   const [offPct, setOffPct] = useState<number | null>(null);
   const [offBusy, setOffBusy] = useState(false);
@@ -468,6 +538,8 @@ export function Toolkit() {
             <ManagersList />
           </div>
         )}
+
+        {tab === "wojewodztwo" && <WojewodztwoPane />}
 
         {tab === "etykieta" && (
           <div className="kit-pane mt-4 space-y-3">
@@ -953,13 +1025,15 @@ function LicensesBlock({ className }: { className?: string }) {
               <li key={it.t}>
                 <p className="text-sm font-semibold text-foreground">{it.t}</p>
                 <p className="mt-1 text-sm leading-relaxed text-muted">{it.d}</p>
-                <button
-                  type="button"
-                  onClick={() => openExternal(it.href)}
-                  className="mt-1 text-xs font-semibold text-primary underline decoration-primary/40 underline-offset-2"
-                >
-                  Źródło
-                </button>
+                {it.href ? (
+                  <button
+                    type="button"
+                    onClick={() => openExternal(it.href)}
+                    className="mt-1 text-xs font-semibold text-primary underline decoration-primary/40 underline-offset-2"
+                  >
+                    Źródło
+                  </button>
+                ) : null}
               </li>
             ))}
           </ul>

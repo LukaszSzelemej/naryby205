@@ -89,10 +89,15 @@ export function loadPapers(): string[] {
       typeof x === "string" &&
       x.length > 3 &&
       x.length < 80 &&
-      (x.startsWith("host:") || x.startsWith("kind:")),
+      (x.startsWith("pzw:") || x.startsWith("kind:") || x.startsWith("web:")) &&
+      Boolean(x.split(":")[1]),
   );
 }
 
 export function savePapers(keys: string[]) {
-  localStorage.setItem(PAPERS, JSON.stringify(keys));
+  try {
+    localStorage.setItem(PAPERS, JSON.stringify(keys));
+  } catch {
+    /* ignore */
+  }
 }

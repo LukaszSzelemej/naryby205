@@ -1,4 +1,4 @@
-import { foldPl, sortName } from "@/lib/catalog";
+import { foldPl, sortName, WATERS } from "@/lib/catalog";
 import type { Water } from "@/lib/types";
 
 export type WaterStock = {
@@ -36,18 +36,21 @@ type StockPack = {
 let SOURCES: Record<string, StockSource> = {};
 let MANAGER_STOCKING: Record<string, ManagerStock> = {};
 let ROWS: StockRow[] = [];
+let INDEX: Map<string, StockRow[]> | null = null;
 
 export function loadStockingPack(raw: unknown) {
   const data = (raw ?? {}) as StockPack;
   SOURCES = { ...(data.sources ?? {}) };
   MANAGER_STOCKING = { ...(data.managers ?? {}) };
   ROWS = [...(data.waters ?? [])];
+  INDEX = null;
 }
 
 export function resetStockingPack() {
   SOURCES = {};
   MANAGER_STOCKING = {};
   ROWS = [];
+  INDEX = null;
 }
 
 function keyOf(s: string) {
@@ -60,18 +63,33 @@ function keyOf(s: string) {
   );
 }
 
-function hay(w: Water) {
-  return foldPl([w.name, w.gmina ?? "", w.powiat ?? "", w.okrag ?? "", ...(w.aliases ?? [])].join(" "));
-}
-
 function matches(w: Water, row: StockRow) {
   const want = keyOf(row.name);
   if (want.length < 4) return false;
   const names = [w.name, ...(w.aliases ?? [])].map(keyOf);
-  const hit = names.some((n) => n === want || n.startsWith(`${want} `) || want.startsWith(`${n} `));
-  if (!hit) return false;
-  if (row.hint && !hay(w).includes(foldPl(row.hint))) return false;
+  if (!names.includes(want)) return false;
+  if (row.hint) {
+    const hay = foldPl([w.name, w.gmina ?? "", w.powiat ?? "", ...(w.aliases ?? [])].join(" "));
+    if (!hay.includes(foldPl(row.hint))) return false;
+  }
   return true;
+}
+
+function rowsFor(w: Water): StockRow[] {
+  if (!WATERS.length) return [];
+  if (!INDEX) {
+    const next = new Map<string, StockRow[]>();
+    for (const r of ROWS) {
+      const cand = WATERS.filter((x) => matches(x, r));
+      if (cand.length !== 1) continue;
+      const id = cand[0].id;
+      const arr = next.get(id);
+      if (arr) arr.push(r);
+      else next.set(id, [r]);
+    }
+    INDEX = next;
+  }
+  return INDEX.get(w.id) ?? [];
 }
 
 function pickSource(row: StockRow, year: number, again?: number): StockSource {
@@ -82,7 +100,7 @@ function pickSource(row: StockRow, year: number, again?: number): StockSource {
 }
 
 export function stockingOfWater(w: Water): WaterStock | null {
-  const hits = ROWS.filter((r) => matches(w, r));
+  const hits = rowsFor(w);
   if (!hits.length) return null;
   const species = [...new Set(hits.flatMap((r) => r.species))];
   const year = Math.max(...hits.map((r) => r.year));

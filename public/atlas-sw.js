@@ -84,8 +84,7 @@ self.addEventListener("fetch", (e) => {
     url.hostname === "basemaps.cartocdn.com" ||
     url.hostname.endsWith(".basemaps.cartocdn.com");
   const catalog =
-    url.origin === self.location.origin &&
-    (url.pathname.includes("/atlas/packs/") || url.pathname.includes("/atlas/waters/"));
+    url.origin === self.location.origin && url.pathname.includes("/atlas/packs/");
   if (!tile && !catalog) return;
   const cacheName = tile ? "atlas-tiles-v7" : "atlas-data-v2";
   e.respondWith(

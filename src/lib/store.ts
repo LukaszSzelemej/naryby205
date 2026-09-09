@@ -342,7 +342,7 @@ export const useAtlas = create<AtlasState>((set, get) => ({
       sort: geo && s.listSortAuto ? "nearest" : s.sort,
     }));
   },
-  setGeoDenied: (geoDenied) => set({ geoDenied }),
+  setGeoDenied: (geoDenied) => set({ geoDenied, nearbyPending: geoDenied ? false : get().nearbyPending }),
   setConsent: (consent) => {
     saveConsent(consent);
     set({ consent });

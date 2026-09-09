@@ -262,9 +262,10 @@ function fillManagers(file: ManagersFile) {
 function fillWaters(rows: Water[], woj: string) {
   if (WATERS.length) return;
   for (const w of rows) {
-    if (w.species?.length) w.species = [...new Set(w.species)];
+    w.species = [...new Set(Array.isArray(w.species) ? w.species : [])];
+    if (!Array.isArray(w.methods)) w.methods = [];
     w.obwod = normObwodList([...(w.obwod ?? []), ...parseObwod(w)]);
-    w.night = Boolean(w.night) || inferNight(w);
+    if (w.night == null) w.night = inferNight(w);
     w.woj = woj;
   }
   WATERS.push(...rows);
@@ -284,11 +285,11 @@ function fillWaters(rows: Water[], woj: string) {
 type CatalogIndex = { n: number; shards: string[] };
 type PacksFile = { default: string; packs: PackIndexEntry[] };
 
-async function fetchJson<T>(url: string, ms = 6000): Promise<T> {
+async function fetchJson<T>(url: string, ms = 6000, cache: RequestCache = "force-cache"): Promise<T> {
   const ctrl = new AbortController();
   const timer = window.setTimeout(() => ctrl.abort(), ms);
   try {
-    const res = await fetch(url, { cache: "force-cache", signal: ctrl.signal });
+    const res = await fetch(url, { cache, signal: ctrl.signal });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const text = await res.text();
     if (!text || text.charCodeAt(0) === 0x3c) {
@@ -315,37 +316,37 @@ async function mapPool<T, R>(items: T[], limit: number, fn: (item: T) => Promise
 }
 
 /** Load voivodeship pack (manifest, managers, water shards). Safe to call twice. */
-export function loadCatalog() {
+export function loadCatalog(cache: RequestCache = "force-cache") {
   if (typeof window === "undefined") return Promise.resolve();
   if (WATERS.length) return Promise.resolve();
   if (catalogLoading) return catalogLoading;
   const gen = ++loadGen;
   catalogLoading = (async () => {
     const root = catalogRoot();
-    const index = await fetchJson<PacksFile>(`${root}index.json`, 5000);
+    const index = await fetchJson<PacksFile>(`${root}index.json`, 5000, cache);
     if (gen !== loadGen) return;
     PACK_LIST.length = 0;
     PACK_LIST.push(...(index.packs ?? []));
     const packId = index.default || index.packs?.[0]?.id;
     if (!packId) throw new Error("Brak pakietu województwa");
     const packDir = `${root}${packId}/`;
-    const manifest = await fetchJson<PackManifest>(`${packDir}manifest.json`, 5000);
+    const manifest = await fetchJson<PackManifest>(`${packDir}manifest.json`, 5000, cache);
     if (gen !== loadGen) return;
     applyManifest(manifest);
-    const mgrFile = await fetchJson<ManagersFile>(`${packDir}${manifest.managers}`, 5000);
+    const mgrFile = await fetchJson<ManagersFile>(`${packDir}${manifest.managers}`, 5000, cache);
     if (gen !== loadGen) return;
     fillManagers(mgrFile);
     if (manifest.stocking) {
-      const stock = await fetchJson<unknown>(`${packDir}${manifest.stocking}`, 5000);
+      const stock = await fetchJson<unknown>(`${packDir}${manifest.stocking}`, 5000, cache);
       if (gen !== loadGen) return;
       const mod = await import("@/lib/stocking");
       mod.loadStockingPack(stock);
     }
     const watersBase = `${packDir}${manifest.watersDir || "waters"}/`;
-    const idx = await fetchJson<CatalogIndex>(`${watersBase}index.json`, 5000);
+    const idx = await fetchJson<CatalogIndex>(`${watersBase}index.json`, 5000, cache);
     if (!idx?.shards?.length) throw new Error("Pusty katalog łowisk");
     const parts = await mapPool(idx.shards, 12, (name) =>
-      fetchJson<Water[]>(`${watersBase}${name}`, 6000),
+      fetchJson<Water[]>(`${watersBase}${name}`, 6000, cache),
     );
     if (gen !== loadGen) return;
     const rows = parts.flat();
@@ -380,7 +381,7 @@ export function retryCatalog() {
   void import("@/lib/store").then(({ useAtlas }) => {
     useAtlas.setState({ catalogError: null, catalogReady: false });
   });
-  return loadCatalog();
+  return loadCatalog("reload");
 }
 
 export function managerOf(w: Water): Manager {
@@ -575,7 +576,7 @@ export function formatDistance(km: number | null | undefined) {
 export function inferNight(w: Water): boolean {
   const blob = foldPl([...(w.rules ?? []), w.ticket ?? "", w.summary ?? ""].join(" "));
   if (/zakaz.{0,28}noc|bez nocy|nie wolno.{0,18}noc/.test(blob)) return false;
-  if (/\bnoc(y|a|nego|leg)?\b/.test(blob)) return true;
+  if (/\bnoc(y|a|nego)?\b/.test(blob)) return true;
   return false;
 }
 
@@ -656,7 +657,7 @@ export function linkLabel(url: string, role: "host" | "social" = "host") {
 }
 
 export function watersForSpecies(speciesId: string) {
-  return WATERS.filter((w) => w.species.includes(speciesId)).sort((a, b) =>
+  return WATERS.filter((w) => w.species?.includes(speciesId)).sort((a, b) =>
     sortName(a.name).localeCompare(sortName(b.name), "pl"),
   );
 }

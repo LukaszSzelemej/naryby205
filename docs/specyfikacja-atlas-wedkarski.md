@@ -1,11 +1,11 @@
 # Specyfikacja — Atlas wędkarski
 
 **Nazwa:** Atlas wędkarski  
-**Wersja:** 2.0.0  
+**Wersja:** 2.0.1  
 **Adres:** https://www.atlaswedkarski.pl  
 **Kontakt / autor:** Instagram [@method_feeder_szczecin](https://www.instagram.com/method_feeder_szczecin)  
 **Wsparcie:** https://cuplink.to/atlaswedkarski („Postaw kawę”)  
-**Repozytorium (stan tej specyfikacji):** [github.com/LukaszSzelemej/naryby201](https://github.com/LukaszSzelemej/naryby201)  
+**Repozytorium (stan tej specyfikacji):** [github.com/LukaszSzelemej/naryby203](https://github.com/LukaszSzelemej/naryby203)  
 **Zasięg:** województwo zachodniopomorskie, Bałtyk, Zalew Szczeciński i wody ujęte w katalogu.
 
 Aplikacja webowa (PWA): mapa i katalog łowisk, dziennik połowów, niezbędnik. Bez kont, bez reklam, bez subskrypcji. Dziennik i ulubione zostają na telefonie.

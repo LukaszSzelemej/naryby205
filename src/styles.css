@@ -338,6 +338,9 @@
   width: var(--sz);
   height: var(--sz);
   min-width: var(--sz);
+  min-height: var(--sz);
+  aspect-ratio: 1;
+  flex-shrink: 0;
   color: #3c4043;
   transition:
     background-color var(--motion-fast) var(--ease-out),
@@ -438,11 +441,15 @@
 .map-btn-pressure.is-up::after {
   content: "";
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
   pointer-events: none;
   z-index: -1;
   background: transparent;
+  transform: translate(-50%, -50%) scale(1);
   transform-origin: 50% 50%;
   animation: map-halo 2.4s ease-in-out infinite;
 }
@@ -465,11 +472,11 @@
 }
 @keyframes map-halo {
   0% {
-    transform: scale(1);
+    transform: translate(-50%, -50%) scale(1);
     opacity: 0.7;
   }
   100% {
-    transform: scale(1.55);
+    transform: translate(-50%, -50%) scale(1.55);
     opacity: 0;
   }
 }

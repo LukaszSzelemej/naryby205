@@ -345,7 +345,7 @@ export function MapCanvas({
       favRef.current = favSet;
       listRef.current = WATERS.filter((w) => {
         if (!matchesFilter(w, filterRef.current, favSet)) return false;
-        if (st.mapSpecies.length && !st.mapSpecies.every((id) => w.species.includes(id))) return false;
+        if (st.mapSpecies.length && !st.mapSpecies.every((id) => w.species?.includes(id))) return false;
         if (st.mapNight && !w.night) return false;
         if (st.mapBoats && !w.boats) return false;
         return true;
@@ -474,7 +474,7 @@ export function MapCanvas({
     favRef.current = favSet;
     listRef.current = WATERS.filter((w) => {
       if (!matchesFilter(w, filter, favSet)) return false;
-      if (mapSpecies.length && !mapSpecies.every((id) => w.species.includes(id))) return false;
+      if (mapSpecies.length && !mapSpecies.every((id) => w.species?.includes(id))) return false;
       if (mapNight && !w.night) return false;
       if (mapBoats && !w.boats) return false;
       return true;

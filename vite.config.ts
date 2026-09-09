@@ -198,16 +198,7 @@ function catalogStaticPlugin(): Plugin {
           return;
         }
         if (raw.includes("/atlas/waters/")) {
-          const file = raw.slice(raw.indexOf("atlas/waters/") + "atlas/waters/".length);
-          if (file === "all.json") {
-            send('{"error":"no all.json"}', 404);
-            return;
-          }
-          if (!/^(index|[0-9]{2})\.json$/.test(file)) {
-            send('{"error":"bad path"}', 400);
-            return;
-          }
-          serveRel(`atlas/packs/zp/waters/${file}`);
+          send('{"error":"moved"}', 404);
           return;
         }
         next();

@@ -143,10 +143,10 @@ export const WaterCard = memo(function WaterCard({
   );
 });
 
-const CARD_H = 158;
+const CARD_H = 176;
 const GAP_H = 8;
 const LETTER_H = 24;
-const WEB_H = 26;
+const WEB_H = 28;
 const OVERSCAN = 900;
 
 type FeedRow = { w: Water; letter: boolean; L: string; h: number };
@@ -337,7 +337,7 @@ export function SpotList() {
     () =>
       tabPool.filter((w) => {
         if (!passes(w, host, listKind, listFavOnly, favSet)) return false;
-        if (listSpecies.length && !listSpecies.every((id) => w.species.includes(id))) return false;
+        if (listSpecies.length && !listSpecies.every((id) => w.species?.includes(id))) return false;
         if (!matchesObwod(w, listObwod)) return false;
         if (listNight && !w.night) return false;
         if (listBoats && !w.boats) return false;

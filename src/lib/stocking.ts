@@ -57,8 +57,7 @@ function keyOf(s: string) {
   return foldPl(
     sortName(s)
       .replace(/\s*\(.*\)\s*/g, " ")
-      .replace(/\s*[–—-]\s*.*$/, "")
-      .replace(/\s+(duze|male)$/i, "")
+      .replace(/\s*[–—-]\s*zbiornik.*$/i, "")
       .trim(),
   );
 }
@@ -81,11 +80,13 @@ function rowsFor(w: Water): StockRow[] {
     const next = new Map<string, StockRow[]>();
     for (const r of ROWS) {
       const cand = WATERS.filter((x) => matches(x, r));
-      if (cand.length !== 1) continue;
-      const id = cand[0].id;
-      const arr = next.get(id);
-      if (arr) arr.push(r);
-      else next.set(id, [r]);
+      const assign = cand.length === 1 ? cand : cand.length > 1 && cand.every((x) => x.kind === "rzeka") ? cand : [];
+      for (const w of assign) {
+        const id = w.id;
+        const arr = next.get(id);
+        if (arr) arr.push(r);
+        else next.set(id, [r]);
+      }
     }
     INDEX = next;
   }

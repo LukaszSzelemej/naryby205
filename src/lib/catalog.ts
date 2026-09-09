@@ -9,7 +9,7 @@ import type {
   Water,
   WaterKind,
 } from "@/lib/types";
-import { loadLastPack, saveLastPack, savePapers } from "@/lib/storage";
+import { loadFavorites, loadJournal, loadLastPack, loadPapers, saveLastPack } from "@/lib/storage";
 
 export { CUPLINK, INSTAGRAM, SITE_URL, VERSION } from "@/lib/brand";
 
@@ -62,10 +62,10 @@ function placeKey(w: Water) {
   return `${w.name}\t${w.gmina ?? ""}`;
 }
 
-/** Fallback until the pack manifest loads — Zachodniopomorskie. */
-export const BOUNDS = { south: 52.62, west: 14.12, north: 54.58, east: 16.98 };
-export const MAP_CENTER: [number, number] = [53.52, 15.35];
-export let DEFAULT_ZOOM = 8;
+/** Fallback until the pack manifest loads — Poland, not one województwo. */
+export const BOUNDS = { south: 49.0, west: 14.07, north: 54.9, east: 24.15 };
+export const MAP_CENTER: [number, number] = [52.1, 19.2];
+export let DEFAULT_ZOOM = 6;
 export let ACTIVE_PACK: PackManifest | null = null;
 export const PACK_LIST: PackIndexEntry[] = [];
 let DEFAULT_MANAGER = "";
@@ -316,15 +316,16 @@ function fillWaters(rows: Water[], woj: string, gen: number) {
     if (gen !== loadGen) return;
     const st = useAtlas.getState();
     const allowed = new Set(paperOptions().map((p) => p.key));
-    const papers = st.papers.filter((k) => allowed.has(k));
+    const papers = loadPapers(woj).filter((k) => allowed.has(k));
     useAtlas.setState({
       catalogReady: true,
       catalogError: null,
       mapNonce: st.mapNonce + 1,
       papers,
+      favorites: loadFavorites(woj),
+      journal: loadJournal(woj),
       selectedId: st.selectedId && WATERS_BY_ID[st.selectedId] ? st.selectedId : null,
     });
-    if (papers.length !== st.papers.length) savePapers(papers);
   });
 }
 
@@ -451,6 +452,11 @@ export async function switchPack(id: string) {
     catalogError: null,
     catalogReady: false,
     selectedId: null,
+    selectedHostKey: null,
+    sheet: null,
+    nearbyPending: false,
+    compareA: null,
+    compareB: null,
     screen: "map",
     filter: "all",
     mapSpecies: [],

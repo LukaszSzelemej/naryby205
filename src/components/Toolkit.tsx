@@ -353,7 +353,7 @@ export function SpeciesList() {
               const show = L !== last;
               last = L;
               const p = protectionOf(s);
-              const dim = formatProtect(s, "Szczecin");
+              const dim = formatProtect(s);
               const left = closedEndingDays(s);
               return (
                 <div key={s.id}>
@@ -375,7 +375,7 @@ export function SpeciesList() {
                     <p className="text-xs italic text-muted">{s.latin}</p>
                     <p className="mt-1 text-xs font-medium tabular-nums text-foreground">
                       Wymiar: {dim.size} · {dim.limit}
-                      {dim.fork ? " · okręgi ZP" : ""}
+                      {dim.fork && ACTIVE_PACK?.id === "zp" ? " · okręgi ZP" : ""}
                     </p>
                     <p className={cn("mt-0.5 text-xs font-medium", p.active ? "text-danger" : "text-ok")}>
                       {p.hasPeriod ? p.label : "Brak okresu ochronnego"}
@@ -992,8 +992,8 @@ function HydroNotify() {
     <section className="rounded-2xl bg-card p-3 ring-1 ring-border">
       <h2 className="font-semibold">Stany rzek IMGW</h2>
       <p className="mt-2 text-sm leading-relaxed text-muted">
-        Gdy Odra, Rega, Drawa, Parsęta, Ina, Płonia albo Wieprza skoczą o 30 cm
-        i więcej, atlas wyśle powiadomienie. Sprawdzamy rano i po południu.
+        Gdy rzeki z wczytanego województwa skoczą o 30 cm i więcej, atlas
+        wyśle powiadomienie. Sprawdzamy rano i po południu.
       </p>
       <button
         type="button"

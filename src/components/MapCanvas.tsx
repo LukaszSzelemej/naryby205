@@ -507,7 +507,18 @@ export function MapCanvas({
           [BOUNDS.north + 0.35, BOUNDS.east + 0.4],
         ),
       );
-      if (switched || !useAtlas.getState().geo) resetView();
+      const geo = useAtlas.getState().geo;
+      const inside =
+        !!geo &&
+        geo.lat >= BOUNDS.south &&
+        geo.lat <= BOUNDS.north &&
+        geo.lng >= BOUNDS.west &&
+        geo.lng <= BOUNDS.east;
+      if (inside) {
+        if (switched) flyToUser(geo.lat, geo.lng);
+      } else {
+        resetView();
+      }
     });
   }, [ready, packId]);
 

@@ -105,7 +105,7 @@ export const WaterCard = memo(function WaterCard({
       </button>
       <button type="button" onClick={() => onOpen(w.id)} className="block w-full text-left">
         <p className="text-xs font-medium text-primary">{bits.tags}</p>
-        <h3 className="mt-0.5 text-base font-semibold text-foreground">{bits.title}</h3>
+        <h3 className="mt-0.5 line-clamp-1 text-base font-semibold text-foreground">{bits.title}</h3>
         <p className="mt-1 text-xs text-muted">
           {[bits.place, dist].filter(Boolean).join(" · ")}
         </p>
@@ -143,7 +143,7 @@ export const WaterCard = memo(function WaterCard({
   );
 });
 
-const CARD_H = 176;
+const CARD_H = 188;
 const GAP_H = 8;
 const LETTER_H = 24;
 const WEB_H = 28;
@@ -167,7 +167,7 @@ export function WaterFeed({
       const L = letterOf(w.name);
       const letter = L !== last;
       last = L;
-      const h = CARD_H + GAP_H + (letter ? LETTER_H : 0) + (w.website ? WEB_H : 0);
+      const h = CARD_H + GAP_H + (letter ? LETTER_H : 0) + (cardBits(w).web ? WEB_H : 0);
       return { w, letter, L, h };
     });
   }, [waters]);

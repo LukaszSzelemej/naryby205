@@ -659,11 +659,13 @@ export function RightMenu({ weather }: { weather: WeatherNow | null }) {
   const toggleMapDark = useAtlas((s) => s.toggleMapDark);
   const startBoot = useAtlas((s) => s.startBoot);
   const [packed, setPacked] = useState(() => Boolean(loadPackInfo()));
+  const catalogReady = useAtlas((s) => s.catalogReady);
   useEffect(() => {
     const sync = () => setPacked(Boolean(loadPackInfo()));
+    sync();
     window.addEventListener("atlas-offline-pack", sync);
     return () => window.removeEventListener("atlas-offline-pack", sync);
-  }, []);
+  }, [catalogReady]);
   const filter = useAtlas((s) => s.filter);
   const sheet = useAtlas((s) => s.sheet);
   const papers = useAtlas((s) => s.papers);
@@ -880,12 +882,14 @@ export function CoordsBanner() {
 }
 
 export function OfflineReady() {
+  const catalogReady = useAtlas((s) => s.catalogReady);
   const [on, setOn] = useState(() => Boolean(loadPackInfo()));
   useEffect(() => {
     const sync = () => setOn(Boolean(loadPackInfo()));
+    sync();
     window.addEventListener("atlas-offline-pack", sync);
     return () => window.removeEventListener("atlas-offline-pack", sync);
-  }, []);
+  }, [catalogReady]);
   if (!on) return null;
   return (
     <p className="banner-in rounded-full bg-card/95 px-3 py-1.5 text-center text-[11px] font-semibold text-ok ring-1 ring-border">

@@ -18,20 +18,67 @@ function readJson<T>(key: string, fallback: T): T {
   }
 }
 
-export function loadFavorites(): string[] {
-  return readJson<string[]>(FAV, []);
+export function loadLastPack(): string | null {
+  try {
+    const id = localStorage.getItem(LAST_PACK);
+    if (id && /^[a-z][a-z0-9-]*$/.test(id)) return id;
+  } catch {
+    /* ignore */
+  }
+  return null;
 }
 
-export function saveFavorites(ids: string[]) {
-  localStorage.setItem(FAV, JSON.stringify(ids));
+export function saveLastPack(id: string) {
+  try {
+    localStorage.setItem(LAST_PACK, id);
+  } catch {
+    /* ignore */
+  }
 }
 
-export function loadJournal(): JournalEntry[] {
-  return readJson<JournalEntry[]>(JOURNAL, []);
+function packIdOf(pack?: string | null) {
+  return pack || loadLastPack() || "zp";
 }
 
-export function saveJournal(rows: JournalEntry[]) {
-  localStorage.setItem(JOURNAL, JSON.stringify(rows));
+function scoped(base: string, pack?: string | null) {
+  return `${base}.${packIdOf(pack)}`;
+}
+
+/** Old unscoped keys belonged to Zachodniopomorskie. Copy once into `.zp`. */
+function migrateLegacy(base: string) {
+  try {
+    if (localStorage.getItem(`${base}.zp`)) return;
+    const old = localStorage.getItem(base);
+    if (old) localStorage.setItem(`${base}.zp`, old);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function loadFavorites(pack?: string | null): string[] {
+  migrateLegacy(FAV);
+  return readJson<string[]>(scoped(FAV, pack), []);
+}
+
+export function saveFavorites(ids: string[], pack?: string | null) {
+  try {
+    localStorage.setItem(scoped(FAV, pack), JSON.stringify(ids));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function loadJournal(pack?: string | null): JournalEntry[] {
+  migrateLegacy(JOURNAL);
+  return readJson<JournalEntry[]>(scoped(JOURNAL, pack), []);
+}
+
+export function saveJournal(rows: JournalEntry[], pack?: string | null) {
+  try {
+    localStorage.setItem(scoped(JOURNAL, pack), JSON.stringify(rows));
+  } catch {
+    /* ignore */
+  }
 }
 
 export type ConsentState = {
@@ -82,8 +129,7 @@ export function saveMapDark(on: boolean) {
   }
 }
 
-export function loadPapers(): string[] {
-  const raw = readJson<unknown>(PAPERS, []);
+function parsePapers(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
   return raw.filter(
     (x): x is string =>
@@ -95,27 +141,14 @@ export function loadPapers(): string[] {
   );
 }
 
-export function savePapers(keys: string[]) {
-  try {
-    localStorage.setItem(PAPERS, JSON.stringify(keys));
-  } catch {
-    /* ignore */
-  }
+export function loadPapers(pack?: string | null): string[] {
+  migrateLegacy(PAPERS);
+  return parsePapers(readJson<unknown>(scoped(PAPERS, pack), []));
 }
 
-export function loadLastPack(): string | null {
+export function savePapers(keys: string[], pack?: string | null) {
   try {
-    const id = localStorage.getItem(LAST_PACK);
-    if (id && /^[a-z][a-z0-9-]*$/.test(id)) return id;
-  } catch {
-    /* ignore */
-  }
-  return null;
-}
-
-export function saveLastPack(id: string) {
-  try {
-    localStorage.setItem(LAST_PACK, id);
+    localStorage.setItem(scoped(PAPERS, pack), JSON.stringify(keys));
   } catch {
     /* ignore */
   }

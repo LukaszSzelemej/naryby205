@@ -882,7 +882,7 @@
 
 .water-card {
   content-visibility: auto;
-  contain-intrinsic-size: auto 7.4rem;
+  contain-intrinsic-size: auto 12.5rem;
   contain: content;
   transition:
     transform var(--motion-quick) var(--ease-out),

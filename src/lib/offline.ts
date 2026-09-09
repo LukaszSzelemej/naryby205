@@ -48,14 +48,25 @@ async function catalogUrls() {
 
 const PACK_KEY = "atlas.offlinePack";
 
+function packInfoKey() {
+  const id = ACTIVE_PACK?.id || loadLastPack() || "zp";
+  return `${PACK_KEY}.${id}`;
+}
+
 export type PackInfo = { at: string; files: number };
 
 export function loadPackInfo(): PackInfo | null {
   try {
-    const raw = localStorage.getItem(PACK_KEY);
+    const raw = localStorage.getItem(packInfoKey()) || localStorage.getItem(PACK_KEY);
     if (!raw) return null;
     const v = JSON.parse(raw) as PackInfo;
-    if (typeof v.files === "number" && v.at) return v;
+    if (typeof v.files === "number" && v.at) {
+      if (ACTIVE_PACK?.id && !localStorage.getItem(packInfoKey()) && localStorage.getItem(PACK_KEY)) {
+        if ((loadLastPack() || "zp") === "zp") return v;
+        return null;
+      }
+      return v;
+    }
   } catch {
     /* ignore */
   }
@@ -73,7 +84,7 @@ function emitPack() {
 export function savePackInfo(files: number): PackInfo {
   const info: PackInfo = { at: new Date().toISOString(), files };
   try {
-    localStorage.setItem(PACK_KEY, JSON.stringify(info));
+    localStorage.setItem(packInfoKey(), JSON.stringify(info));
   } catch {
     /* ignore */
   }
@@ -83,6 +94,7 @@ export function savePackInfo(files: number): PackInfo {
 
 export function clearPackInfo() {
   try {
+    localStorage.removeItem(packInfoKey());
     localStorage.removeItem(PACK_KEY);
   } catch {
     /* ignore */

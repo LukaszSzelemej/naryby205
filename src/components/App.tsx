@@ -73,7 +73,7 @@ export function App() {
     return () => {
       live = false;
     };
-  }, [geo?.lat, geo?.lng]);
+  }, [geo?.lat, geo?.lng, catalogReady]);
 
   useEffect(() => {
     if (!nearbyPending || !geo || !catalogReady) return;

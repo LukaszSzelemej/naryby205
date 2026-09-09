@@ -1,4 +1,4 @@
-import { foldPl } from "@/lib/catalog";
+import { ACTIVE_PACK, foldPl } from "@/lib/catalog";
 import type { Water } from "@/lib/types";
 
 export type HydroRow = {
@@ -13,6 +13,19 @@ const STATIONS: { key: string; kod: string; stacja: string; rzeka: string }[] = 
   { key: "odra", kod: "153140050", stacja: "Szczecin", rzeka: "Odra" },
   { key: "odra", kod: "153140030", stacja: "Gryfino", rzeka: "Odra" },
   { key: "odra", kod: "153140020", stacja: "Widuchowa", rzeka: "Odra" },
+  { key: "odra-lb", kod: "152150130", stacja: "Cigacice", rzeka: "Odra" },
+  { key: "odra-lb", kod: "151150150", stacja: "Nowa Sól", rzeka: "Odra" },
+  { key: "odra-lb", kod: "152140130", stacja: "Połęcko", rzeka: "Odra" },
+  { key: "odra-lb", kod: "152140050", stacja: "Słubice", rzeka: "Odra" },
+  { key: "odra-lb", kod: "152140060", stacja: "Kostrzyn n. Odrą", rzeka: "Odra" },
+  { key: "warta", kod: "152150040", stacja: "Gorzów Wielkopolski", rzeka: "Warta" },
+  { key: "warta", kod: "152150110", stacja: "Skwierzyna", rzeka: "Warta" },
+  { key: "warta", kod: "152140070", stacja: "Kostrzyn n. Odrą", rzeka: "Warta" },
+  { key: "bobr", kod: "151150080", stacja: "Żagań", rzeka: "Bóbr" },
+  { key: "bobr", kod: "151150040", stacja: "Nowogród Bobrzański", rzeka: "Bóbr" },
+  { key: "bobr", kod: "152150020", stacja: "Stary Raduszec", rzeka: "Bóbr" },
+  { key: "nysa", kod: "151140010", stacja: "Gubin", rzeka: "Nysa Łużycka" },
+  { key: "notec", kod: "152150190", stacja: "Nowe Drezdenko", rzeka: "Noteć" },
   { key: "rega", kod: "154150010", stacja: "Trzebiatów", rzeka: "Rega" },
   { key: "rega", kod: "153150050", stacja: "Resko", rzeka: "Rega" },
   { key: "drawa", kod: "153150100", stacja: "Drawno", rzeka: "Drawa" },
@@ -25,10 +38,18 @@ const STATIONS: { key: string; kod: string; stacja: string; rzeka: string }[] = 
   { key: "wieprza", kod: "154160150", stacja: "Darłowo", rzeka: "Wieprza" },
 ];
 
+function lubuskieWater(w: Water) {
+  return w.woj === "lb" || ACTIVE_PACK?.id === "lb" || (w.lat != null && w.lat < 52.45 && w.lng != null && w.lng < 16.4);
+}
+
 export function hydroRiverKey(w: Water): string | null {
   if (w.kind !== "rzeka" && w.kind !== "kanal") return null;
   const n = foldPl(`${w.name} ${w.aliases?.join(" ") ?? ""}`);
-  if (n.includes("odra") || n.includes("regalica")) return "odra";
+  if (n.includes("odra") || n.includes("regalica")) return lubuskieWater(w) ? "odra-lb" : "odra";
+  if (n.includes("warta")) return "warta";
+  if (n.includes("bobr")) return "bobr";
+  if (n.includes("nysa")) return "nysa";
+  if (n.includes("notec")) return "notec";
   if (n.includes("rega") && !n.includes("regalica")) return "rega";
   if (n.includes("drawa")) return "drawa";
   if (n.includes("parseta") || n.includes("parsety")) return "parseta";
@@ -39,6 +60,7 @@ export function hydroRiverKey(w: Water): string | null {
 }
 
 type Raw = {
+  id_stacji?: string;
   kod_stacji?: string;
   rzeka?: string;
   stacja?: string;
@@ -57,7 +79,8 @@ function loadAll() {
     .then((rows: Raw[]) => {
       const map = new Map<string, HydroRow>();
       for (const row of rows) {
-        const kod = String(row.kod_stacji ?? "");
+        const kod = String(row.id_stacji ?? row.kod_stacji ?? "");
+        if (!kod) continue;
         const cm = row.stan_wody == null || row.stan_wody === "" ? null : Number(row.stan_wody);
         map.set(kod, {
           rzeka: row.rzeka ?? "",

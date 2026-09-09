@@ -5,6 +5,7 @@ const JOURNAL = "atlas.journal";
 const CONSENT = "atlas.consent";
 const GEO = "atlas.geo";
 const MAP_DARK = "atlas.mapDark";
+const PAPERS = "atlas.papers";
 
 function readJson<T>(key: string, fallback: T): T {
   try {
@@ -78,4 +79,20 @@ export function saveMapDark(on: boolean) {
   } catch {
     /* ignore */
   }
+}
+
+export function loadPapers(): string[] {
+  const raw = readJson<unknown>(PAPERS, []);
+  if (!Array.isArray(raw)) return [];
+  return raw.filter(
+    (x): x is string =>
+      typeof x === "string" &&
+      x.length > 3 &&
+      x.length < 80 &&
+      (x.startsWith("host:") || x.startsWith("kind:")),
+  );
+}
+
+export function savePapers(keys: string[]) {
+  localStorage.setItem(PAPERS, JSON.stringify(keys));
 }

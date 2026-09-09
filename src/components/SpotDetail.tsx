@@ -44,6 +44,7 @@ import type { Water, WeatherNow, Manager } from "@/lib/types";
 import { cn, copyText, openExternal, phonesIn } from "@/lib/utils";
 import { EmptyState, FeedSkeleton, ScreenFrame, useFlash } from "@/components/States";
 import { fetchHydro, hydroRiverKey, withHydroTrend, type HydroRow } from "@/lib/hydro";
+import { stockingOfManager, stockingOfWater } from "@/lib/stocking";
 import { TILE_URL, TILE_FALLBACK_URL, TILE_OPTS } from "@/lib/tiles";
 import { shareWaterCard } from "@/lib/share-card";
 import { WaterWeek, WaterSpeciesCard } from "@/components/WeatherPage";
@@ -388,6 +389,8 @@ export function SpotDetail() {
   const days = weather ? forecastFeeding(weather) : [];
   const closed = closedToday(w);
   const hint = weather ? outingHint(w, weather) : null;
+  const stock = stockingOfWater(w);
+  const hostStock = stockingOfManager(mgr.id);
 
   const copyCoords = async () => {
     if (await copyText(formatCoords(w.lat, w.lng))) flashCoords();
@@ -414,6 +417,13 @@ export function SpotDetail() {
     </section>
   );
 
+  const Section = ({ title, children }: { title: string; children: ReactNode }) => (
+    <section className="mt-5">
+      <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-faint">{title}</h2>
+      <div className="mt-2 grid gap-2">{children}</div>
+    </section>
+  );
+
   return (
     <ScreenFrame onBack={close}>
       {full &&
@@ -437,7 +447,9 @@ export function SpotDetail() {
             <BackBtn onClick={close} />
             <div className="min-w-0">
               <h1 className="text-xl font-semibold leading-tight">{w.name}</h1>
-              <p className="mt-1 text-xs text-primary">{categoryTags(w).join(" · ")}</p>
+              <p className="mt-1 text-xs text-primary">
+                {[...categoryTags(w), dist].filter(Boolean).join(" · ")}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -454,58 +466,6 @@ export function SpotDetail() {
             </button>
           </div>
         </header>
-
-        <p className="mt-3 text-xs leading-relaxed text-faint">{DISCLAIMER}</p>
-
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <CheckCell
-            label="Noc"
-            value={w.night ? "Wolna" : w.night === false ? "Zakaz" : "Sprawdź regulamin"}
-            tone={w.night ? "ok" : w.night === false ? "danger" : "muted"}
-          />
-          <CheckCell
-            label="Łódź"
-            value={w.boats ? "Wolna" : w.boats === false ? "Zakaz" : "Sprawdź regulamin"}
-            tone={w.boats ? "ok" : w.boats === false ? "danger" : "muted"}
-          />
-          <CheckCell
-            label="Silnik"
-            value={w.engines ? w.engines : w.boats ? "Sprawdź regulamin" : "—"}
-            tone={w.engines ? undefined : "muted"}
-          />
-          <CheckCell
-            label="Zabieranie"
-            value={w.noKill ? "No-kill" : hostRules(w) ? "Regulamin gospodarza" : "Wg RAPR"}
-            tone={w.noKill ? "warn" : undefined}
-          />
-          <CheckCell label="Papier" value={paperOf(w, mgr)} />
-          <CheckCell
-            label="Parking"
-            value={w.parking ? (w.parking.length > 42 ? `${w.parking.slice(0, 40)}…` : w.parking) : "Przy drodze / lesie"}
-          />
-        </div>
-        {(permit || price) && (
-          <div className="mt-2 flex gap-2">
-            {permit && (
-              <button
-                type="button"
-                onClick={() => openExternal(permit)}
-                className="tap inline-flex min-h-11 flex-1 items-center justify-center rounded-full bg-primary px-3 text-sm font-semibold text-primary-foreground"
-              >
-                {mgr.permitLabel ?? "Zezwolenie"}
-              </button>
-            )}
-            {price && (
-              <button
-                type="button"
-                onClick={() => openExternal(price)}
-                className="tap inline-flex min-h-11 flex-1 items-center justify-center rounded-full bg-card-2 px-3 text-sm font-semibold ring-1 ring-border"
-              >
-                {mgr.priceLabel ?? "Cennik"}
-              </button>
-            )}
-          </div>
-        )}
 
         <section className="mt-3 rounded-2xl bg-card p-3 ring-1 ring-border">
           <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-faint">Czy mogę dziś</h3>
@@ -526,14 +486,65 @@ export function SpotDetail() {
                   </span>
                 ))}
               </div>
-              <p className="mt-2 text-xs text-muted">Nie łów tych gatunków. Reszta z karty — wymiar i limit w chipie gatunku.</p>
+              <p className="mt-2 text-xs text-muted">Nie łów tych gatunków. Wymiar i limit — w chipie gatunku.</p>
             </div>
           ) : (
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              Żaden gatunek z tej karty nie jest dziś w okresie ochronnym. Wymiary i limity — w chipach poniżej.
+              Żaden gatunek z tej karty nie jest dziś w okresie ochronnym.
             </p>
           )}
         </section>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <CheckCell
+            label="Noc"
+            value={w.night ? "brak zakazu" : w.night === false ? "zakaz" : "Sprawdź regulamin"}
+            tone={w.night ? "ok" : w.night === false ? "danger" : "muted"}
+          />
+          <CheckCell
+            label="Łodzie"
+            value={w.boats ? "brak zakazu" : w.boats === false ? "zakaz" : "Sprawdź regulamin"}
+            tone={w.boats ? "ok" : w.boats === false ? "danger" : "muted"}
+          />
+          <CheckCell
+            label="Silnik"
+            value={w.engines ? w.engines : w.boats ? "Sprawdź regulamin" : "—"}
+            tone={w.engines ? undefined : "muted"}
+          />
+          <CheckCell
+            label="Zabieranie"
+            value={w.noKill ? "No-kill" : hostRules(w) ? "Regulamin gospodarza" : "Wg RAPR"}
+            tone={w.noKill ? "warn" : undefined}
+          />
+        </div>
+
+        <div className="mt-3 flex flex-col gap-2 min-[380px]:flex-row">
+          <button
+            type="button"
+            onClick={() => openExternal(googleNav(w.lat, w.lng))}
+            className="tap inline-flex min-h-11 flex-1 items-center justify-center rounded-full bg-primary px-3 text-sm font-semibold text-primary-foreground"
+          >
+            Nawiguj{dist ? ` · ${dist}` : ""}
+          </button>
+          {permit && (
+            <button
+              type="button"
+              onClick={() => openExternal(permit)}
+              className="tap inline-flex min-h-11 flex-1 items-center justify-center rounded-full bg-card-2 px-3 text-sm font-semibold ring-1 ring-border"
+            >
+              {mgr.permitLabel ?? "Zezwolenie"}
+            </button>
+          )}
+          {price && (
+            <button
+              type="button"
+              onClick={() => openExternal(price)}
+              className="tap inline-flex min-h-11 flex-1 items-center justify-center rounded-full bg-card-2 px-3 text-sm font-semibold ring-1 ring-border"
+            >
+              {mgr.priceLabel ?? "Cennik"}
+            </button>
+          )}
+        </div>
 
         {w.summary && (
           <p className="mt-3 text-sm leading-relaxed text-foreground">{w.summary}</p>
@@ -549,7 +560,7 @@ export function SpotDetail() {
               setFull(true);
             }
           }}
-          className="relative mt-4 mx-1 block aspect-[16/10] w-[calc(100%-0.5rem)] cursor-pointer overflow-hidden rounded-2xl ring-1 ring-border"
+          className="relative mt-3 block aspect-[16/10] w-full cursor-pointer overflow-hidden rounded-2xl ring-1 ring-border"
           aria-label="Otwórz mapę łowiska"
         >
           <MiniMap lat={w.lat} lng={w.lng} full={false} color={color} />
@@ -561,191 +572,11 @@ export function SpotDetail() {
           )}
         </div>
 
-        <div className="mt-3 grid gap-2">
-          <Box title="Wielkość i głębokość">
-            {[
-              formatSize(w),
-              formatDepth(w)
-                ? `głębokość ${formatDepth(w)}`
-                : w.kind === "jezioro" || w.kind === "zalew" || w.kind === "staw" || w.kind === "komercyjne"
-                  ? "brak pomiaru batymetrycznego"
-                  : null,
-            ]
-              .filter(Boolean)
-              .join(" · ") || "Brak danych"}
-            {!formatDepth(w) &&
-              (w.kind === "jezioro" || w.kind === "zalew") && (
-                <p className="mt-1 text-[11px] leading-snug text-faint">
-                  NMT GUGiK to model terenu, nie dna jeziora — nie zgadujemy metrów.
-                </p>
-              )}
-          </Box>
-          <Box title="Zarządzający">
-            <button
-              type="button"
-              onClick={() => openHost(host.key)}
-              className="tap block w-full text-left"
-            >
-              <p className="font-medium text-primary underline decoration-primary/40 underline-offset-2">
-                {mgr.name}
-              </p>
-              <p className="mt-0.5 text-xs text-muted">
-                {hostCount} {hostCount === 1 ? "łowisko" : hostCount < 5 ? "łowiska" : "łowisk"} tego gospodarza
-              </p>
-            </button>
-            {mgr.priceNote && (
-              <p className="mt-1 text-xs text-muted">
-                <PhoneText text={mgr.priceNote} />
-              </p>
-            )}
-            <div className="mt-3 flex flex-col gap-2 min-[380px]:flex-row">
-              {web && (
-                <OutLink href={web} tone="primary">
-                  {linkLabel(web, "host")}
-                </OutLink>
-              )}
-              {socialBtn && (
-                <OutLink href={socialBtn} tone={web ? "secondary" : "primary"}>
-                  {linkLabel(socialBtn, "social")}
-                </OutLink>
-              )}
-            </div>
-            {phones.length > 0 && (
-              <div className="mt-2 flex flex-col gap-2 min-[380px]:flex-row">
-                {phones.map((n) => (
-                  <TelBtn key={n} number={n} />
-                ))}
-              </div>
-            )}
-          </Box>
-          {w.obwod && w.obwod.length > 0 && (
-            <Box title="Koło / obwód PZW">
-              <div className="flex flex-wrap gap-1.5">
-                {w.obwod.map((o) => (
-                  <button
-                    key={o}
-                    type="button"
-                    onClick={() => {
-                      setListFilter("all");
-                      setListObwod(o);
-                      setScreen("list");
-                    }}
-                    className="tap min-h-9 rounded-full bg-card-2 px-3 text-xs font-semibold tabular-nums ring-1 ring-border"
-                  >
-                    {obwodLabel(o)}
-                  </button>
-                ))}
-              </div>
-              <p className="mt-1.5 text-[11px] text-faint">Numer koła lub obwodu z regulaminu — otwiera listę.</p>
-            </Box>
-          )}
-          <Box title="Zasady i zezwolenia">
-            <ul className="space-y-1 text-xs text-muted">
-              {(w.rules ?? []).map((r) => (
-                <li key={r}>
-                  • <PhoneText text={r} />
-                </li>
-              ))}
-            </ul>
-            {w.ticket && (
-              <p className="mt-2 text-xs">
-                <PhoneText text={w.ticket} />
-              </p>
-            )}
-          </Box>
-          <Box title="Zapis z dziennika">
-            <QuickCatch key={w.id} water={w} />
-            {catches.length === 0 ? (
-              <p className="text-xs text-muted">
-                Brak zapisanych połowów na tym łowisku. Zapisz pierwsze branie powyżej.
-              </p>
-            ) : (
-              <ul className="space-y-1 text-xs">
-                {catches.slice(0, 5).map((c) => (
-                  <li key={c.id}>
-                    {new Date(c.createdAt).toLocaleDateString("pl-PL")} · {speciesName(c.speciesId)}
-                    {c.lengthCm ? ` · ${c.lengthCm} cm` : ""}
-                    {c.weightKg ? ` · ${c.weightKg} kg` : ""}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Box>
-          <Box title="Gatunki">
-            <div className="flex flex-wrap gap-1.5">
-              {[...new Set(w.species)]
-                .slice()
-                .sort((a, b) => speciesName(a).localeCompare(speciesName(b), "pl"))
-                .map((id) => (
-                  <SpeciesChip
-                    key={id}
-                    id={id}
-                    okrag={w.okrag}
-                    sea={w.kind === "morze"}
-                    protect={
-                      w.kind !== "komercyjne" &&
-                      w.tenure !== "prywatne" &&
-                      hostKindOf(w) !== "private"
-                    }
-                  />
-                ))}
-            </div>
-          </Box>
-          <Box title="Metody">
-            {[...w.methods]
-              .map((m) => METHOD_LABEL[m] ?? m)
-              .sort((a, b) => a.localeCompare(b, "pl"))
-              .join(", ")}
-            {w.night ? " · noc" : ""}
-            {w.boats ? " · łodzie" : ""}
-            {w.engines ? ` · silniki: ${w.engines}` : ""}
-            {w.noKill ? " · no-kill" : ""}
-          </Box>
-          <Box title="Odległość">
-            <div className="flex items-center justify-between gap-2">
-              <span>{dist ?? "Włącz lokalizację, aby zobaczyć odległość."}</span>
-              <button
-                type="button"
-                onClick={() => openExternal(googleNav(w.lat, w.lng))}
-                className="tap rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
-              >
-                Nawiguj
-              </button>
-            </div>
-          </Box>
-          <Box title="Dojazd i parking">
-            <p className="text-xs text-muted">
-              <PhoneText text={w.access || "Brzeg i dojazd wg mapy."} />
-            </p>
-            <p className="mt-1 text-xs text-muted">
-              Parking: <PhoneText text={w.parking || "Przy drodze / lesie"} />
-            </p>
-          </Box>
-          {hydro && hydro.length > 0 && (
-            <Box title="Stan wody IMGW">
-              <ul className="space-y-1 text-xs">
-                {hydro.map((h) => (
-                  <li key={h.stacja}>
-                    <span className="font-medium">{h.stacja}</span>
-                    {h.cm != null ? ` · ${h.cm} cm` : " · brak odczytu"}
-                    {h.delta != null && h.delta !== 0
-                      ? ` · ${h.delta > 0 ? "+" : ""}${h.delta} cm`
-                      : ""}
-                    {h.at ? ` · ${h.at.replace("T", " ").slice(0, 16)}` : ""}
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-2 text-[10px] text-faint">Dane: IMGW-PIB, hydro.imgw.pl</p>
-            </Box>
-          )}
-        </div>
-
         {weather ? (
-          <div className="mt-3 space-y-3">
-            <section>
-              <h2 className="text-sm font-semibold">Pogoda na łowisku</h2>
-              {hint && <p className="mt-1 text-xs leading-relaxed text-muted">{hint}</p>}
-              <div className="mt-2 rounded-2xl bg-card p-4 ring-1 ring-border">
+          <Section title="Dziś nad wodą">
+            <>
+              {hint && <p className="text-xs leading-relaxed text-muted">{hint}</p>}
+              <div className="rounded-2xl bg-card p-4 ring-1 ring-border">
                 <div className="flex items-center gap-4">
                   <div
                     className={cn(
@@ -813,7 +644,7 @@ export function SpotDetail() {
                 methods={w.methods}
                 atSea={w.kind === "morze"}
               />
-            </section>
+            </>
 
             <section>
               <h2 className="text-sm font-semibold">Żerowanie</h2>
@@ -907,14 +738,225 @@ export function SpotDetail() {
                 </div>
               </section>
             )}
-          </div>
+          </Section>
         ) : (
           <div className="mt-3">
             <FeedSkeleton />
           </div>
         )}
 
-        <div className="mt-3 grid gap-2">
+
+        <Section title="Łowisko">
+          <Box title="Wielkość i głębokość">
+            {[
+              formatSize(w),
+              formatDepth(w)
+                ? `głębokość ${formatDepth(w)}`
+                : w.kind === "jezioro" || w.kind === "zalew" || w.kind === "staw" || w.kind === "komercyjne"
+                  ? "brak pomiaru batymetrycznego"
+                  : null,
+            ]
+              .filter(Boolean)
+              .join(" · ") || "Brak danych"}
+            {!formatDepth(w) &&
+              (w.kind === "jezioro" || w.kind === "zalew") && (
+                <p className="mt-1 text-[11px] leading-snug text-faint">
+                  NMT GUGiK to model terenu, nie dna jeziora — nie zgadujemy metrów.
+                </p>
+              )}
+          </Box>
+          <Box title="Dojazd i parking">
+            <p className="text-xs text-muted">
+              <PhoneText text={w.access || "Brzeg i dojazd wg mapy."} />
+            </p>
+            <p className="mt-1 text-xs text-muted">
+              Parking: <PhoneText text={w.parking || "Przy drodze / lesie"} />
+            </p>
+          </Box>
+          {hydro && hydro.length > 0 && (
+            <Box title="Stan wody IMGW">
+              <ul className="space-y-1 text-xs">
+                {hydro.map((h) => (
+                  <li key={h.stacja}>
+                    <span className="font-medium">{h.stacja}</span>
+                    {h.cm != null ? ` · ${h.cm} cm` : " · brak odczytu"}
+                    {h.delta != null && h.delta !== 0
+                      ? ` · ${h.delta > 0 ? "+" : ""}${h.delta} cm`
+                      : ""}
+                    {h.at ? ` · ${h.at.replace("T", " ").slice(0, 16)}` : ""}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-[10px] text-faint">Dane: IMGW-PIB, hydro.imgw.pl</p>
+            </Box>
+          )}
+        </Section>
+
+        <Section title="Ryby">
+          <Box title="Gatunki i metody">
+            <div className="flex flex-wrap gap-1.5">
+              {[...new Set(w.species)]
+                .slice()
+                .sort((a, b) => speciesName(a).localeCompare(speciesName(b), "pl"))
+                .map((id) => (
+                  <SpeciesChip
+                    key={id}
+                    id={id}
+                    okrag={w.okrag}
+                    sea={w.kind === "morze"}
+                    protect={
+                      w.kind !== "komercyjne" &&
+                      w.tenure !== "prywatne" &&
+                      hostKindOf(w) !== "private"
+                    }
+                  />
+                ))}
+            </div>
+            <p className="mt-2 text-xs text-muted">
+              {[...w.methods]
+                .map((m) => METHOD_LABEL[m] ?? m)
+                .sort((a, b) => a.localeCompare(b, "pl"))
+                .join(" · ") || "Brak metod w karcie"}
+            </p>
+          </Box>
+          {(stock || hostStock) && (
+            <Box title="Zarybienie">
+              {stock ? (
+                <>
+                  <p className="text-sm font-semibold">
+                    {stock.again ?? stock.year}
+                    {stock.again ? ` · tabela ${stock.year}` : ""}
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
+                    {stock.species.map((id) => (
+                      <span
+                        key={id}
+                        className="rounded-full bg-card-2 px-2.5 py-1 text-xs font-medium"
+                      >
+                        {speciesName(id)}
+                      </span>
+                    ))}
+                  </div>
+                  {stock.note && (
+                    <p className="mt-1.5 text-xs text-muted">{stock.note}</p>
+                  )}
+                </>
+              ) : hostStock ? (
+                <p className="text-sm text-muted">{hostStock.summary}</p>
+              ) : null}
+              <p className="mt-1.5 text-[11px] leading-relaxed text-faint">
+                Wykaz gospodarza, nie obietnica brań. Ilości i daty — u źródła.
+              </p>
+              {(stock?.source || hostStock?.url) && (
+                <div className="mt-2">
+                  <OutLink href={(stock?.source || hostStock?.url) as string} tone="secondary">
+                    {stock?.sourceLabel ?? hostStock?.label ?? "Źródło"}
+                  </OutLink>
+                </div>
+              )}
+            </Box>
+          )}
+        </Section>
+
+        <Section title="Gospodarz">
+          <Box title="Zarządzający">
+            <p className="text-xs text-muted">{paperOf(w, mgr)}</p>
+            <button
+              type="button"
+              onClick={() => openHost(host.key)}
+              className="tap mt-1 block w-full text-left"
+            >
+              <p className="font-medium text-primary underline decoration-primary/40 underline-offset-2">
+                {mgr.name}
+              </p>
+              <p className="mt-0.5 text-xs text-muted">
+                {hostCount} {hostCount === 1 ? "łowisko" : hostCount < 5 ? "łowiska" : "łowisk"} tego gospodarza
+              </p>
+            </button>
+            {mgr.priceNote && (
+              <p className="mt-1 text-xs text-muted">
+                <PhoneText text={mgr.priceNote} />
+              </p>
+            )}
+            <div className="mt-3 flex flex-col gap-2 min-[380px]:flex-row">
+              {web && (
+                <OutLink href={web} tone="primary">
+                  {linkLabel(web, "host")}
+                </OutLink>
+              )}
+              {socialBtn && (
+                <OutLink href={socialBtn} tone={web ? "secondary" : "primary"}>
+                  {linkLabel(socialBtn, "social")}
+                </OutLink>
+              )}
+            </div>
+            {phones.length > 0 && (
+              <div className="mt-2 flex flex-col gap-2 min-[380px]:flex-row">
+                {phones.map((n) => (
+                  <TelBtn key={n} number={n} />
+                ))}
+              </div>
+            )}
+          </Box>
+          {w.obwod && w.obwod.length > 0 && (
+            <Box title="Koło / obwód PZW">
+              <div className="flex flex-wrap gap-1.5">
+                {w.obwod.map((o) => (
+                  <button
+                    key={o}
+                    type="button"
+                    onClick={() => {
+                      setListFilter("all");
+                      setListObwod(o);
+                      setScreen("list");
+                    }}
+                    className="tap min-h-9 rounded-full bg-card-2 px-3 text-xs font-semibold tabular-nums ring-1 ring-border"
+                  >
+                    {obwodLabel(o)}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-1.5 text-[11px] text-faint">Numer koła lub obwodu z regulaminu — otwiera listę.</p>
+            </Box>
+          )}
+          <Box title="Zasady">
+            <ul className="space-y-1 text-xs text-muted">
+              {(w.rules ?? []).map((r) => (
+                <li key={r}>
+                  • <PhoneText text={r} />
+                </li>
+              ))}
+            </ul>
+            {w.ticket && (
+              <p className="mt-2 text-xs">
+                <PhoneText text={w.ticket} />
+              </p>
+            )}
+          </Box>
+        </Section>
+
+        <Section title="Dziennik">
+          <Box title="Zapis z dziennika">
+            <QuickCatch key={w.id} water={w} />
+            {catches.length === 0 ? (
+              <p className="text-xs text-muted">
+                Brak zapisanych połowów na tym łowisku.
+              </p>
+            ) : (
+              <ul className="space-y-1 text-xs">
+                {catches.slice(0, 5).map((c) => (
+                  <li key={c.id}>
+                    {new Date(c.createdAt).toLocaleDateString("pl-PL")} · {speciesName(c.speciesId)}
+                    {c.lengthCm ? ` · ${c.lengthCm} cm` : ""}
+                    {c.weightKg ? ` · ${c.weightKg} kg` : ""}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Box>
+        </Section>
+
+        <Section title="Więcej">
           <Box title="Współrzędne">
             <div className="flex flex-col gap-2 min-[380px]:flex-row">
               <ActionBtn onClick={copyCoords} aria-label="Kopiuj współrzędne">
@@ -943,10 +985,8 @@ export function SpotDetail() {
               Porównaj z innym łowiskiem
             </button>
           </Box>
-        </div>
-        <p className="mt-5 text-center text-xs leading-relaxed text-faint">{DISCLAIMER}</p>
-        <section className="mt-4">
-          <h2 className="text-sm font-semibold">W pobliżu</h2>
+        </Section>
+        <Section title="W pobliżu">
           <ul className="mt-2 space-y-1 rounded-2xl bg-card p-3 ring-1 ring-border">
             {nearestWaters(w, 5).map(({ w: n, km }) => (
               <li key={n.id}>
@@ -963,7 +1003,8 @@ export function SpotDetail() {
               </li>
             ))}
           </ul>
-        </section>
+        </Section>
+        <p className="mt-5 text-center text-xs leading-relaxed text-faint">{DISCLAIMER}</p>
       </div>
     </ScreenFrame>
   );

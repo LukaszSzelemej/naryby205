@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { CoffeeIcon, FishOutline, SearchGlyph } from "@/components/icons";
 import { WaterFeed } from "@/components/SpotList";
-import { BackBtn, OutLink, PhoneText, TelBtn } from "@/components/Chrome";
+import { BackBtn, OutLink, PaperPicker, PhoneText, TelBtn } from "@/components/Chrome";
 import {
   ALPHABET,
   CUPLINK,
@@ -39,6 +39,7 @@ import {
   PORADNIK,
   ZAPIS_COPY,
 } from "@/lib/content";
+import { stockingOfManager } from "@/lib/stocking";
 import { useAtlas, type KitTab } from "@/lib/store";
 import { setHydroPref, hydroPref, setTarloPref, tarloPref } from "@/lib/tarlo";
 import { cn, openExternal, phonesIn } from "@/lib/utils";
@@ -56,6 +57,7 @@ function ManagersList() {
         const socialBtn = social && social !== web ? social : null;
         const phones = phonesIn(m.priceNote, m.name);
         const hostKey = hostKeyOfManager(m.id);
+        const stock = stockingOfManager(m.id);
         return (
           <article key={m.id} className="rounded-2xl bg-card p-3 ring-1 ring-border">
             <button
@@ -87,6 +89,11 @@ function ManagersList() {
               )}
               {permit && (
                 <OutLink href={permit}>{m.permitLabel ?? "Zezwolenie"}</OutLink>
+              )}
+              {stock && (
+                <OutLink href={stock.url} tone="secondary">
+                  {stock.label}
+                </OutLink>
               )}
             </div>
             {phones.length > 0 && (
@@ -123,6 +130,9 @@ export function PermitsPage() {
           </button>
         </header>
         <p className="mt-2 text-xs leading-relaxed text-faint">{DISCLAIMER}</p>
+        <div className="mt-3">
+          <PaperPicker />
+        </div>
         <div className="kit-pane mt-4 space-y-3 text-sm">
           <p className="text-sm text-muted">{DOKUMENTY.clubs}</p>
           <p className="text-sm text-muted">{DOKUMENTY.privateNote}</p>
@@ -760,6 +770,7 @@ export function HostWaters() {
   }, [key, catalogReady]);
   const label = list[0] ? hostGroupOf(list[0]).label : key ? labelOfHostKey(key) : "Gospodarz";
   const mgr = key ? managerFromHostKey(key) : null;
+  const hostStock = mgr ? stockingOfManager(mgr.id) : null;
   const web = safeHttpUrl(mgr?.website);
   const social = safeHttpUrl(mgr?.socialUrl);
   const permit = safeHttpUrl(mgr?.permitUrl);
@@ -807,6 +818,19 @@ export function HostWaters() {
             )}
             {permit && <OutLink href={permit}>{mgr.permitLabel ?? "Zezwolenie"}</OutLink>}
           </div>
+        )}
+        {hostStock && (
+          <section className="mt-3 rounded-2xl bg-card p-3 ring-1 ring-border">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-faint">Zarybienie</h2>
+            <p className="mt-1.5 text-sm leading-relaxed text-muted">
+              {hostStock.summary}
+            </p>
+            <div className="mt-2">
+              <OutLink href={hostStock.url} tone="secondary">
+                {hostStock.label}
+              </OutLink>
+            </div>
+          </section>
         )}
         <div className="mt-4">
           {list.length > 0 ? (

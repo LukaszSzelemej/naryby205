@@ -7,6 +7,7 @@ import {
   saveLastGeo,
   saveMapDark,
   loadMapDark,
+  savePapers,
   type ConsentState,
 } from "@/lib/storage";
 
@@ -82,6 +83,7 @@ type AtlasState = {
   journal: JournalEntry[];
   sheet: MapSheet;
   nearbyPending: boolean;
+  papers: string[];
   startBoot: () => void;
   finishBoot: () => void;
   setScreen: (s: Screen) => void;
@@ -122,6 +124,7 @@ type AtlasState = {
   openSheet: (sheet: Exclude<MapSheet, null>) => void;
   closeSheet: () => void;
   setNearbyPending: (v: boolean) => void;
+  togglePaper: (key: string) => void;
 };
 
 function tabHost(screen: Screen): MapFilter {
@@ -173,6 +176,7 @@ export const useAtlas = create<AtlasState>((set, get) => ({
   journal: [],
   sheet: null,
   nearbyPending: false,
+  papers: [],
   startBoot: () =>
     set({
       booting: true,
@@ -386,4 +390,10 @@ export const useAtlas = create<AtlasState>((set, get) => ({
   openSheet: (sheet) => set({ sheet, nearbyPending: false, screen: "map" }),
   closeSheet: () => set({ sheet: null }),
   setNearbyPending: (nearbyPending) => set({ nearbyPending, screen: "map" }),
+  togglePaper: (key) => {
+    const cur = get().papers;
+    const next = cur.includes(key) ? cur.filter((x) => x !== key) : [...cur, key];
+    savePapers(next);
+    set({ papers: next });
+  },
 }));

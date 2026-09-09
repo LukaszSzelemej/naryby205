@@ -111,6 +111,24 @@ export const WaterCard = memo(function WaterCard({
         </p>
         <p className="mt-1 text-xs text-muted">{bits.size}</p>
         <p className="mt-1 line-clamp-2 text-xs text-faint">{bits.fish}</p>
+        <p className="mt-1.5 flex flex-wrap gap-1.5">
+          <span
+            className={cn(
+              "rounded-full px-2 py-0.5 text-[11px] font-semibold",
+              w.night ? "bg-ok/15 text-ok" : "bg-danger/15 text-danger",
+            )}
+          >
+            Noc · {w.night ? "brak zakazu" : "zakaz"}
+          </span>
+          <span
+            className={cn(
+              "rounded-full px-2 py-0.5 text-[11px] font-semibold",
+              w.boats ? "bg-ok/15 text-ok" : "bg-danger/15 text-danger",
+            )}
+          >
+            Łodzie · {w.boats ? "brak zakazu" : "zakaz"}
+          </span>
+        </p>
       </button>
       {bits.web && (
         <button
@@ -125,7 +143,7 @@ export const WaterCard = memo(function WaterCard({
   );
 });
 
-const CARD_H = 118;
+const CARD_H = 158;
 const GAP_H = 8;
 const LETTER_H = 24;
 const WEB_H = 26;

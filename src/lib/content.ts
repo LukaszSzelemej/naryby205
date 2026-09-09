@@ -12,7 +12,7 @@ export const COOKIES_TEXT = {
   items: [
     {
       t: "Niezbędne (bez zgody)",
-      d: "pamięć lokalna dziennika, ocen i ulubionych; sesja z ostatnią lokalizacją (po Twojej zgodzie systemu na GPS); znacznik ekranu ładowania; paczka mapy offline (Cache API). Podstawa: art. 6 ust. 1 lit. b i f RODO oraz wyjątek dla zapisu niezbędnego do usługi.",
+      d: "pamięć lokalna dziennika, ocen, ulubionych i twojego zezwolenia (gospodarze, których odhaczyłeś); sesja z ostatnią lokalizacją (po Twojej zgodzie systemu na GPS); znacznik ekranu ładowania; paczka mapy offline (Cache API). Podstawa: art. 6 ust. 1 lit. b i f RODO oraz wyjątek dla zapisu niezbędnego do usługi.",
     },
     {
       t: "Lokalizacja",

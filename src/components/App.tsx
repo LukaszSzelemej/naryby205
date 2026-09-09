@@ -26,7 +26,7 @@ import { startPresence } from "@/lib/presence";
 import { useAtlas } from "@/lib/store";
 import { fetchWeather } from "@/lib/weather";
 import type { WeatherNow } from "@/lib/types";
-import { loadConsent, loadFavorites, loadJournal, loadLastGeo, loadMapDark } from "@/lib/storage";
+import { loadConsent, loadFavorites, loadJournal, loadLastGeo, loadMapDark, loadPapers } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 
 export function App() {
@@ -39,6 +39,7 @@ export function App() {
   const catalogReady = useAtlas((s) => s.catalogReady);
   const geo = useAtlas((s) => s.geo);
   const consent = useAtlas((s) => s.consent);
+  const papers = useAtlas((s) => s.papers);
   const [online, setOnline] = useState(1);
   const [weather, setWeather] = useState<WeatherNow | null>(null);
   const [vvPad, setVvPad] = useState(0);
@@ -54,6 +55,7 @@ export function App() {
       journal: loadJournal(),
       geo: loadLastGeo(),
       mapDark: loadMapDark(),
+      papers: loadPapers(),
     });
   }, []);
 
@@ -75,10 +77,13 @@ export function App() {
 
   useEffect(() => {
     if (!nearbyPending || !geo || !catalogReady) return;
-    const ids = nearestTo(geo.lat, geo.lng, 5).map((w) => w.id);
-    if (!ids.length) return;
-    openSheet({ kind: "nearby", title: "Najbliższe", ids });
-  }, [nearbyPending, geo, catalogReady, openSheet]);
+    const ids = nearestTo(geo.lat, geo.lng, papers.length ? 8 : 5, papers).map((w) => w.id);
+    openSheet({
+      kind: "nearby",
+      title: papers.length ? "Najbliższe · twoje zezwolenie" : "Najbliższe",
+      ids,
+    });
+  }, [nearbyPending, geo, catalogReady, papers, openSheet]);
 
   useEffect(() => {
     const vv = window.visualViewport;

@@ -650,6 +650,54 @@ export function watersOfHost(key: string) {
   );
 }
 
+const PAPER_MANAGER_IDS = [
+  "pzw-szczecin",
+  "pzw-koszalin",
+  "pzw-pila",
+  "pzw-gorzow",
+  "pzw-slupsk",
+  "girm",
+  "rzgw-szczecin",
+  "modehpolmo",
+  "gr-czaplinek",
+  "gr-insko",
+  "pr-zlocieniec",
+  "pr-szczecinek",
+  "jis-walcz",
+  "ntw-bialy-bor",
+  "mtw-mysliborz",
+] as const;
+
+export const PAPER_PRIVATE = "kind:private";
+
+export const PAPER_OPTIONS: { key: string; label: string; name: string }[] = [
+  ...PAPER_MANAGER_IDS.map((id) => {
+    const m = MANAGERS[id];
+    return {
+      key: hostKeyOfManager(id),
+      label: m?.shortName ?? id,
+      name: m?.name ?? id,
+    };
+  }),
+  {
+    key: PAPER_PRIVATE,
+    label: "Karnet komercyjny",
+    name: "Łowiska z karnetem gospodarza — nie PZW",
+  },
+];
+
+export function waterMatchesPapers(w: Water, papers: string[]) {
+  if (!papers.length) return true;
+  const g = hostGroupOf(w).key;
+  if (papers.includes(g)) return true;
+  if (papers.includes(PAPER_PRIVATE) && hostKindOf(w) === "private") return true;
+  return false;
+}
+
+export function paperLabel(key: string) {
+  return PAPER_OPTIONS.find((p) => p.key === key)?.label ?? labelOfHostKey(key);
+}
+
 function parseObwod(w: Water): string[] {
   const blob = [...(w.rules ?? []), w.ticket ?? "", w.summary ?? ""].join(" ");
   const out = new Set<string>();
@@ -733,8 +781,9 @@ export function nearestWaters(w: Water, n = 5): { w: Water; km: number }[] {
     .slice(0, n);
 }
 
-export function nearestTo(lat: number, lng: number, n = 5): Water[] {
-  return [...WATERS]
+export function nearestTo(lat: number, lng: number, n = 5, papers: string[] = []): Water[] {
+  const pool = papers.length ? WATERS.filter((w) => waterMatchesPapers(w, papers)) : WATERS;
+  return [...pool]
     .map((w) => ({ w, km: haversineKm(lat, lng, w.lat, w.lng) }))
     .sort((a, b) => a.km - b.km)
     .slice(0, n)

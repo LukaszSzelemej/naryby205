@@ -20,6 +20,8 @@ import {
   INSTAGRAM,
   MAP_SPECIES,
   nearestTo,
+  paperLabel,
+  PAPER_OPTIONS,
   protectHint,
   sanitizeQuery,
   searchWaters,
@@ -607,6 +609,47 @@ export function FilterBar() {
   );
 }
 
+export function PaperPicker() {
+  const papers = useAtlas((s) => s.papers);
+  const toggle = useAtlas((s) => s.togglePaper);
+  return (
+    <section className="rounded-2xl bg-card p-3 ring-1 ring-border">
+      <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-faint">Moje zezwolenie</h2>
+      <p className="mt-1 text-[11px] leading-relaxed text-muted">
+        Odhacz twoje zezwolenie. Przycisk najbliższych na mapie pokaże tylko te wody.
+      </p>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {PAPER_OPTIONS.map((p) => {
+          const on = papers.includes(p.key);
+          return (
+            <button
+              key={p.key}
+              type="button"
+              onClick={() => toggle(p.key)}
+              aria-pressed={on}
+              className={cn(
+                "tap min-h-10 rounded-full px-3 text-xs font-semibold ring-1",
+                on
+                  ? "bg-primary text-primary-foreground ring-primary"
+                  : "bg-card-2 text-foreground ring-border",
+              )}
+            >
+              {p.label}
+            </button>
+          );
+        })}
+      </div>
+      {papers.length > 0 ? (
+        <p className="mt-2 text-[11px] text-muted">
+          Aktywne: {papers.map(paperLabel).join(" · ")}
+        </p>
+      ) : (
+        <p className="mt-2 text-[11px] text-faint">Bez sita — najbliższe to wszystkie wody wokół ciebie.</p>
+      )}
+    </section>
+  );
+}
+
 export function RightMenu({ weather }: { weather: WeatherNow | null }) {
   const setScreen = useAtlas((s) => s.setScreen);
   const setOfflineOpen = useAtlas((s) => s.setOfflineOpen);
@@ -621,6 +664,7 @@ export function RightMenu({ weather }: { weather: WeatherNow | null }) {
   }, []);
   const filter = useAtlas((s) => s.filter);
   const sheet = useAtlas((s) => s.sheet);
+  const papers = useAtlas((s) => s.papers);
   const sheetOn = sheet?.kind === "nearby";
   const trend = weather?.pressureTrend ?? "flat";
   const scoreTone =
@@ -638,12 +682,13 @@ export function RightMenu({ weather }: { weather: WeatherNow | null }) {
       st.setNearbyPending(true);
       return;
     }
-    const ids = nearestTo(st.geo.lat, st.geo.lng, 5).map((w) => w.id);
-    if (!ids.length) {
-      st.setNearbyPending(true);
-      return;
-    }
-    st.openSheet({ kind: "nearby", title: "Najbliższe", ids });
+    const papers = st.papers;
+    const ids = nearestTo(st.geo.lat, st.geo.lng, papers.length ? 8 : 5, papers).map((w) => w.id);
+    st.openSheet({
+      kind: "nearby",
+      title: papers.length ? "Najbliższe · twoje zezwolenie" : "Najbliższe",
+      ids,
+    });
   };
 
   const Btn = ({
@@ -724,7 +769,7 @@ export function RightMenu({ weather }: { weather: WeatherNow | null }) {
         </svg>
       </Btn>
       <Btn
-        label="Najbliższe łowiska"
+        label={papers.length ? "Najbliższe z twoim zezwoleniem" : "Najbliższe łowiska"}
         className={sheetOn ? "is-on" : ""}
         onClick={showNearby}
       >

@@ -137,7 +137,7 @@ const TABS: { id: KitTab; label: string; alwaysOrange?: boolean }[] = [
   { id: "etykieta", label: "Etykieta" },
   { id: "feeder", label: "Method Feeder" },
   { id: "poradnik", label: "Poradnik" },
-  { id: "offline", label: "Mapa offline" },
+  { id: "offline", label: "Offline" },
   { id: "zapis", label: "Zapis" },
   { id: "ciasteczka", label: "Ciasteczka" },
   { id: "kawa", label: "Postaw kawę", alwaysOrange: true },
@@ -151,6 +151,31 @@ const COFFEE_SECTIONS = [
   COFFEE_COPY.paragraphs.slice(8, 9),
   COFFEE_COPY.paragraphs.slice(9),
 ];
+
+function ClosedNow() {
+  const closed = SPECIES.filter((s) => protectionOf(s).active).sort((a, b) =>
+    a.name.localeCompare(b.name, "pl"),
+  );
+  if (!closed.length) {
+    return (
+      <p className="mt-3 text-xs leading-relaxed text-muted">
+        Dziś żaden gatunek z atlasu nie jest w okresie ochronnym na wodach śródlądowych.
+      </p>
+    );
+  }
+  return (
+    <section className="mt-3 rounded-2xl bg-card p-3 ring-1 ring-border">
+      <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-faint">Dziś ochrona</h2>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {closed.map((s) => (
+          <span key={s.id} className="rounded-full bg-danger/15 px-2.5 py-1 text-xs font-semibold text-danger">
+            {s.name}
+          </span>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export function SpeciesList() {
   const setScreen = useAtlas((s) => s.setScreen);
@@ -189,6 +214,7 @@ export function SpeciesList() {
         </header>
 
         <p className="mt-2 text-xs leading-relaxed text-faint">{DISCLAIMER}</p>
+        <ClosedNow />
 
         <div className="kit-pane mt-4">
           <div className="relative">
@@ -450,7 +476,7 @@ export function Toolkit() {
                   });
                   const n = await offlineCount();
                   setOffPct(100);
-                  setOffMsg(`Gotowe · ${n} kafelków`);
+                  setOffMsg(`Gotowe · ${n} plików (mapa + katalog)`);
                 } catch {
                   setOffMsg("Nie udało się pobrać. Spróbuj na Wi‑Fi.");
                 } finally {
@@ -458,7 +484,7 @@ export function Toolkit() {
                 }
               }}
             >
-              {offBusy && offPct != null ? `Pobieranie ${offPct}%` : "Pobierz mapę województwa"}
+              {offBusy && offPct != null ? `Pobieranie ${offPct}%` : "Pobierz mapę i katalog"}
             </button>
             <button
               type="button"

@@ -6,6 +6,7 @@ export type HydroRow = {
   stacja: string;
   cm: number | null;
   at: string | null;
+  delta?: number | null;
 };
 
 const STATIONS: { key: string; kod: string; stacja: string; rzeka: string }[] = [
@@ -89,6 +90,31 @@ export async function fetchHydro(w: Water): Promise<HydroRow[]> {
       };
     })
     .filter((r) => r.cm != null);
+}
+
+const HYDRO_PREV = "atlas.hydroPrev";
+
+export function withHydroTrend(rows: HydroRow[]): HydroRow[] {
+  let prev: Record<string, { cm: number; at: string | null }> = {};
+  try {
+    prev = JSON.parse(sessionStorage.getItem(HYDRO_PREV) || "{}") as typeof prev;
+  } catch {
+    prev = {};
+  }
+  const next = { ...prev };
+  const out = rows.map((r) => {
+    const old = prev[r.stacja];
+    let delta: number | null = null;
+    if (old && r.cm != null && old.at !== r.at) delta = r.cm - old.cm;
+    if (r.cm != null) next[r.stacja] = { cm: r.cm, at: r.at };
+    return { ...r, delta };
+  });
+  try {
+    sessionStorage.setItem(HYDRO_PREV, JSON.stringify(next));
+  } catch {
+    /* ignore */
+  }
+  return out;
 }
 
 export async function fetchHydroSnapshot() {

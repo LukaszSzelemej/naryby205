@@ -15,10 +15,12 @@ import {
   searchWaters,
   sanitizeQuery,
   waterTitle,
+  nearestTo,
 } from "@/lib/catalog";
 import { useAtlas } from "@/lib/store";
 import { cn, openExternal } from "@/lib/utils";
 import { EmptyState, ScreenFrame } from "@/components/States";
+import { requestLocation } from "@/components/Chrome";
 
 const METHODS = Object.keys(METHOD_LABEL).sort((a, b) =>
   (METHOD_LABEL[a] ?? a).localeCompare(METHOD_LABEL[b] ?? b, "pl"),
@@ -44,6 +46,7 @@ function WaterPicker({
 
   const catalogReady = useAtlas((s) => s.catalogReady);
   const hits = useMemo(() => {
+    if (!catalogReady) return [];
     const query = q.trim();
     if (query) return searchWaters(sanitizeQuery(query)).slice(0, 12);
     const favSet = new Set(favs);
@@ -172,6 +175,7 @@ export function Journal() {
   const openSpot = useAtlas((s) => s.openSpot);
   const selectedId = useAtlas((s) => s.selectedId);
   const catalogReady = useAtlas((s) => s.catalogReady);
+  const geo = useAtlas((s) => s.geo);
   const setScreen = useAtlas((s) => s.setScreen);
   const [open, setOpen] = useState(false);
   const [speciesId, setSpeciesId] = useState(SPECIES[0]?.id ?? "szczupak");
@@ -186,18 +190,28 @@ export function Journal() {
   const [waterErr, setWaterErr] = useState(false);
 
   useEffect(() => {
-    if (selectedId && WATERS_BY_ID[selectedId]) setWaterId(selectedId);
-  }, [selectedId, catalogReady]);
+    if (selectedId && WATERS_BY_ID[selectedId]) {
+      setWaterId(selectedId);
+      return;
+    }
+    if (waterId || !geo || !catalogReady) return;
+    const near = nearestTo(geo.lat, geo.lng, 1)[0];
+    if (near) setWaterId(near.id);
+  }, [selectedId, catalogReady, geo, waterId]);
 
   const speciesSorted = useMemo(
     () => [...SPECIES].sort((a, b) => a.name.localeCompare(b.name, "pl")),
     [],
   );
+  const nearest = geo && catalogReady ? nearestTo(geo.lat, geo.lng, 1)[0] : undefined;
+  const nearKm =
+    nearest && geo ? formatDistance(haversineKm(geo.lat, geo.lng, nearest.lat, nearest.lng)) : null;
 
   const year = new Date().getFullYear();
   const season = rows.filter((r) => new Date(r.createdAt).getFullYear() === year);
   const kgSum = season.reduce((s, r) => s + (r.weightKg ?? 0), 0);
   const records = useMemo(() => {
+    if (!catalogReady) return [];
     const best = new Map<string, { kg: number; cm: number; water: string }>();
     for (const r of rows) {
       const kg = r.weightKg ?? 0;
@@ -259,6 +273,30 @@ export function Journal() {
           </button>
         </header>
         <p className="mt-2 text-xs leading-relaxed text-faint">{DISCLAIMER}</p>
+        {nearest ? (
+          <button
+            type="button"
+            className="tap mt-3 w-full rounded-2xl bg-card p-3 text-left ring-1 ring-border"
+            onClick={() => {
+              setWaterId(nearest.id);
+              setOpen(true);
+            }}
+          >
+            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-faint">Najbliższe z GPS</p>
+            <p className="mt-1 text-sm font-semibold text-foreground">{nearest.name}</p>
+            <p className="mt-0.5 text-xs text-muted">
+              {[KIND_LABEL[nearest.kind], nearKm].filter(Boolean).join(" · ")} · tapnij, żeby zapisać połów
+            </p>
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="tap mt-3 min-h-11 w-full rounded-full bg-card-2 text-sm font-semibold ring-1 ring-border"
+            onClick={() => requestLocation()}
+          >
+            Włącz lokalizację — podstawi najbliższe łowisko
+          </button>
+        )}
         {rows.length > 0 && (
           <section className="mt-3 rounded-2xl bg-card p-3 ring-1 ring-border">
             <p className="text-sm font-semibold">Sezon {year}</p>

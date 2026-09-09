@@ -20,9 +20,10 @@ import {
   hostGroupOf,
   hostKindOf,
   watersOfHost,
-  isSpecial,
   safeHttpUrl,
   speciesName,
+  SPECIES_BY_ID,
+  protectionOf,
   WATERS_BY_ID,
 } from "@/lib/catalog";
 import { CoffeeIcon, FishOutline, FishPinSvg, StarGlyph, WeatherGlyph, PressureGlyph } from "@/components/icons";
@@ -38,12 +39,140 @@ import {
   moonPhase,
 } from "@/lib/feeding";
 import { useAtlas } from "@/lib/store";
-import type { WeatherNow } from "@/lib/types";
+import type { Water, WeatherNow, Manager } from "@/lib/types";
 import { cn, copyText, openExternal, phonesIn } from "@/lib/utils";
 import { EmptyState, FeedSkeleton, ScreenFrame, useFlash } from "@/components/States";
-import { fetchHydro, hydroRiverKey, type HydroRow } from "@/lib/hydro";
+import { fetchHydro, hydroRiverKey, withHydroTrend, type HydroRow } from "@/lib/hydro";
 import { TILE_URL, TILE_OPTS } from "@/lib/tiles";
 import { shareWaterCard } from "@/lib/share-card";
+
+function paperOf(w: Water, mgr: Manager) {
+  const k = hostKindOf(w);
+  if (k === "girm") return "GIRM";
+  if (k === "wir") return "WIR";
+  if (k === "pzw" || k === "pzw-special") return w.okrag ? `PZW ${w.okrag}` : "PZW";
+  return mgr.shortName;
+}
+
+function hostRules(w: Water) {
+  return w.kind === "komercyjne" || w.tenure === "prywatne" || hostKindOf(w) === "private";
+}
+
+function closedToday(w: Water) {
+  const sea = w.kind === "morze";
+  const names: string[] = [];
+  for (const id of new Set(w.species)) {
+    const sp = SPECIES_BY_ID[id];
+    if (!sp) continue;
+    if (protectionOf(sp, new Date(), sea).active) names.push(sp.name);
+  }
+  return names.sort((a, b) => a.localeCompare(b, "pl"));
+}
+
+function outingHint(w: Water, weather: WeatherNow) {
+  const wind = weather.wind;
+  const open =
+    w.kind === "zalew" || w.kind === "morze" || (w.kind === "jezioro" && (w.areaHa ?? 0) > 400);
+  const spin = w.methods.includes("spinning");
+  const feeder = w.methods.includes("method feeder") || w.methods.includes("grunt");
+  if (wind >= 28) return "Bardzo silny wiatr — brzeg zawietrzny albo odpuść.";
+  if (wind >= 18 && open) return "Wiatr na dużej wodzie. Feeder w zatoce, spinning z osłoniętego brzegu.";
+  if (weather.pressureTrend === "down" && spin) return "Ciśnienie spada — dobra pora na drapieżnika.";
+  if (weather.pressureTrend === "up" && feeder) return "Ciśnienie rośnie — grunt i method mogą być wolniejsze.";
+  if (weather.waterTemp != null && weather.waterTemp < 8 && spin) {
+    return "Zimna woda — wolniejsza prezentacja, mniej zarzutów.";
+  }
+  return null;
+}
+
+function CheckCell({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: "ok" | "warn" | "danger" | "muted";
+}) {
+  return (
+    <div className="rounded-2xl bg-card px-3 py-2.5 ring-1 ring-border">
+      <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-faint">{label}</p>
+      <p
+        className={cn(
+          "mt-1 text-sm font-semibold leading-snug",
+          tone === "ok" && "text-ok",
+          tone === "warn" && "text-warn",
+          tone === "danger" && "text-danger",
+          tone === "muted" && "text-muted",
+          !tone && "text-foreground",
+        )}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function QuickCatch({ water }: { water: Water }) {
+  const addCatch = useAtlas((s) => s.addCatch);
+  const ids = [...new Set(water.species)].filter((id) => SPECIES_BY_ID[id]);
+  const sorted = ids
+    .slice()
+    .sort((a, b) => speciesName(a).localeCompare(speciesName(b), "pl"));
+  const [sid, setSid] = useState(sorted[0] ?? "szczupak");
+  const [cm, setCm] = useState("");
+  const [saved, setSaved] = useState(false);
+  if (!sorted.length) return null;
+  return (
+    <form
+      className="mb-3 flex flex-wrap items-end gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const n = Number(cm.replace(",", ".").trim());
+        addCatch({
+          id: crypto.randomUUID(),
+          speciesId: sid,
+          waterId: water.id,
+          lengthCm: Number.isFinite(n) && n > 0 ? n : null,
+          createdAt: new Date().toISOString(),
+        });
+        setCm("");
+        setSaved(true);
+        window.setTimeout(() => setSaved(false), 1600);
+      }}
+    >
+      <label className="min-w-0 flex-1 text-[11px] font-medium text-faint">
+        Gatunek
+        <select
+          value={sid}
+          onChange={(e) => setSid(e.target.value)}
+          className="mt-1 min-h-11 w-full rounded-xl bg-card-2 px-3 text-sm text-foreground"
+        >
+          {sorted.map((id) => (
+            <option key={id} value={id}>
+              {speciesName(id)}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="w-20 text-[11px] font-medium text-faint">
+        cm
+        <input
+          value={cm}
+          onChange={(e) => setCm(e.target.value)}
+          inputMode="decimal"
+          className="mt-1 min-h-11 w-full rounded-xl bg-card-2 px-2 text-sm tabular-nums text-foreground"
+        />
+      </label>
+      <button
+        type="submit"
+        className="tap min-h-11 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground"
+      >
+        {saved ? "Zapisane" : "Zapisz"}
+      </button>
+    </form>
+  );
+}
 
 function toneClass(tone: "ok" | "primary" | "warn" | "danger") {
   if (tone === "ok") return "bg-ok/15 text-ok";
@@ -146,15 +275,18 @@ export function SpotDetail() {
   const [copiedPin, flashPin] = useFlash(1400);
   const [shareFail, flashShareFail] = useFlash(1800);
 
+  const wid = w?.id;
   useEffect(() => {
-    if (!w) return;
+    if (!wid) return;
+    const water = WATERS_BY_ID[wid];
+    if (!water) return;
     let live = true;
-    fetchWeather(w.lat, w.lng).then((d) => {
+    fetchWeather(water.lat, water.lng).then((d) => {
       if (live) setWeather(d);
     });
-    if (hydroRiverKey(w)) {
-      fetchHydro(w).then((rows) => {
-        if (live) setHydro(rows);
+    if (hydroRiverKey(water)) {
+      fetchHydro(water).then((rows) => {
+        if (live) setHydro(withHydroTrend(rows));
       });
     } else {
       setHydro(null);
@@ -162,7 +294,7 @@ export function SpotDetail() {
     return () => {
       live = false;
     };
-  }, [w?.id]);
+  }, [wid]);
 
   if (!w) {
     return (
@@ -198,6 +330,8 @@ export function SpotDetail() {
   const moon = moonPhase();
   const bio = weather ? biomet(weather) : null;
   const days = weather ? forecastFeeding(weather) : [];
+  const closed = closedToday(w);
+  const hint = weather ? outingHint(w, weather) : null;
 
   const copyCoords = async () => {
     if (await copyText(formatCoords(w.lat, w.lng))) flashCoords();
@@ -264,20 +398,65 @@ export function SpotDetail() {
         </header>
 
         <p className="mt-3 text-xs leading-relaxed text-faint">{DISCLAIMER}</p>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <CheckCell
+            label="Noc"
+            value={w.night ? "Wolna" : w.night === false ? "Zakaz" : "Sprawdź regulamin"}
+            tone={w.night ? "ok" : w.night === false ? "danger" : "muted"}
+          />
+          <CheckCell
+            label="Łódź"
+            value={w.boats ? "Wolna" : w.boats === false ? "Zakaz" : "Sprawdź regulamin"}
+            tone={w.boats ? "ok" : w.boats === false ? "danger" : "muted"}
+          />
+          <CheckCell
+            label="Silnik"
+            value={w.engines ? w.engines : w.boats ? "Sprawdź regulamin" : "—"}
+            tone={w.engines ? undefined : "muted"}
+          />
+          <CheckCell
+            label="Zabieranie"
+            value={w.noKill ? "No-kill" : hostRules(w) ? "Regulamin gospodarza" : "Wg RAPR"}
+            tone={w.noKill ? "warn" : undefined}
+          />
+          <CheckCell label="Papier" value={paperOf(w, mgr)} />
+          <CheckCell
+            label="Parking"
+            value={w.parking ? (w.parking.length > 42 ? `${w.parking.slice(0, 40)}…` : w.parking) : "Przy drodze / lesie"}
+          />
+        </div>
+
+        <section className="mt-3 rounded-2xl bg-card p-3 ring-1 ring-border">
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-faint">Czy mogę dziś</h3>
+          {hostRules(w) ? (
+            <p className="mt-2 text-sm leading-relaxed text-muted">
+              Wymiary, limity i ochrona — regulamin gospodarza, nie RAPR. Potwierdź na karnecie przed zarzutem.
+            </p>
+          ) : closed.length ? (
+            <div className="mt-2">
+              <p className="text-sm font-semibold text-danger">Dziś ochrona</p>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {closed.map((n) => (
+                  <span
+                    key={n}
+                    className="rounded-full bg-danger/15 px-2.5 py-1 text-xs font-semibold text-danger"
+                  >
+                    {n}
+                  </span>
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-muted">Nie łów tych gatunków. Reszta z karty — wymiar i limit w chipie gatunku.</p>
+            </div>
+          ) : (
+            <p className="mt-2 text-sm leading-relaxed text-muted">
+              Żaden gatunek z tej karty nie jest dziś w okresie ochronnym. Wymiary i limity — w chipach poniżej.
+            </p>
+          )}
+        </section>
+
         {w.summary && (
           <p className="mt-3 text-sm leading-relaxed text-foreground">{w.summary}</p>
-        )}
-        {(w.kind === "komercyjne" || w.noKill || isSpecial(w)) && (
-          <div className="mt-3 rounded-2xl bg-card p-3 ring-1 ring-border">
-            <p className="text-sm font-semibold">
-              {w.noKill ? "No kill — catch & release" : "No kill / zabieranie"}
-            </p>
-            <p className="mt-1 text-xs leading-relaxed text-muted">
-              {w.noKill
-                ? "Ryba wraca do wody. Mata, podbierak i regulamin gospodarza obowiązują — potwierdź na miejscu."
-                : "Na łowiskach komercyjnych i specjalnych często obowiązuje no kill. Zabieranie ryb tylko jeśli regulamin gospodarza na to pozwala."}
-            </p>
-          </div>
         )}
 
         <button
@@ -407,9 +586,10 @@ export function SpotDetail() {
             </div>
           </Box>
           <Box title="Zapis z dziennika">
+            <QuickCatch key={w.id} water={w} />
             {catches.length === 0 ? (
               <p className="text-xs text-muted">
-                Brak zapisanych połowów na tym łowisku. Dodasz je w zakładce Dziennik.
+                Brak zapisanych połowów na tym łowisku. Zapisz pierwsze branie powyżej.
               </p>
             ) : (
               <ul className="space-y-1 text-xs">
@@ -480,6 +660,9 @@ export function SpotDetail() {
                   <li key={h.stacja}>
                     <span className="font-medium">{h.stacja}</span>
                     {h.cm != null ? ` · ${h.cm} cm` : " · brak odczytu"}
+                    {h.delta != null && h.delta !== 0
+                      ? ` · ${h.delta > 0 ? "+" : ""}${h.delta} cm`
+                      : ""}
                     {h.at ? ` · ${h.at.replace("T", " ").slice(0, 16)}` : ""}
                   </li>
                 ))}
@@ -493,6 +676,7 @@ export function SpotDetail() {
           <div className="mt-3 space-y-3">
             <section>
               <h2 className="text-sm font-semibold">Pogoda na łowisku</h2>
+              {hint && <p className="mt-1 text-xs leading-relaxed text-muted">{hint}</p>}
               <div className="mt-2 rounded-2xl bg-card p-4 ring-1 ring-border">
                 <div className="flex items-center gap-4">
                   <div

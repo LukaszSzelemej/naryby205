@@ -186,10 +186,10 @@ export const PORADNIK = [
 ];
 
 export const OFFLINE_COPY = {
-  title: "Mapa offline",
-  body: "Kafelki województwa zapisują się w pamięci przeglądarki przy normalnym oglądaniu mapy (zoom 8–11). Przy brzegu, bez sieci, atlas otworzy ostatnio widziany obszar. Pobierz województwo najlepiej na Wi‑Fi. Bufor przeglądania nie kasuje paczki.",
+  title: "Mapa i katalog offline",
+  body: "Paczka zapisuje kafelki województwa (zoom 8–11) oraz katalog łowisk, wymiary i gospodarzy. Przy brzegu, bez sieci, otworzysz listę, kartę wody i przepisy. Pogoda i stany IMGW wymagają łącza. Najlepiej pobierz na Wi‑Fi.",
   panel:
-    "Pobierz kafelki województwa (zoom 8–11) plus okolice łowisk. Najlepiej przez Wi‑Fi.",
+    "Pobierz kafelki województwa i katalog łowisk. Najlepiej przez Wi‑Fi — potem lista i karta wody działają bez sieci.",
 };
 
 export const ZAPIS_COPY = {

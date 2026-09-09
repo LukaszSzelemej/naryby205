@@ -60,6 +60,45 @@ self.addEventListener("push", (e) => {
   );
 });
 
+self.addEventListener("fetch", (e) => {
+  if (e.request.method !== "GET") return;
+  let url;
+  try {
+    url = new URL(e.request.url);
+  } catch {
+    return;
+  }
+  const tile =
+    url.hostname === "tile.openstreetmap.org" ||
+    url.hostname === "basemaps.cartocdn.com" ||
+    url.hostname.endsWith(".basemaps.cartocdn.com");
+  const catalog =
+    url.origin === self.location.origin && url.pathname.includes("/atlas/waters/");
+  if (!tile && !catalog) return;
+  const cacheName = tile ? "atlas-tiles-v7" : "atlas-data-v1";
+  e.respondWith(
+    (async () => {
+      const cache = await caches.open(cacheName);
+      if (catalog) {
+        try {
+          const res = await fetch(e.request);
+          if (res.ok) await cache.put(e.request, res.clone());
+          return res;
+        } catch {
+          const hit = await cache.match(e.request);
+          if (hit) return hit;
+          throw new Error("offline");
+        }
+      }
+      const hit = await cache.match(e.request);
+      if (hit) return hit;
+      const res = await fetch(e.request);
+      if (res.ok) await cache.put(e.request, res.clone());
+      return res;
+    })(),
+  );
+});
+
 self.addEventListener("notificationclick", (e) => {
   e.notification.close();
   e.waitUntil(

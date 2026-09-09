@@ -31,6 +31,7 @@ import {
 } from "@/lib/catalog";
 import { zoomBy, resetView, flyToSpot, flyToUser } from "@/lib/map-api";
 import { useAtlas } from "@/lib/store";
+import { OFFLINE_COPY } from "@/lib/content";
 import type { MapFilter, Screen, Water, WeatherNow } from "@/lib/types";
 import { weatherIcon, windArrow, pressureTrendLabel, windFromLabel } from "@/lib/weather";
 import { requestHeadingPermission, useCompassHeading, useSmoothAngle } from "@/lib/heading";
@@ -834,14 +835,12 @@ export function OfflinePanel() {
   return (
     <div className="banner-in rounded-2xl bg-card/95 p-3 text-sm ring-1 ring-border backdrop-blur-sm">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Mapy offline</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Offline</p>
         <button type="button" className="tap grid size-7 place-items-center rounded-full bg-card-2" onClick={() => setOpen(false)} aria-label="Zamknij">
           ×
         </button>
       </div>
-      <p className="mt-2 text-xs leading-relaxed text-muted">
-        Pobierz kafelki województwa (zoom 8–11) plus okolice łowisk. Najlepiej przez Wi‑Fi.
-      </p>
+      <p className="mt-2 text-xs leading-relaxed text-muted">{OFFLINE_COPY.panel}</p>
       {pct != null && pct < 100 && (
         <div className="mt-3">
           <Meter value={pct} label="Postęp pobierania" />
@@ -859,7 +858,7 @@ export function OfflinePanel() {
           try {
             await downloadOffline((d, t) => setPct(Math.round((d / t) * 100)));
             setPct(100);
-            setMsg("Gotowe — mapa zapisana na tym urządzeniu.");
+            setMsg("Gotowe — mapa i katalog zapisane na tym urządzeniu.");
           } catch {
             setMsg("Błąd — spróbuj na Wi‑Fi.");
           } finally {
@@ -867,7 +866,7 @@ export function OfflinePanel() {
           }
         }}
       >
-        {busy && pct != null ? `Pobieranie ${pct}%` : "Pobierz mapę"}
+        {busy && pct != null ? `Pobieranie ${pct}%` : "Pobierz mapę i katalog"}
       </button>
       {msg && <p className="mt-2 text-center text-xs text-muted">{msg}</p>}
     </div>
@@ -898,30 +897,31 @@ export function CoffeeAsk() {
   };
   return (
     <div
-      className="banner-in rounded-2xl bg-card/95 p-3 text-sm leading-relaxed ring-1 ring-border backdrop-blur-sm"
+      className="banner-in flex items-center gap-2 rounded-2xl bg-card/95 px-3 py-2 ring-1 ring-border backdrop-blur-sm"
       role="status"
     >
-      <p className="font-semibold text-foreground">Podoba Ci się Atlas? Postaw kawę.</p>
-      <div className="mt-2 flex gap-2">
-        <button
-          type="button"
-          className="tap inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-coffee font-semibold text-coffee-fg"
-          onClick={() => {
-            openExternal(CUPLINK);
-            dismiss();
-          }}
-        >
-          <CoffeeIcon size={16} />
-          Postaw kawę
-        </button>
-        <button
-          type="button"
-          className="tap min-h-10 rounded-full bg-card-2 px-4 font-semibold text-foreground ring-1 ring-border"
-          onClick={dismiss}
-        >
-          Później
-        </button>
-      </div>
+      <p className="min-w-0 flex-1 text-xs font-semibold leading-snug text-foreground">
+        Podoba Ci się Atlas? Postaw kawę.
+      </p>
+      <button
+        type="button"
+        className="tap inline-flex h-9 shrink-0 items-center justify-center gap-1 rounded-full bg-coffee px-3 text-xs font-semibold text-coffee-fg"
+        onClick={() => {
+          openExternal(CUPLINK);
+          dismiss();
+        }}
+      >
+        <CoffeeIcon size={14} />
+        Kawę
+      </button>
+      <button
+        type="button"
+        className="tap grid size-9 shrink-0 place-items-center rounded-full bg-card-2 text-sm font-semibold text-foreground ring-1 ring-border"
+        onClick={dismiss}
+        aria-label="Później"
+      >
+        ×
+      </button>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { App } from "@/components/App";
 import { Loader } from "@/components/Loader";
 import { loadCatalog } from "@/lib/catalog";
+import { registerAtlasSw } from "@/lib/offline";
 import { bootTarlo } from "@/lib/tarlo";
 import { useAtlas } from "@/lib/store";
 
@@ -12,6 +13,7 @@ export function Boot() {
 
   useEffect(() => {
     void loadCatalog();
+    void registerAtlasSw();
     void bootTarlo();
   }, []);
 

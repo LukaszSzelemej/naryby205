@@ -357,3 +357,37 @@ export const LICENSES_COPY = {
     },
   ],
 };
+
+export function dokumentyFor(packId?: string | null) {
+  if (packId !== "lb") return DOKUMENTY;
+  return {
+    ...DOKUMENTY,
+    sea: {
+      title: "GIRM — wody morskie",
+      body: "Lubuskie nie ma brzegu Bałtyku. Zezwolenie GIRM dotyczy tylko wód morskich RP. Na jeziorach, rzekach i zalewach województwa obowiązuje karta wędkarska i zezwolenie gospodarza z karty łowiska.",
+    },
+    wir: {
+      title: "Wody Polskie / RZGW",
+      body: "Odcinki Odry, Warty, Bobru, Nysy Łużyckiej i Noteci pod Wodami Polskimi wymagają zezwolenia WIR albo gospodarza wskazanego na karcie. Składka PZW Zielona Góra albo Gorzów na te odcinki nie wystarczy.",
+    },
+  };
+}
+
+export function poradnikFor(packId?: string | null) {
+  return PORADNIK.map((s) => {
+    if (s.title === "Świt i zmierzch") {
+      return {
+        ...s,
+        body: "Najlepsze okna żeru: około godziny przed wschodem do półtorej godziny po nim oraz półtorej godziny przed zachodem do ok. 50 min po. Atlas liczy to ze współrzędnych łowiska, nie z zegarka miasta.",
+      };
+    }
+    if (s.title === "Zezwolenia" && packId === "lb") {
+      return {
+        ...s,
+        body: "Składka PZW obejmuje wody okręgu Zielona Góra albo Gorzów. Jeziora GR Sława — karnet gospodarza, nie składka. Odcinki Wód Polskich (WIR) osobno. Zawsze czytaj aktualny regulamin.",
+      };
+    }
+    return s;
+  });
+}
+

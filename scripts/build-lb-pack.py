@@ -38,13 +38,6 @@ PREFIX = re.compile(
     re.I,
 )
 
-SKIP_GMINA = {
-    "wolsztyn", "zbaszyn", "miedzichowo", "wegliniec", "osiecznica",
-    "barlinek", "bierzwnik", "choszczno", "drawno", "mysliborz",
-    "nowogrodek", "nowogrodek pomorski", "pelczyce", "recz", "krzecin",
-    "boleszkowice", "debno",
-}
-
 GMINA_ALIAS = {
     "n bobrz": "Nowogród Bobrzański",
     "n. bobrz": "Nowogród Bobrzański",
@@ -890,7 +883,7 @@ def main():
         if rec:
             lat, lng = rec["lat"], rec["lng"]
             used_osm.add(rec["id"])
-        elif (w.get("areaHa") or 0) >= 15 or w.get("src") == "gr-slawa" or kind in ("rzeka", "zalew"):
+        elif (w.get("areaHa") or 0) >= 8 or w.get("src") == "gr-slawa" or kind in ("rzeka", "zalew"):
             hit = nominatim(search_name, w.get("gmina") or "", kind, cache)
             if hit:
                 lat, lng = hit["lat"], hit["lng"]

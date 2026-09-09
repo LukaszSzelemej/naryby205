@@ -36,14 +36,14 @@ import {
 import {
   COFFEE_COPY,
   COOKIES_TEXT,
-  DOKUMENTY,
   ETYKIETA,
   INSTALL_COPY,
   LICENSES_COPY,
   METHOD_FEEDER,
   OFFLINE_COPY,
-  PORADNIK,
   ZAPIS_COPY,
+  dokumentyFor,
+  poradnikFor,
 } from "@/lib/content";
 import { stockingOfManager } from "@/lib/stocking";
 import { loadLastPack } from "@/lib/storage";
@@ -130,6 +130,7 @@ export function PermitsPage() {
   const setScreen = useAtlas((s) => s.setScreen);
   const ready = useAtlas((s) => s.catalogReady);
   const n = ready ? orderedManagers().length : 0;
+  const docs = dokumentyFor(ACTIVE_PACK?.id);
   return (
     <ScreenFrame onBack={() => setScreen("map")}>
       <div className="mx-auto max-w-lg px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-10">
@@ -151,8 +152,8 @@ export function PermitsPage() {
           <PaperPicker />
         </div>
         <div className="kit-pane mt-4 space-y-3 text-sm">
-          <p className="text-sm text-muted">{DOKUMENTY.clubs}</p>
-          <p className="text-sm text-muted">{DOKUMENTY.privateNote}</p>
+          <p className="text-sm text-muted">{docs.clubs}</p>
+          <p className="text-sm text-muted">{docs.privateNote}</p>
           <ManagersList />
         </div>
         <p className="mt-8 text-center text-xs text-faint">{DISCLAIMER}</p>
@@ -489,6 +490,8 @@ export function Toolkit() {
   const [offMsg, setOffMsg] = useState<string | null>(null);
   const [offPct, setOffPct] = useState<number | null>(null);
   const [offBusy, setOffBusy] = useState(false);
+  const docs = dokumentyFor(ACTIVE_PACK?.id);
+  const tips = poradnikFor(ACTIVE_PACK?.id);
 
   return (
     <ScreenFrame onBack={() => setScreen("map")}>
@@ -532,24 +535,24 @@ export function Toolkit() {
         {tab === "dokumenty" && (
           <div className="kit-pane mt-4 space-y-3 text-sm">
             <section className="rounded-2xl bg-card p-3 ring-1 ring-border">
-              <h2 className="font-semibold">{DOKUMENTY.karta.title}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-muted">{DOKUMENTY.karta.body}</p>
+              <h2 className="font-semibold">{docs.karta.title}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{docs.karta.body}</p>
               <ul className="mt-2 space-y-1 text-sm text-muted">
-                {DOKUMENTY.karta.exam.map((x) => (
+                {docs.karta.exam.map((x) => (
                   <li key={x}>• {x}</li>
                 ))}
               </ul>
             </section>
             <section className="rounded-2xl bg-card p-3 ring-1 ring-border">
-              <h2 className="font-semibold">{DOKUMENTY.sea.title}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-muted">{DOKUMENTY.sea.body}</p>
+              <h2 className="font-semibold">{docs.sea.title}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{docs.sea.body}</p>
             </section>
             <section className="rounded-2xl bg-card p-3 ring-1 ring-border">
-              <h2 className="font-semibold">{DOKUMENTY.wir.title}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-muted">{DOKUMENTY.wir.body}</p>
+              <h2 className="font-semibold">{docs.wir.title}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{docs.wir.body}</p>
             </section>
-            <p className="text-sm text-muted">{DOKUMENTY.clubs}</p>
-            <p className="text-sm text-muted">{DOKUMENTY.privateNote}</p>
+            <p className="text-sm text-muted">{docs.clubs}</p>
+            <p className="text-sm text-muted">{docs.privateNote}</p>
             <ManagersList />
           </div>
         )}
@@ -593,7 +596,7 @@ export function Toolkit() {
 
         {tab === "poradnik" && (
           <div className="kit-pane mt-4 space-y-3">
-            {PORADNIK.map((s) => (
+            {tips.map((s) => (
               <section key={s.title} className="rounded-2xl bg-card p-3 ring-1 ring-border">
                 <h2 className="font-semibold">{s.title}</h2>
                 <p className="mt-2 text-sm leading-relaxed text-muted">{s.body}</p>
@@ -992,8 +995,8 @@ function HydroNotify() {
     <section className="rounded-2xl bg-card p-3 ring-1 ring-border">
       <h2 className="font-semibold">Stany rzek IMGW</h2>
       <p className="mt-2 text-sm leading-relaxed text-muted">
-        Gdy rzeki z wczytanego województwa skoczą o 30 cm i więcej, atlas
-        wyśle powiadomienie. Sprawdzamy rano i po południu.
+        Gdy {ACTIVE_PACK?.id === "lb" ? "Odra, Warta, Bóbr, Nysa Łużycka albo Noteć" : "Odra, Rega, Drawa, Parsęta, Ina, Płonia albo Wieprza"} skoczą o 30 cm
+        i więcej, atlas wyśle powiadomienie. Sprawdzamy rano i po południu.
       </p>
       <button
         type="button"

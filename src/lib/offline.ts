@@ -1,4 +1,5 @@
-import { atlasPackRoot } from "@/lib/catalog";
+import { ACTIVE_PACK, atlasPackRoot } from "@/lib/catalog";
+import { loadLastPack } from "@/lib/storage";
 import { tileList, TILE_CACHE } from "@/lib/tiles";
 
 export const DATA_CACHE = "atlas-data-v2";
@@ -22,7 +23,7 @@ async function catalogUrls() {
     default?: string;
     packs?: { id: string }[];
   };
-  const packId = idx.default || idx.packs?.[0]?.id;
+  const packId = ACTIVE_PACK?.id || loadLastPack() || idx.default || idx.packs?.[0]?.id;
   if (!packId) throw new Error("Brak pakietu województwa");
   const packDir = `${origin}${root}${packId}/`;
   const manifest = (await (await fetch(`${packDir}manifest.json`, { cache: "reload" })).json()) as {

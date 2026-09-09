@@ -6,6 +6,7 @@ const CONSENT = "atlas.consent";
 const GEO = "atlas.geo";
 const MAP_DARK = "atlas.mapDark";
 const PAPERS = "atlas.papers";
+const LAST_PACK = "atlas.lastPack";
 
 function readJson<T>(key: string, fallback: T): T {
   try {
@@ -97,6 +98,24 @@ export function loadPapers(): string[] {
 export function savePapers(keys: string[]) {
   try {
     localStorage.setItem(PAPERS, JSON.stringify(keys));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function loadLastPack(): string | null {
+  try {
+    const id = localStorage.getItem(LAST_PACK);
+    if (id && /^[a-z][a-z0-9-]*$/.test(id)) return id;
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+export function saveLastPack(id: string) {
+  try {
+    localStorage.setItem(LAST_PACK, id);
   } catch {
     /* ignore */
   }

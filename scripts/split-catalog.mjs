@@ -5,6 +5,7 @@
  *
  *   node scripts/split-catalog.mjs            # rewrite zp (default)
  *   node scripts/split-catalog.mjs zp         # rewrite that pack
+ *   node scripts/split-catalog.mjs lb
  */
 import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";

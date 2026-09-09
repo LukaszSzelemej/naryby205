@@ -1,0 +1,23 @@
+{
+  "id": "lb",
+  "name": "województwo lubuskie",
+  "shortName": "Lubuskie",
+  "teryt": "08",
+  "bounds": {
+    "south": 51.22,
+    "west": 14.4,
+    "north": 53.15,
+    "east": 16.42
+  },
+  "center": [
+    52.2,
+    15.35
+  ],
+  "zoom": 8,
+  "n": 300,
+  "version": "2026.09",
+  "defaultManager": "pzw-zielona-gora",
+  "watersDir": "waters",
+  "managers": "managers.json",
+  "stocking": "stocking.json"
+}

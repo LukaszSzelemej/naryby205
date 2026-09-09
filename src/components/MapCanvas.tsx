@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Map as LeafletMap, Marker, TileLayer } from "leaflet";
 import {
+  ACTIVE_PACK,
   BOUNDS,
   DEFAULT_ZOOM,
   MAP_CENTER,
@@ -210,6 +211,8 @@ export function MapCanvas({
   const mapNight = useAtlas((s) => s.mapNight);
   const mapBoats = useAtlas((s) => s.mapBoats);
   const mapDark = useAtlas((s) => s.mapDark);
+  const packId = catalogReady ? (ACTIVE_PACK?.id ?? "") : "";
+  const lastPackRef = useRef("");
 
   const redraw = () => {
     const map = mapRef.current;
@@ -488,6 +491,25 @@ export function MapCanvas({
       });
     }
   }, [filter, favs, ready, mapNonce, catalogReady, mapSpecies, mapNight, mapBoats]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready || !packId) return;
+    if (lastPackRef.current === packId) return;
+    const switched = Boolean(lastPackRef.current);
+    lastPackRef.current = packId;
+    void leafletReady?.then((pack) => {
+      if (!pack || mapRef.current !== map) return;
+      const L = pack[0].default;
+      map.setMaxBounds(
+        L.latLngBounds(
+          [BOUNDS.south - 0.35, BOUNDS.west - 0.4],
+          [BOUNDS.north + 0.35, BOUNDS.east + 0.4],
+        ),
+      );
+      if (switched || !useAtlas.getState().geo) resetView();
+    });
+  }, [ready, packId]);
 
   useEffect(() => {
     const map = mapRef.current;

@@ -19,7 +19,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Łowiska województwa zachodniopomorskiego. Mapa, zezwolenia, dziennik i niezbędnik wędkarza.",
+          "Łowiska województw zachodniopomorskiego i lubuskiego. Mapa, zezwolenia, dziennik i niezbędnik wędkarza.",
       },
       { name: "theme-color", content: "#080c10" },
       { name: "apple-mobile-web-app-capable", content: "yes" },

@@ -41,12 +41,22 @@ class LazyPGliteDriver implements Driver {
   constructor(private readonly getClient: () => Promise<Client> | Client) {}
 
   async init(): Promise<void> {
-    this.client = await this.getClient();
+    try {
+      this.client = await this.getClient();
+    } catch (err) {
+      console.error("[auth] PGLite unavailable:", err);
+      this.client = undefined;
+    }
   }
 
   async acquireConnection(): Promise<DatabaseConnection> {
     if (this.client === undefined) {
-      this.client = await this.getClient();
+      try {
+        this.client = await this.getClient();
+      } catch (err) {
+        console.error("[auth] PGLite unavailable:", err);
+        throw err;
+      }
     }
     if (this.connection !== undefined) {
       return new Promise((resolve) => {

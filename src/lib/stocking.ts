@@ -94,9 +94,16 @@ function rowsFor(w: Water): StockRow[] {
 
 function pickSource(row: StockRow, year: number, again?: number): StockSource {
   if (row.source && SOURCES[row.source]) return SOURCES[row.source];
-  if (again && SOURCES.szczecin2025) return SOURCES.szczecin2025;
-  if (year >= 2025 && SOURCES.szczecin2025) return SOURCES.szczecin2025;
-  return SOURCES.szczecin2024 ?? { url: "", label: "Źródło" };
+  const values = Object.values(SOURCES);
+  if (again) {
+    const tagged = values.find((s) => s.label.includes(String(again)));
+    if (tagged) return tagged;
+  }
+  if (year && values.length) {
+    const tagged = values.find((s) => s.label.includes(String(year)));
+    if (tagged) return tagged;
+  }
+  return values[0] ?? { url: "", label: "Źródło" };
 }
 
 export function stockingOfWater(w: Water): WaterStock | null {

@@ -1,0 +1,1870 @@
+{
+  "sources": {
+    "zg2025": {
+      "url": "https://zozgora.pzw.pl/",
+      "label": "PZW Zielona Góra — zarybienia 2025"
+    }
+  },
+  "managers": {
+    "pzw-zielona-gora": {
+      "year": 2025,
+      "summary": "Zarybienia 2025: karp, lin, karaś, szczupak, jaź, sandacz, płoć, leszcz, węgorz — według wykazu okręgu.",
+      "url": "https://zozgora.pzw.pl/",
+      "label": "Zarybienia 2025"
+    }
+  },
+  "waters": [
+    {
+      "name": "Bagier Mały Witoszyn",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Betony Duże",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Betony Małe",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak",
+        "jaz"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Bobrowice",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Bobrze (Poźrzadło)",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Bojadła Młynówka - zbiornik",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Borek (Kosarzyn)",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak",
+        "jaz"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Brodzkie (Parkowe)",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Buczek II - Policyjny",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Buczek II – Staw 2,3",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Buczek II - Wojskowy",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Buczek II - Kąpielowy",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Buczyna",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Budych Glinianka",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Chłopskie",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Ciche (Majątkowe)",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Czarna Woda (Łagówek)",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Czerwieńsk",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Czyżykowo (Cisek)",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Dąbie Duże (Wielkie)",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Dąbie Małe",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak",
+        "jaz"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Dęby",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Dychów – zbiornik zap",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Dychów",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Dziarg",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Fadom",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak",
+        "jaz"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Garbicz (Wielkie)",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Gądkowskie Duże (Wielicko) – jezior",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Gęstowice Glinianki – 2 wyrobiska",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Glibiel (Łochowice)",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Głębokie (Proszów)",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Goszcza",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Grabinek",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Graniczne",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Gruszwickie (Stare Żabno)",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Gryżyce II – staw 4",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Gryżyce II – staw 5",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Gryżyce II – staw 6",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Ilno (Torzymskie)",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Jańsko (Stróżka)",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Jasień",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Jatnik (Spalone, Jating)",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Jelito (Giełt, Głębokie)",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Jeziorno",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak",
+        "jaz"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Kacza Górka",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Karasienko (Ciemne)",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Karaś",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Klików",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Kocie (Rozdroże)",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Kociołek",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Kosobudz (Kosobudz Mały)",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Kościelne",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Kożuchów Glinianki – 2 wyrobiska",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Kożuchów kąpielisko",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Krępa (Spalona)",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Księżno",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Kunice",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Liwno (Zabór Duży)",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Lubach (Tarcza)",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Lubie",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Lubieszów",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Lubięcin Duży (Kochanowo)",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Lubięcin Mały (Chełmek)",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Lubińskie",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Lubrza",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Łagowskie",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Majorka",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Małomice",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Moczydło (Osiecznica)",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Morskie Oko",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Niemka Duża (Podleśne)",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Niemka Mała (Leśne)",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Nietkowicki Kanał Środkowy",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Niwa",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Nowe Miasteczko Kąpielisko–glin",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Nowiniec",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Nowodworskie",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Ochla",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Paklicko Wielkie",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Paradyjskie",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Piaszno (Bronków Mały)",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Płytkie",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Proszów (Drutów)",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Przyborów",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Przytoczki - zbiornik",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Przytok - zbiornik",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Raduszec Stary",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Ruchocki Młyn",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Rzepinko (Boczowskie)",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak",
+        "jaz"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Sarbia – zbiornik",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Siedlisko – Stacja pomp - zbiorniki",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Sina Woda",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Sobolice - zbiornik",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Stany Zamknięte",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Staw nr",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Suchodół",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Sulechów Kruszyna - staw",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Sulechów Miejski - staw",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Surowce (Strużyna)",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Świdnica - zalew górny",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Święte (Krutla)",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Świętno",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Szprotawa",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Trzcinno (Rozłogi)",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Trzeci Staw (Koserz) – zbiornik",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Trześniowskie (Ciecz)",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Bliźniaki – 2 wyrobiska",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Grobla",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Jabłonki",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Ziemlicki",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Żółty",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Kołkowy",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Grobla",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Tarcza",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Betonówka",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Turów (ZEK)",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Tymień",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Wagmostaw",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Wapna Brzezie k. Pomorska- 2 wyr",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Wapna Jordanowo –2 wyrobiska",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak",
+        "jaz"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Wapno Zabór-I",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Wapno Zabór II",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Wapno III Zabór",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Wapno Zabór IV",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Wełnickie",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Wilcze (Jasne)",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Zabór Mały",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Zamecko(Zamkowe)",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Basen",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Przeprawowy",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Kwadrat",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Leśny",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Strumień (Łomianka)",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Gniła Obra",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Obra",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Odra",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Odra",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Odra",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Obrzyca",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Północny Kanał Obry",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Rakówka",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Razem łowiska ogólnodostępne",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak",
+        "jaz",
+        "sandacz",
+        "ploc",
+        "wzdręga"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Buczek II - Policyjny",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Buczek II – Staw 2",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Buczek II - Wojskowy",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Buczek II - Kąpielowy",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Gryżyce II – staw 4",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Gryżyce II – staw 5",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Gryżyce II – staw 6",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Kunice",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Szprotawa",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Przeprawowy",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Razem łowiska ogólnodostępne",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak",
+        "jaz",
+        "sandacz"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Buczek I staw 1",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Gryżyce I staw 1",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Gryżyce I staw 2",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Gryżyce I staw 3",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Złoty Potok",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Razem łowiska specjalne",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak",
+        "jaz",
+        "sandacz"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Łowiska ogólnodostępne",
+      "species": [
+        "lin",
+        "karas",
+        "szczupak",
+        "jaz",
+        "sandacz",
+        "ploc",
+        "leszcz",
+        "wzdręga"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Łowiska ogólnodostępne + Koła",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak",
+        "jaz",
+        "sandacz",
+        "ploc",
+        "leszcz",
+        "wzdręga"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Łowiska specjalne",
+      "species": [
+        "karp",
+        "sandacz",
+        "ploc",
+        "leszcz",
+        "wzdręga"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Razem ogóln. +koła+specjalne",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak",
+        "jaz",
+        "sandacz",
+        "ploc",
+        "leszcz",
+        "wzdręga"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Borek (Kosarzyn)",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Bóbr - rzeka",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Bóbr - rzeka",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Fadom",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Garbicz (Wielkie)",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Glibiel (Łochowice)",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Goszcza",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Gryżyce II – staw 4",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Gryżyce II – staw 5",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Kwisa - rzeka",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Lubie",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Lubsza - rzeka",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Niemka Duża (Podleśne)",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Niemka Mała (Leśne)",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Nysa Łużycka - rzeka",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Paklicko Wielkie",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Pliszka - rzeka",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Rzepinko (Boczowskie)",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Trześniowskie (Ciecz)",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Turów (ZEK)",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Wapna Brzezie k. Pomorska- 2 wyr",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Gniła Obra",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Obrzyca",
+      "species": [
+        "karp"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Odra",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Odra",
+      "species": [
+        "karp",
+        "lin",
+        "karas"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Odra",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Północny Kanał Obry",
+      "species": [
+        "karp",
+        "lin"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    },
+    {
+      "name": "Razem łowiska ogólnodostępne",
+      "species": [
+        "karp",
+        "lin",
+        "karas",
+        "szczupak",
+        "jaz",
+        "sandacz",
+        "ploc",
+        "leszcz",
+        "wzdręga"
+      ],
+      "year": 2025,
+      "source": "zg2025"
+    }
+  ]
+}

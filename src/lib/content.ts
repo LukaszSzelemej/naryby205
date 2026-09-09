@@ -5,7 +5,7 @@ export const COOKIES_TEXT = {
   intro:
     "Ta informacja spełnia obowiązek z art. 13 RODO oraz przepisów o poufności komunikacji elektronicznej (Prawo komunikacji elektronicznej — zgoda na zapisywanie informacji na urządzeniu końcowym, z wyjątkiem zapisu ściśle niezbędnego do świadczenia usługi, o którą prosisz).",
   about:
-    "Atlas wędkarski — regionalna aplikacja mapy łowisk. Dziś wczytany jest pakiet województwa zachodniopomorskiego. Kontakt: Instagram @method_feeder_szczecin.",
+    "Atlas wędkarski — regionalna aplikacja mapy łowisk. Pakiety województw: Zachodniopomorskie i Lubuskie. Kontakt: Instagram @method_feeder_szczecin.",
   useTitle: "Czego używamy",
   useLead:
     "Atlas nie wstawia reklamowych trackerów ani pikseli analitycznych. Nie sprzedajemy danych. W praktyce zapis na Twoim telefonie to nie klasyczne ciasteczka marketingowe, tylko pamięć przeglądarki potrzebna do działania aplikacji.",
@@ -213,9 +213,9 @@ export const ZAPIS_COPY = {
 export const COFFEE_COPY = {
   kicker: "Atlas, który jedzie z Tobą nad wodę!",
   paragraphs: [
-    "Ponad tysiąc łowisk: jezior, rzek, zalewów, stawów i brzeg Bałtyku w województwie zachodniopomorskim. Mapa z Twoją lokalizacją, żerowanie ryb na dziś, ciśnienie, wschód i zachód słońca, fazy księżyca, zmiany ciśnienia, stany wody, wymiary oraz okresy ochronne, koła PZW i dziennik w telefonie, bez subskrypcji i bez reklam.",
+    "Ponad tysiąc łowisk na Pomorzu Zachodnim i trzysta w Lubuskiem: jeziora, rzeki, zalewy, stawy i brzeg Bałtyku. Mapa z Twoją lokalizacją, żerowanie ryb na dziś, ciśnienie, wschód i zachód słońca, fazy księżyca, zmiany ciśnienia, stany wody, wymiary oraz okresy ochronne, koła PZW i dziennik w telefonie, bez subskrypcji i bez reklam.",
     "Aplikacja stworzona z pasji do wędkowania z myślą o feederowcach, spinningistach i każdym, kto odpoczywa nad wodą. Jeśli atlas oszczędzi Ci czas i podpowie, gdzie możesz oczyścić umysł — postaw kawę. Ty decydujesz.",
-    "Atlas wędkarski to regionalna aplikacja — mapa łowisk Pomorza Zachodniego. Zrobiona z zamiłowania do wędkarstwa, a nie z korporacyjnego szablonu. Skupia się na Zachodnim Pomorzu, ale sięga Bałtyku, Zalewu Szczecińskiego, pojezierzy i sąsiednich zbiorników.",
+    "Atlas wędkarski to regionalna aplikacja — mapa łowisk Pomorza Zachodniego i Lubuskiego. Zrobiona z zamiłowania do wędkarstwa, a nie z korporacyjnego szablonu. Skupia się na regionie, ale sięga Bałtyku, Zalewu Szczecińskiego, pojezierzy i sąsiednich zbiorników.",
     "To nie kolejny ogólnopolski katalog z tysiącem wpisów i pustymi kartami. To narzędzie dla Ciebie. To atut w telefonie dla każdego kto łowi na Odrze, Drawie, Parsęcie, Redze, Miedwiu, Drawsku, Dąbiu i setkach innych jezior czy łowisk komercyjnych.",
     "Możesz skorzystać z szybkiego podglądu terenu, zoomu i geolokalizacji. To baza miejscówek, wód okręgowych i łowisk specjalnych. Atlas to także Twój dziennik wyjazdów i brań.",
     "Znajdziesz tu wszystko co przyda Ci się przed wyjazdem na pewną miejscówkę. Regionalna precyzja zamiast „cała Polska na jednej mapie bez konkretów”. Wszystko w jednym miejscu i od razu. Lepszy do planowania weekendu z wędką, w namiocie czy na grillu z bliskimi, niż kolejny ogólnopolski atlas z recyklingowym pustosłowiem.",
@@ -316,7 +316,7 @@ export const LICENSES_COPY = {
         },
         {
           t: "Pakiet województwa",
-          d: "Katalog łowisk, gospodarzy i zarybień ładuje się jako pakiet JSON (dziś: Zachodniopomorskie). Dane własne atlasu, nie licencja otwarta — przed wyjazdem sprawdź gospodarza.",
+          d: "Katalog łowisk, gospodarzy i zarybień ładuje się jako pakiet JSON (Zachodniopomorskie, Lubuskie). Dane własne atlasu, nie licencja otwarta — przed wyjazdem sprawdź gospodarza.",
         },
       ],
     },

@@ -1,4 +1,23 @@
 import { pendingMigrations } from "../../scripts/migration-plan.mjs";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+
+function isPgliteAssetError(err: unknown): boolean {
+  const any = err as { code?: string; path?: string; message?: string };
+  const blob = `${any?.code ?? ""} ${any?.path ?? ""} ${any?.message ?? ""} ${String(err)}`;
+  return /pglite\.(data|wasm)|initdb\.wasm/i.test(blob);
+}
+
+function pgliteDistDir(): string | null {
+  const candidates = [
+    join(process.cwd(), "node_modules/@electric-sql/pglite/dist"),
+    join(process.cwd(), ".vercel/output/functions/__server.func/_libs"),
+  ];
+  for (const dir of candidates) {
+    if (existsSync(join(dir, "pglite.data"))) return dir;
+  }
+  return null;
+}
 
 /** Which database backend is active. */
 export type DbSource = "neon" | "pglite";
@@ -125,6 +144,7 @@ async function createPgliteSql(): Promise<Sql> {
     return pg;
   })().catch((err) => {
     globalRef.__pgliteInstance__ = undefined;
+    console.error("[db] PGLite unavailable:", err);
     throw err;
   });
   const pg = await globalRef.__pgliteInstance__;
@@ -221,6 +241,10 @@ export async function getPglite(): Promise<import("@electric-sql/pglite").PGlite
  */
 export function ensureDbReady(): Promise<void> {
   if (dbSource !== "pglite") return Promise.resolve();
+  if (!pgliteDistDir()) {
+    console.error("[db] PGLite assets missing — atlas does not need a database.");
+    return Promise.resolve();
+  }
   return getSql().then(() => undefined);
 }
 
@@ -228,11 +252,25 @@ export function ensureDbReady(): Promise<void> {
 // Node. Client bundles never hit this path (`getSql` throws in the browser).
 const globalBoot = globalThis as typeof globalThis & {
   __pgBootstrapPromise__?: Promise<void>;
+  __pgliteRejGuard__?: boolean;
 };
+if (typeof window === "undefined" && typeof process !== "undefined" && typeof process.on === "function") {
+  if (!globalBoot.__pgliteRejGuard__) {
+    globalBoot.__pgliteRejGuard__ = true;
+    process.on("unhandledRejection", (reason) => {
+      if (isPgliteAssetError(reason)) {
+        console.error("[db] PGLite asset missing — atlas does not need a database.");
+        return;
+      }
+      setImmediate(() => {
+        throw reason;
+      });
+    });
+  }
+}
 if (typeof window === "undefined" && dbSource === "pglite") {
   globalBoot.__pgBootstrapPromise__ ??= ensureDbReady().catch((err) => {
     globalBoot.__pgBootstrapPromise__ = undefined;
     console.error("[db] PGLite bootstrap failed:", err);
-    throw err;
   });
 }

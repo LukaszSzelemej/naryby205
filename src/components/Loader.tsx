@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { INSTAGRAM, SITE_URL, VERSION } from "@/lib/brand";
+import { INSTAGRAM, SITE_URL, VERSION, splashPackName } from "@/lib/catalog";
 import { openExternal } from "@/lib/utils";
 
 type Props = { online: number; onDone: () => void; replay?: boolean };
@@ -58,7 +58,7 @@ export function Loader({ online, onDone, replay }: Props) {
           </h1>
           <p className="mt-1 text-sm text-muted">{SITE_URL.replace("https://", "")}</p>
           <p className="mt-1 text-xs font-medium uppercase tracking-[0.22em] text-primary">
-            Zachodniopomorskie
+            {splashPackName()}
           </p>
         </div>
         <div className="splash-meter mt-2 w-full">

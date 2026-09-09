@@ -6,7 +6,7 @@ lands in `src/` or when a single JSON/bin blob is too heavy.
 ## Catalog
 
 - Engine loads a voivodeship **pack**. Registry: `public/atlas/packs/index.json`
-- Today: pack `zp` — **1204** łowisk in `public/atlas/packs/zp/waters/00.json` …
+- Today: packs `zp` (Zachodniopomorskie, 1204) and `lb` (Lubuskie). Shards in `public/atlas/packs/<id>/waters/`
   (alphabetical by name, each ≤16 KB)
 - Pack files: `manifest.json`, `managers.json`, `stocking.json`, `waters/`
 - NEVER write `src/data/waters.json`, `.json.gz`, `public/data/waters.bin`, or `all.json`

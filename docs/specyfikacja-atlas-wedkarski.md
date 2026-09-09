@@ -1,12 +1,12 @@
 # Specyfikacja — Atlas wędkarski
 
 **Nazwa:** Atlas wędkarski  
-**Wersja:** 2.0.1  
+**Wersja:** 2.1.0  
 **Adres:** https://www.atlaswedkarski.pl  
 **Kontakt / autor:** Instagram [@method_feeder_szczecin](https://www.instagram.com/method_feeder_szczecin)  
 **Wsparcie:** https://cuplink.to/atlaswedkarski („Postaw kawę”)  
-**Repozytorium (stan tej specyfikacji):** [github.com/LukaszSzelemej/naryby203](https://github.com/LukaszSzelemej/naryby203)  
-**Zasięg:** województwo zachodniopomorskie, Bałtyk, Zalew Szczeciński i wody ujęte w katalogu.
+**Repozytorium (stan tej specyfikacji):** [github.com/LukaszSzelemej/naryby205](https://github.com/LukaszSzelemej/naryby205)  
+**Zasięg:** województwa zachodniopomorskie i lubuskie (osobne pakiety katalogu). Bałtyk i Zalew Szczeciński w pakiecie `zp`.
 
 Aplikacja webowa (PWA): mapa i katalog łowisk, dziennik połowów, niezbędnik. Bez kont, bez reklam, bez subskrypcji. Dziennik i ulubione zostają na telefonie.
 
@@ -16,7 +16,7 @@ Aplikacja webowa (PWA): mapa i katalog łowisk, dziennik połowów, niezbędnik.
 
 Szybko znaleźć łowisko, sprawdzić gospodarza, pogodę, wymiary ochronne i dojechać. To nie jest urzędowy wykaz — przed wyjazdem obowiązuje regulamin gospodarza / PZW / GIRM / Wód Polskich.
 
-**Dla kogo:** feeder, spinning, spławik, grunt, weekend nad wodą w Zachodniopomorskiem.
+**Dla kogo:** feeder, spinning, spławik, grunt, weekend nad wodą w Zachodniopomorskiem i Lubuskiem.
 
 **Czego nie robi:** ogólnopolskiego katalogu, kont, płatności w aplikacji, czatu.
 
@@ -68,10 +68,10 @@ Dokumenty (karta, GIRM, WIR, gospodarze), województwo (pakiet katalogu), etykie
 
 ## 3. Dane
 
-- **1204** łowiska, pakiet `zp` — 50 shardów `public/atlas/packs/zp/waters/00–49.json`, każdy **≤ 16 KB**. Rejestr `public/atlas/packs/index.json`.
+- **1204** łowiska, pakiet `zp` — 50 shardów `public/atlas/packs/zp/waters/`. **300** łowisk, pakiet `lb` (Lubuskie) — 11 shardów `public/atlas/packs/lb/waters/`. Każdy shard **≤ 16 KB**. Rejestr `public/atlas/packs/index.json`.
 - **Zakaz** jednego `waters.json` / `all.json` / `.bin` — rozsadza workspace.
 - 31 gatunków w `src/data/species.json`. Filtry mapy/listy: 10 gatunków.
-- Gospodarze: `public/atlas/packs/zp/managers.json`. Martwe linki wycinane.
+- Gospodarze: `public/atlas/packs/<id>/managers.json`. Martwe linki wycinane.
 
 Rodzaje: jezioro, rzeka, zalew, morze, kanał, staw, komercyjne.
 

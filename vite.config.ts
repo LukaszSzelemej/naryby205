@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
 import { join, resolve, sep } from "node:path";
 import type { Plugin } from "vite";
 import { defineConfig } from "vite";
@@ -11,6 +11,37 @@ import { grokPwaPlugin } from "./scripts/grok-pwa-plugin.mjs";
 // @ts-expect-error JS plugin alongside the TS vite config
 import { appEnvPlugin } from "./scripts/app-env-plugin.mjs";
 import { isMigrationFile } from "./scripts/migration-plan.mjs";
+
+function copyPgliteAssets(destDir: string) {
+  const srcDir = resolve("node_modules/@electric-sql/pglite/dist");
+  if (!existsSync(srcDir) || !existsSync(destDir)) return 0;
+  let n = 0;
+  for (const name of ["pglite.data", "pglite.wasm", "initdb.wasm"]) {
+    const from = join(srcDir, name);
+    if (!existsSync(from)) continue;
+    copyFileSync(from, join(destDir, name));
+    n += 1;
+  }
+  return n;
+}
+
+function pgliteAssetsPlugin(): Plugin {
+  return {
+    name: "app-builder:pglite-assets",
+    apply: "build",
+    closeBundle() {
+      const dests = [
+        resolve(".vercel/output/functions/__server.func/_libs"),
+        resolve("dist/server/_libs"),
+      ];
+      for (const dest of dests) {
+        if (!existsSync(dest)) continue;
+        const n = copyPgliteAssets(dest);
+        if (n) console.info(`[app-builder] copied ${n} PGLite assets → ${dest}`);
+      }
+    },
+  };
+}
 
 /** The files `src/lib/db.ts` globs — same directory, same non-recursive scope. */
 function hasGlobbedMigrations(root: string): boolean {
@@ -45,7 +76,6 @@ function pgliteBootstrapPlugin(): Plugin {
         }
       } catch (err) {
         console.error("[app-builder] DB bootstrap failed:", err);
-        throw err;
       }
     },
   };
@@ -227,6 +257,7 @@ export default defineConfig(({ command, isPreview }) => ({
   },
   plugins: [
     pgliteBootstrapPlugin(),
+    pgliteAssetsPlugin(),
     // Before tanstackStart so /auth/popup never falls through to the SPA.
     authPopupPlugin(),
     catalogStaticPlugin(),

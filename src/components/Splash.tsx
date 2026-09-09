@@ -1,5 +1,5 @@
 import { useLayoutEffect } from "react";
-import { INSTAGRAM, SITE_URL, VERSION } from "@/lib/brand";
+import { INSTAGRAM, SITE_URL, VERSION, splashPackName } from "@/lib/catalog";
 
 /** First-paint overlay. CSS hides it even if React never hydrates. */
 export function SplashOverlay() {
@@ -51,7 +51,7 @@ export function SplashOverlay() {
           </h1>
           <p className="mt-1 text-sm text-muted">{SITE_URL.replace("https://", "")}</p>
           <p className="mt-1 text-xs font-medium uppercase tracking-[0.22em] text-primary">
-            Zachodniopomorskie
+            {splashPackName()}
           </p>
         </div>
         <div className="splash-meter mt-2 w-full">

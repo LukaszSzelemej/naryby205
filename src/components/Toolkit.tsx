@@ -12,6 +12,8 @@ import {
   linkLabel,
   PACK_LIST,
   plWaters,
+  splashPackName,
+  switchPack,
   protectionOf,
   formatProtect,
   closedEndingDays,
@@ -44,6 +46,7 @@ import {
   ZAPIS_COPY,
 } from "@/lib/content";
 import { stockingOfManager } from "@/lib/stocking";
+import { loadLastPack } from "@/lib/storage";
 import { useAtlas, type KitTab } from "@/lib/store";
 import { setHydroPref, hydroPref, setTarloPref, tarloPref } from "@/lib/tarlo";
 import { cn, openExternal, phonesIn } from "@/lib/utils";
@@ -418,13 +421,15 @@ function WojewodztwoPane() {
   const activeId = ACTIVE_PACK?.id;
   const packs = PACK_LIST;
   const loaded = ready ? WATERS.length : 0;
+  const pendingId = !ready ? loadLastPack() : null;
   return (
     <div className="kit-pane mt-4 space-y-3 text-sm">
       <section className="rounded-2xl bg-card p-3 ring-1 ring-border">
         <h2 className="font-semibold">Katalog województwa</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted">
-          Atlas to jeden silnik i osobne pakiety województw. Dziś wczytane jest
-          Zachodniopomorskie. Kolejne katalogi dołączą bez nowej aplikacji.
+          Atlas to jeden silnik i osobne pakiety województw. Teraz wczytane:{" "}
+          <span className="font-medium text-foreground">{splashPackName()}</span>
+          . Wczytaj inny pakiet — mapa i lista przełączą się na to województwo.
         </p>
       </section>
       {err ? <p className="text-sm text-danger">{err}</p> : null}
@@ -433,6 +438,7 @@ function WojewodztwoPane() {
       ) : (
         packs.map((p) => {
           const on = Boolean(ready && (activeId ? p.id === activeId : packs[0]?.id === p.id));
+          const loading = Boolean(!ready && pendingId === p.id);
           const n = on && loaded ? loaded : p.n;
           return (
             <article
@@ -452,10 +458,19 @@ function WojewodztwoPane() {
                   <span className="shrink-0 rounded-full bg-ok/15 px-2.5 py-1 text-xs font-semibold text-ok">
                     wczytane
                   </span>
-                ) : (
-                  <span className="shrink-0 rounded-full bg-card-2 px-2.5 py-1 text-xs font-semibold text-faint">
-                    {ready ? "w paczce" : err ? "błąd" : "wczytuję…"}
+                ) : loading ? (
+                  <span className="shrink-0 rounded-full bg-card-2 px-2.5 py-1 text-xs font-semibold text-muted">
+                    wczytuję…
                   </span>
+                ) : (
+                  <button
+                    type="button"
+                    className="tap shrink-0 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+                    disabled={!ready}
+                    onClick={() => void switchPack(p.id)}
+                  >
+                    Wczytaj
+                  </button>
                 )}
               </div>
             </article>

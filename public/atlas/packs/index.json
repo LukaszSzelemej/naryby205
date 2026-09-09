@@ -8,6 +8,14 @@
       "teryt": "32",
       "n": 1204,
       "version": "2026.09"
+    },
+    {
+      "id": "lb",
+      "name": "Lubuskie",
+      "shortName": "Lubuskie",
+      "teryt": "08",
+      "n": 300,
+      "version": "2026.09"
     }
   ]
 }

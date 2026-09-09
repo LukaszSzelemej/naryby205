@@ -11,6 +11,7 @@
  */
 import { spawn } from "node:child_process";
 import {
+  copyFileSync,
   existsSync,
   mkdirSync,
   openSync,
@@ -292,8 +293,24 @@ async function waitForReady(failure) {
   return false;
 }
 
+function copyPgliteAssets() {
+  const srcDir = join(ROOT, "node_modules/@electric-sql/pglite/dist");
+  const dests = [
+    join(ROOT, ".vercel/output/functions/__server.func/_libs"),
+    join(ROOT, "dist/server/_libs"),
+  ];
+  for (const dest of dests) {
+    if (!existsSync(srcDir) || !existsSync(dest)) continue;
+    for (const name of ["pglite.data", "pglite.wasm", "initdb.wasm"]) {
+      const from = join(srcDir, name);
+      if (existsSync(from)) copyFileSync(from, join(dest, name));
+    }
+  }
+}
+
 async function restart() {
   if (!(await stop())) return 1;
+  copyPgliteAssets();
 
   mkdirSync(dirname(LOG_FILE), { recursive: true });
   const log = openSync(LOG_FILE, "a");

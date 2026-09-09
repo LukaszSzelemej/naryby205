@@ -297,10 +297,10 @@ export function SearchField({
   const ref = useRef<HTMLInputElement>(null);
   const q = sanitizeQuery(value);
   const catalogReady = useAtlas((s) => s.catalogReady);
-  const hits = useMemo(
-    () => (q.trim() ? searchWaters(q, pool).slice(0, 3) : []),
-    [q, pool, catalogReady],
-  );
+  const hits = useMemo(() => {
+    if (!catalogReady || !q.trim()) return [];
+    return searchWaters(q, pool).slice(0, 3);
+  }, [q, pool, catalogReady]);
   const emptyQuery = q.trim().length >= 2 && hits.length === 0;
 
   useEffect(() => {
@@ -870,6 +870,58 @@ export function OfflinePanel() {
         {busy && pct != null ? `Pobieranie ${pct}%` : "Pobierz mapę"}
       </button>
       {msg && <p className="mt-2 text-center text-xs text-muted">{msg}</p>}
+    </div>
+  );
+}
+
+export function CoffeeAsk() {
+  const [ready, setReady] = useState(false);
+  const [open, setOpen] = useState(() => {
+    try {
+      return sessionStorage.getItem("atlas.coffeeAsk") !== "1";
+    } catch {
+      return true;
+    }
+  });
+  useEffect(() => {
+    const t = window.setTimeout(() => setReady(true), 1400);
+    return () => window.clearTimeout(t);
+  }, []);
+  if (!ready || !open) return null;
+  const dismiss = () => {
+    setOpen(false);
+    try {
+      sessionStorage.setItem("atlas.coffeeAsk", "1");
+    } catch {
+      /* ignore */
+    }
+  };
+  return (
+    <div
+      className="banner-in rounded-2xl bg-card/95 p-3 text-sm leading-relaxed ring-1 ring-border backdrop-blur-sm"
+      role="status"
+    >
+      <p className="font-semibold text-foreground">Podoba Ci się Atlas? Postaw kawę.</p>
+      <div className="mt-2 flex gap-2">
+        <button
+          type="button"
+          className="tap inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-coffee font-semibold text-coffee-fg"
+          onClick={() => {
+            openExternal(CUPLINK);
+            dismiss();
+          }}
+        >
+          <CoffeeIcon size={16} />
+          Postaw kawę
+        </button>
+        <button
+          type="button"
+          className="tap min-h-10 rounded-full bg-card-2 px-4 font-semibold text-foreground ring-1 ring-border"
+          onClick={dismiss}
+        >
+          Później
+        </button>
+      </div>
     </div>
   );
 }

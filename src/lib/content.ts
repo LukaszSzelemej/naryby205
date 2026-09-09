@@ -269,37 +269,82 @@ export const INSTALL_COPY = {
 
 export const LICENSES_COPY = {
   title: "Licencje i źródła",
-  lead: "Oznaczenia bibliotek, map i danych, z których korzysta atlas.",
-  items: [
+  lead: "Mapa, dane i biblioteki, z których korzysta atlas. Źródło otwiera licencję albo serwis.",
+  groups: [
     {
-      t: "OpenStreetMap",
-      d: "Kafelki mapy i nazwy miejsc © OpenStreetMap contributors. Dane na licencji ODbL 1.0. Ciemna mapa używa tych samych kafelków (bez dodatkowego dostawcy).",
-      href: "https://www.openstreetmap.org/copyright",
+      title: "Mapa i dane",
+      items: [
+        {
+          t: "OpenStreetMap",
+          d: "Kafelki mapy i nazwy miejsc © OpenStreetMap contributors. Dane na licencji ODbL 1.0. Ciemna mapa to te same kafelki, przyciemnione w aplikacji.",
+          href: "https://www.openstreetmap.org/copyright",
+        },
+        {
+          t: "CARTO Voyager",
+          d: "Zapasowe kafelki, gdy osm.org nie odpowiada (403/429). Dane OSM, styl © CARTO. Wymagane oznaczenie: © OpenStreetMap, © CARTO.",
+          href: "https://carto.com/attributions",
+        },
+        {
+          t: "Leaflet",
+          d: "Silnik mapy Leaflet 1.9, licencja BSD-2-Clause.",
+          href: "https://leafletjs.com",
+        },
+        {
+          t: "GUGiK — PRNG",
+          d: "Państwowy Rejestr Nazw Geograficznych: urzędowe nazwy i położenie wód. Dane publiczne Głównego Urzędu Geodezji i Kartografii / geoportal.gov.pl, bezpłatne do dowolnego użytku.",
+          href: "https://www.geoportal.gov.pl",
+        },
+        {
+          t: "GUGiK — BDOT10k",
+          d: "Baza Danych Obiektów Topograficznych (warstwa PTWP): powierzchnie stawów i wód komercyjnych. Dane publiczne, uwolnione 31 lipca 2020 — bezpłatne do dowolnego użytku.",
+          href: "https://www.geoportal.gov.pl/pl/dane/baza-danych-obiektow-topograficznych-bdot10k/",
+        },
+        {
+          t: "Open-Meteo",
+          d: "Prognoza pogody, ciśnienie, wiatr, opad i temperatura wody. Dane API na licencji CC BY 4.0 — wymagane oznaczenie Open-Meteo.",
+          href: "https://open-meteo.com/en/license",
+        },
+        {
+          t: "IMGW-PIB",
+          d: "Stany wody na rzekach (wodowskazy) — dane publiczne Instytutu Meteorologii i Gospodarki Wodnej – Państwowego Instytutu Badawczego, danepubliczne.imgw.pl.",
+          href: "https://danepubliczne.imgw.pl",
+        },
+        {
+          t: "RAPR i rozporządzenie",
+          d: "Wymiary i okresy ochronne: Regulamin Amatorskiego Połowu Ryb PZW oraz rozporządzenie Ministra Rolnictwa i Rozwoju Wsi. To przepisy, nie licencja otwarta — przed wyjazdem sprawdź aktualny tekst.",
+          href: "https://www.gov.pl/web/wody-polskie-szczecin/regulamin-amatorskiego-polowu-ryb",
+        },
+      ],
     },
     {
-      t: "Leaflet",
-      d: "Silnik mapy Leaflet, licencja BSD-2-Clause.",
-      href: "https://leafletjs.com",
-    },
-    {
-      t: "Open-Meteo",
-      d: "Prognoza pogody i ciśnienie. Licencja CC BY 4.0.",
-      href: "https://open-meteo.com",
-    },
-    {
-      t: "Geoportal / GUGiK",
-      d: "Nazwy i położenie wód stojących — wykaz urzędowy oraz geoportal.gov.pl.",
-      href: "https://www.geoportal.gov.pl",
-    },
-    {
-      t: "RAPR i rozporządzenie",
-      d: "Wymiary i okresy ochronne: Regulamin Amatorskiego Połowu Ryb PZW oraz rozporządzenie MRiRW.",
-      href: "https://www.gov.pl/web/wody-polskie-szczecin/regulamin-amatorskiego-polowu-ryb",
-    },
-    {
-      t: "IMGW-PIB",
-      d: "Stany wody na rzekach — dane publiczne Instytutu Meteorologii i Gospodarki Wodnej.",
-      href: "https://danepubliczne.imgw.pl",
+      title: "Oprogramowanie",
+      items: [
+        {
+          t: "React",
+          d: "Interfejs aplikacji. Licencja MIT, © Meta Platforms.",
+          href: "https://github.com/facebook/react/blob/main/LICENSE",
+        },
+        {
+          t: "Zustand",
+          d: "Stan aplikacji (mapa, dziennik, zgody). Licencja MIT.",
+          href: "https://github.com/pmndrs/zustand/blob/main/LICENSE",
+        },
+        {
+          t: "TanStack",
+          d: "Router i Start (nawigacja, budowa strony). Licencja MIT.",
+          href: "https://github.com/TanStack/router/blob/main/LICENSE",
+        },
+        {
+          t: "Tailwind CSS",
+          d: "Warstwa stylów. Licencja MIT.",
+          href: "https://github.com/tailwindlabs/tailwindcss/blob/main/LICENSE",
+        },
+        {
+          t: "Zod",
+          d: "Walidacja danych. Licencja MIT.",
+          href: "https://github.com/colinhacks/zod/blob/main/LICENSE",
+        },
+      ],
     },
   ],
 };

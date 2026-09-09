@@ -143,6 +143,15 @@ const TABS: { id: KitTab; label: string; alwaysOrange?: boolean }[] = [
   { id: "kawa", label: "Postaw kawę", alwaysOrange: true },
 ];
 
+const COFFEE_SECTIONS = [
+  COFFEE_COPY.paragraphs.slice(0, 1),
+  COFFEE_COPY.paragraphs.slice(1, 3),
+  COFFEE_COPY.paragraphs.slice(3, 6),
+  COFFEE_COPY.paragraphs.slice(6, 8),
+  COFFEE_COPY.paragraphs.slice(8, 9),
+  COFFEE_COPY.paragraphs.slice(9),
+];
+
 export function SpeciesList() {
   const setScreen = useAtlas((s) => s.setScreen);
   const [letter, setLetter] = useState<string | null>(null);
@@ -495,61 +504,97 @@ export function Toolkit() {
         )}
 
         {tab === "ciasteczka" && (
-          <div className="kit-pane mt-4 space-y-3 text-sm leading-relaxed text-muted">
-            <h2 className="text-base font-semibold text-foreground">{COOKIES_TEXT.title}</h2>
-            <p>{COOKIES_TEXT.intro}</p>
-            <p>{COOKIES_TEXT.about}</p>
-            <h3 className="font-semibold text-foreground">{COOKIES_TEXT.useTitle}</h3>
-            <p>{COOKIES_TEXT.useLead}</p>
-            {COOKIES_TEXT.items.map((it) => (
-              <p key={it.t}>
-                <span className="font-semibold text-foreground">{it.t}:</span> {it.d}
-              </p>
-            ))}
-            <h3 className="font-semibold text-foreground">{COOKIES_TEXT.thirdTitle}</h3>
-            <p>{COOKIES_TEXT.third}</p>
-            <h3 className="font-semibold text-foreground">{COOKIES_TEXT.rightsTitle}</h3>
-            <p>{COOKIES_TEXT.rights}</p>
-            <h3 className="font-semibold text-foreground">{COOKIES_TEXT.safeTitle}</h3>
-            <p>{COOKIES_TEXT.safe}</p>
-            <ul className="space-y-1">
-              {COOKIES_TEXT.how.map((x) => (
-                <li key={x}>• {x}</li>
-              ))}
-            </ul>
+          <div className="kit-pane mt-4 space-y-3">
+            <section className="rounded-2xl bg-card p-3 ring-1 ring-border">
+              <h2 className="font-semibold">{COOKIES_TEXT.title}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{COOKIES_TEXT.intro}</p>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{COOKIES_TEXT.about}</p>
+            </section>
+            <section className="rounded-2xl bg-card p-3 ring-1 ring-border">
+              <h2 className="font-semibold">{COOKIES_TEXT.useTitle}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{COOKIES_TEXT.useLead}</p>
+              <ul className="mt-3 space-y-3">
+                {COOKIES_TEXT.items.map((it) => (
+                  <li key={it.t}>
+                    <p className="text-sm font-semibold text-foreground">{it.t}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-muted">{it.d}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+            <section className="rounded-2xl bg-card p-3 ring-1 ring-border">
+              <h2 className="font-semibold">{COOKIES_TEXT.thirdTitle}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{COOKIES_TEXT.third}</p>
+            </section>
+            <section className="rounded-2xl bg-card p-3 ring-1 ring-border">
+              <h2 className="font-semibold">{COOKIES_TEXT.rightsTitle}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{COOKIES_TEXT.rights}</p>
+            </section>
+            <section className="rounded-2xl bg-card p-3 ring-1 ring-border">
+              <h2 className="font-semibold">{COOKIES_TEXT.safeTitle}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{COOKIES_TEXT.safe}</p>
+              <ul className="mt-2 space-y-1.5 text-sm leading-relaxed text-muted">
+                {COOKIES_TEXT.how.map((x) => (
+                  <li key={x}>• {x}</li>
+                ))}
+              </ul>
+            </section>
           </div>
         )}
 
         {tab === "kawa" && (
-          <div className="kit-pane mt-6 text-left">
-            <button
-              type="button"
-              onClick={() => openExternal(CUPLINK)}
-              className="coffee-glow mx-auto grid size-20 place-items-center rounded-full bg-coffee text-coffee-fg"
-              aria-label="Postaw kawę"
-            >
-              <img src="/brand/cup.png" alt="" className="size-12 object-contain brightness-0 invert" />
-            </button>
-            <h2 className="mt-4 text-lg font-semibold text-foreground">Postaw kawę</h2>
-            <p className="mt-2 text-sm font-medium text-foreground">{COFFEE_COPY.kicker}</p>
+          <div className="kit-pane mt-4 space-y-3 text-left">
+            <section className="coffee-hero rounded-2xl p-4">
+              <div className="flex items-center gap-3">
+                <div className="coffee-glow grid size-16 shrink-0 place-items-center rounded-full bg-coffee text-coffee-fg">
+                  <img src="/brand/cup.png" alt="" className="size-9 object-contain brightness-0 invert" />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-lg font-semibold text-foreground">Postaw kawę</h2>
+                  <p className="mt-0.5 text-sm leading-snug text-muted">{COFFEE_COPY.kicker}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => openExternal(CUPLINK)}
+                className="tap mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-coffee pl-4 pr-3.5 text-sm font-semibold text-coffee-fg"
+              >
+                <CoffeeIcon size={18} />
+                Postaw kawę
+              </button>
+            </section>
+
             <button
               type="button"
               onClick={() => openExternal(INSTAGRAM)}
-              className="seal-glow mx-auto mt-5 block size-20 rounded-full"
+              className="tap flex w-full items-center gap-3 rounded-2xl bg-card p-3 text-left ring-1 ring-border"
               aria-label="Instagram Method Feeder Szczecin"
             >
               <img
                 src="/brand/logo-karp-circle.png"
-                alt="Method Feeder Szczecin"
-                className="size-full rounded-full object-cover"
+                alt=""
+                className="size-12 shrink-0 rounded-full object-cover outline outline-1 -outline-offset-1 outline-white/10"
               />
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold text-foreground">Method Feeder Szczecin</span>
+                <span className="mt-0.5 block text-xs text-muted">Instagram</span>
+              </span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0 text-muted">
+                <path d="M14 5h5v5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M10 14 19 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                <path d="M17 13.5V19H5V7h5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </button>
-            <p className="mt-5 text-sm leading-relaxed text-muted">{DISCLAIMER}</p>
-            <div className="mt-4 space-y-3 text-sm leading-relaxed text-muted">
-              {COFFEE_COPY.paragraphs.map((p) => (
-                <p key={p.slice(0, 24)}>{p}</p>
-              ))}
-            </div>
+
+            {COFFEE_SECTIONS.map((block) => (
+              <section key={block[0].slice(0, 28)} className="rounded-2xl bg-card p-3 ring-1 ring-border">
+                <div className="space-y-2.5 text-sm leading-relaxed text-muted">
+                  {block.map((p) => (
+                    <p key={p.slice(0, 24)}>{p}</p>
+                  ))}
+                </div>
+              </section>
+            ))}
           </div>
         )}
 
@@ -788,25 +833,32 @@ function HydroNotify() {
 
 function LicensesBlock({ className }: { className?: string }) {
   return (
-    <section className={cn("rounded-2xl bg-card p-3 ring-1 ring-border", className)}>
-      <h2 className="font-semibold">{LICENSES_COPY.title}</h2>
-      <p className="mt-2 text-sm leading-relaxed text-muted">{LICENSES_COPY.lead}</p>
-      <ul className="mt-3 space-y-3">
-        {LICENSES_COPY.items.map((it) => (
-          <li key={it.t}>
-            <p className="text-sm font-semibold text-foreground">{it.t}</p>
-            <p className="mt-0.5 text-sm leading-relaxed text-muted">{it.d}</p>
-            <button
-              type="button"
-              onClick={() => openExternal(it.href)}
-              className="mt-1 text-xs font-semibold text-primary underline decoration-primary/40 underline-offset-2"
-            >
-              Źródło
-            </button>
-          </li>
-        ))}
-      </ul>
-    </section>
+    <div className={cn("space-y-3", className)}>
+      <section className="rounded-2xl bg-card p-3 ring-1 ring-border">
+        <h2 className="font-semibold">{LICENSES_COPY.title}</h2>
+        <p className="mt-2 text-sm leading-relaxed text-muted">{LICENSES_COPY.lead}</p>
+      </section>
+      {LICENSES_COPY.groups.map((g) => (
+        <section key={g.title} className="rounded-2xl bg-card p-3 ring-1 ring-border">
+          <h2 className="font-semibold">{g.title}</h2>
+          <ul className="mt-3 space-y-3">
+            {g.items.map((it) => (
+              <li key={it.t}>
+                <p className="text-sm font-semibold text-foreground">{it.t}</p>
+                <p className="mt-1 text-sm leading-relaxed text-muted">{it.d}</p>
+                <button
+                  type="button"
+                  onClick={() => openExternal(it.href)}
+                  className="mt-1 text-xs font-semibold text-primary underline decoration-primary/40 underline-offset-2"
+                >
+                  Źródło
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
   );
 }
 
@@ -820,23 +872,25 @@ export function InstallPage() {
           <h1 className="min-w-0 text-lg font-semibold leading-tight">Dodaj do ekranu startowego</h1>
         </div>
         <p className="mt-3 text-xs leading-relaxed text-faint">{DISCLAIMER}</p>
-        <section className="mt-4 rounded-2xl bg-card p-3 ring-1 ring-border">
-          <h2 className="font-semibold">iPhone</h2>
-          <ol className="mt-2 list-decimal space-y-1 pl-4 text-sm text-muted">
-            {INSTALL_COPY.ios.map((s) => (
-              <li key={s}>{s}</li>
-            ))}
-          </ol>
-        </section>
-        <section className="mt-3 rounded-2xl bg-card p-3 ring-1 ring-border">
-          <h2 className="font-semibold">Android</h2>
-          <ol className="mt-2 list-decimal space-y-1 pl-4 text-sm text-muted">
-            {INSTALL_COPY.android.map((s) => (
-              <li key={s}>{s}</li>
-            ))}
-          </ol>
-        </section>
-        <LicensesBlock className="mt-3" />
+        <div className="mt-4 space-y-3">
+          <section className="rounded-2xl bg-card p-3 ring-1 ring-border">
+            <h2 className="font-semibold">iPhone</h2>
+            <ol className="mt-2 list-decimal space-y-1.5 pl-4 text-sm leading-relaxed text-muted">
+              {INSTALL_COPY.ios.map((s) => (
+                <li key={s}>{s}</li>
+              ))}
+            </ol>
+          </section>
+          <section className="rounded-2xl bg-card p-3 ring-1 ring-border">
+            <h2 className="font-semibold">Android</h2>
+            <ol className="mt-2 list-decimal space-y-1.5 pl-4 text-sm leading-relaxed text-muted">
+              {INSTALL_COPY.android.map((s) => (
+                <li key={s}>{s}</li>
+              ))}
+            </ol>
+          </section>
+          <LicensesBlock />
+        </div>
         <p className="mt-6 text-center text-xs text-faint">{DISCLAIMER}</p>
       </div>
     </ScreenFrame>

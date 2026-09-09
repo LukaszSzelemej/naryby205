@@ -326,6 +326,8 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: none;
+  padding: 0.7rem;
+  margin: -0.7rem;
 }
 .map-right-tools::-webkit-scrollbar {
   display: none;
@@ -399,17 +401,14 @@
 .map-btn-weather.is-good {
   color: #fff;
   background: #22c55e;
-  animation: 2.4s ease-in-out infinite weather-glow-good;
 }
 .map-btn-weather.is-mid {
   color: #1c1917;
   background: #eab308;
-  animation: 2.4s ease-in-out infinite weather-glow-mid;
 }
 .map-btn-weather.is-bad {
   color: #fff;
   background: #ef4444;
-  animation: 2.4s ease-in-out infinite weather-glow-bad;
 }
 .map-btn-weather.is-wait {
   color: #fff;
@@ -423,11 +422,56 @@
   justify-content: flex-end;
   gap: 0.38rem;
   flex-shrink: 0;
+  overflow: visible;
 }
 .map-btn-pressure,
 .map-btn-weather {
+  position: relative;
+  isolation: isolate;
   overflow: visible;
   flex-shrink: 0;
+}
+.map-btn-weather.is-good::after,
+.map-btn-weather.is-mid::after,
+.map-btn-weather.is-bad::after,
+.map-btn-pressure.is-down::after,
+.map-btn-pressure.is-up::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: -1;
+  background: transparent;
+  transform-origin: 50% 50%;
+  animation: map-halo 2.4s ease-in-out infinite;
+}
+.map-btn-weather.is-good::after {
+  box-shadow: 0 0 0 2px #22c55e;
+}
+.map-btn-weather.is-mid::after {
+  box-shadow: 0 0 0 2px #eab308;
+}
+.map-btn-weather.is-bad::after {
+  box-shadow: 0 0 0 2px #ef4444;
+}
+.map-btn-pressure.is-down::after {
+  box-shadow: 0 0 0 2px var(--color-primary);
+  animation-delay: 0.32s;
+}
+.map-btn-pressure.is-up::after {
+  box-shadow: 0 0 0 2px var(--color-warn);
+  animation-delay: 0.32s;
+}
+@keyframes map-halo {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.55);
+    opacity: 0;
+  }
 }
 .map-compass {
   width: 3.25rem;
@@ -525,14 +569,10 @@
   color: #fff;
 }
 .map-btn-pressure.is-down {
-  animation:
-    pressure-pop 0.32s var(--ease-out) both,
-    pressure-glow-down 2.4s ease-in-out 0.32s infinite;
+  animation: pressure-pop 0.32s var(--ease-out) both;
 }
 .map-btn-pressure.is-up {
-  animation:
-    pressure-pop 0.32s var(--ease-out) both,
-    pressure-glow-up 2.4s ease-in-out 0.32s infinite;
+  animation: pressure-pop 0.32s var(--ease-out) both;
 }
 .map-btn-pressure.is-down svg {
   animation: 1.15s ease-in-out infinite pressure-nudge-down;
@@ -570,14 +610,9 @@
     transform: translateY(2px);
   }
 }
-@keyframes pressure-glow-down {
+@keyframes weather-wait {
   50% {
-    box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-primary) 30%, transparent);
-  }
-}
-@keyframes pressure-glow-up {
-  50% {
-    box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-warn) 34%, transparent);
+    opacity: 0.72;
   }
 }
 .filter-chip {
@@ -647,26 +682,6 @@
 .down-item.is-on svg {
   transform: translateY(-1px);
 }
-@keyframes weather-glow-good {
-  50% {
-    box-shadow: 0 0 0 6px #22c55e33;
-  }
-}
-@keyframes weather-glow-mid {
-  50% {
-    box-shadow: 0 0 0 6px #eab30833;
-  }
-}
-@keyframes weather-glow-bad {
-  50% {
-    box-shadow: 0 0 0 6px #ef444433;
-  }
-}
-@keyframes weather-wait {
-  50% {
-    opacity: 0.72;
-  }
-}
 
 .seal-glow {
   border-radius: 9999px;
@@ -680,6 +695,10 @@
   box-shadow:
     0 0 0 10px #ea580c24,
     0 0 36px #ea580c8c;
+}
+.coffee-hero {
+  background: color-mix(in srgb, var(--color-coffee) 16%, var(--color-card));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-coffee) 38%, transparent);
 }
 
 .fishing-map,
@@ -1103,7 +1122,9 @@
   .splash-fill,
   .splash-meter,
   .map-btn-weather,
+  .map-btn-weather::after,
   .map-btn-pressure,
+  .map-btn-pressure::after,
   .map-btn-pressure svg,
   .map-compass,
   .compass-wind-nudge,

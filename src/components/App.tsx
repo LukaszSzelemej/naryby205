@@ -3,6 +3,7 @@ import { MapCanvas } from "@/components/MapCanvas";
 import {
   ConsentBanner,
   CoordsBanner,
+  CoffeeAsk,
   DownMenu,
   FilterBar,
   FishFab,
@@ -162,6 +163,7 @@ export function App() {
           </div>
           <div className="map-chrome chrome-in">
             <div className="map-chrome-left">
+              <CoffeeAsk />
               <ConsentBanner />
               <CoordsBanner />
               <OfflinePanel />

@@ -40,7 +40,7 @@ import {
 import { useAtlas, type KitTab } from "@/lib/store";
 import { setHydroPref, hydroPref, setTarloPref, tarloPref } from "@/lib/tarlo";
 import { cn, openExternal, phonesIn } from "@/lib/utils";
-import { clearOffline, downloadOffline, offlineCount } from "@/lib/offline";
+import { clearOffline, downloadOffline, loadPackInfo, offlineCount } from "@/lib/offline";
 import { EmptyState, FeedSkeleton, Meter, ScreenFrame } from "@/components/States";
 
 function ManagersList() {
@@ -455,6 +455,9 @@ export function Toolkit() {
           <div className="kit-pane mt-4 rounded-2xl bg-card p-3 ring-1 ring-border">
             <h2 className="font-semibold">{OFFLINE_COPY.title}</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted">{OFFLINE_COPY.body}</p>
+            {loadPackInfo() && !offBusy && (
+              <p className="mt-2 text-sm font-semibold text-ok">Katalog zapisany — możesz jechać bez sieci.</p>
+            )}
             {offPct != null && offBusy && (
               <div className="mt-3">
                 <Meter value={offPct} label="Postęp pobierania" />

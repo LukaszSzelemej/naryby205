@@ -6,7 +6,7 @@ import appCss from "../styles.css?url";
 
 const APP_NAME = "Atlas wędkarski";
 
-const SPLASH_HIDE = `setTimeout(function(){var e=document.getElementById("atlas-splash");if(e)e.classList.add("is-out");},1250);`;
+const SPLASH_HIDE = `setTimeout(function(){var e=document.getElementById("atlas-splash");if(e)e.classList.add("is-out");},900);`;
 
 export const Route = createRootRoute({
   head: () => ({

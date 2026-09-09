@@ -16,6 +16,7 @@ import {
   sanitizeQuery,
   waterTitle,
   nearestTo,
+  methodFromWater,
 } from "@/lib/catalog";
 import { useAtlas } from "@/lib/store";
 import { cn, openExternal } from "@/lib/utils";
@@ -182,7 +183,11 @@ export function Journal() {
   const [waterId, setWaterId] = useState(() =>
     selectedId && WATERS_BY_ID[selectedId] ? selectedId : "",
   );
-  const [method, setMethod] = useState("method feeder");
+  const [method, setMethod] = useState(() =>
+    methodFromWater(
+      selectedId && WATERS_BY_ID[selectedId] ? WATERS_BY_ID[selectedId] : undefined,
+    ),
+  );
   const [lengthCm, setLengthCm] = useState("");
   const [weightKg, setWeightKg] = useState("");
   const [note, setNote] = useState("");
@@ -198,6 +203,11 @@ export function Journal() {
     const near = nearestTo(geo.lat, geo.lng, 1)[0];
     if (near) setWaterId(near.id);
   }, [selectedId, catalogReady, geo, waterId]);
+
+  useEffect(() => {
+    const w = WATERS_BY_ID[waterId];
+    if (w) setMethod(methodFromWater(w));
+  }, [waterId]);
 
   const speciesSorted = useMemo(
     () => [...SPECIES].sort((a, b) => a.name.localeCompare(b.name, "pl")),

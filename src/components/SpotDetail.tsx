@@ -426,6 +426,28 @@ export function SpotDetail() {
             value={w.parking ? (w.parking.length > 42 ? `${w.parking.slice(0, 40)}…` : w.parking) : "Przy drodze / lesie"}
           />
         </div>
+        {(permit || price) && (
+          <div className="mt-2 flex gap-2">
+            {permit && (
+              <button
+                type="button"
+                onClick={() => openExternal(permit)}
+                className="tap inline-flex min-h-11 flex-1 items-center justify-center rounded-full bg-primary px-3 text-sm font-semibold text-primary-foreground"
+              >
+                {mgr.permitLabel ?? "Zezwolenie"}
+              </button>
+            )}
+            {price && (
+              <button
+                type="button"
+                onClick={() => openExternal(price)}
+                className="tap inline-flex min-h-11 flex-1 items-center justify-center rounded-full bg-card-2 px-3 text-sm font-semibold ring-1 ring-border"
+              >
+                {mgr.priceLabel ?? "Cennik"}
+              </button>
+            )}
+          </div>
+        )}
 
         <section className="mt-3 rounded-2xl bg-card p-3 ring-1 ring-border">
           <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-faint">Czy mogę dziś</h3>
@@ -564,26 +586,6 @@ export function SpotDetail() {
                 <PhoneText text={w.ticket} />
               </p>
             )}
-            <div className="mt-2 flex flex-wrap gap-2">
-              {permit && (
-                <button
-                  type="button"
-                  onClick={() => openExternal(permit)}
-                  className="rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
-                >
-                  {mgr.permitLabel ?? "Zezwolenie"}
-                </button>
-              )}
-              {price && (
-                <button
-                  type="button"
-                  onClick={() => openExternal(price)}
-                  className="rounded-full bg-card-2 px-3 py-1.5 text-xs font-medium"
-                >
-                  {mgr.priceLabel ?? "Cennik"}
-                </button>
-              )}
-            </div>
           </Box>
           <Box title="Zapis z dziennika">
             <QuickCatch key={w.id} water={w} />

@@ -13,8 +13,9 @@ export function Boot() {
 
   useEffect(() => {
     void loadCatalog();
-    void registerAtlasSw();
     void bootTarlo();
+    const later = window.setTimeout(() => void registerAtlasSw(), 2000);
+    return () => window.clearTimeout(later);
   }, []);
 
   return (

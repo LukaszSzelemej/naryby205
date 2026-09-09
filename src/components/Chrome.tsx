@@ -32,6 +32,7 @@ import {
 import { zoomBy, resetView, flyToSpot, flyToUser } from "@/lib/map-api";
 import { useAtlas } from "@/lib/store";
 import { OFFLINE_COPY } from "@/lib/content";
+import { loadPackInfo } from "@/lib/offline";
 import type { MapFilter, Screen, Water, WeatherNow } from "@/lib/types";
 import { weatherIcon, windArrow, pressureTrendLabel, windFromLabel } from "@/lib/weather";
 import { requestHeadingPermission, useCompassHeading, useSmoothAngle } from "@/lib/heading";
@@ -612,6 +613,12 @@ export function RightMenu({ weather }: { weather: WeatherNow | null }) {
   const mapDark = useAtlas((s) => s.mapDark);
   const toggleMapDark = useAtlas((s) => s.toggleMapDark);
   const startBoot = useAtlas((s) => s.startBoot);
+  const [packed, setPacked] = useState(() => Boolean(loadPackInfo()));
+  useEffect(() => {
+    const sync = () => setPacked(Boolean(loadPackInfo()));
+    window.addEventListener("atlas-offline-pack", sync);
+    return () => window.removeEventListener("atlas-offline-pack", sync);
+  }, []);
   const filter = useAtlas((s) => s.filter);
   const sheet = useAtlas((s) => s.sheet);
   const sheetOn = sheet?.kind === "nearby";
@@ -737,7 +744,7 @@ export function RightMenu({ weather }: { weather: WeatherNow | null }) {
           />
         </svg>
       </Btn>
-      <Btn label="Mapa offline" onClick={() => setOfflineOpen(true)}>
+      <Btn label="Mapa offline" className={packed ? "is-on" : ""} onClick={() => setOfflineOpen(true)}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
           <path d="M12 4v10M8 10l4 4 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
           <path d="M5 18h14" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
@@ -825,6 +832,21 @@ export function CoordsBanner() {
   );
 }
 
+export function OfflineReady() {
+  const [on, setOn] = useState(() => Boolean(loadPackInfo()));
+  useEffect(() => {
+    const sync = () => setOn(Boolean(loadPackInfo()));
+    window.addEventListener("atlas-offline-pack", sync);
+    return () => window.removeEventListener("atlas-offline-pack", sync);
+  }, []);
+  if (!on) return null;
+  return (
+    <p className="banner-in rounded-full bg-card/95 px-3 py-1.5 text-center text-[11px] font-semibold text-ok ring-1 ring-border">
+      Katalog zapisany
+    </p>
+  );
+}
+
 export function OfflinePanel() {
   const open = useAtlas((s) => s.offlineOpen);
   const setOpen = useAtlas((s) => s.setOfflineOpen);
@@ -841,6 +863,9 @@ export function OfflinePanel() {
         </button>
       </div>
       <p className="mt-2 text-xs leading-relaxed text-muted">{OFFLINE_COPY.panel}</p>
+      {loadPackInfo() && !busy && (
+        <p className="mt-2 text-xs font-semibold text-ok">Katalog zapisany — możesz jechać bez sieci.</p>
+      )}
       {pct != null && pct < 100 && (
         <div className="mt-3">
           <Meter value={pct} label="Postęp pobierania" />
@@ -933,10 +958,9 @@ export function ConsentBanner() {
   const setScreen = useAtlas((s) => s.setScreen);
   if (consent) return null;
   return (
-    <div className="banner-in rounded-2xl bg-card/95 p-3 text-xs leading-relaxed text-muted ring-1 ring-border backdrop-blur-sm">
-      <p>
-        Zgoda na zapis w przeglądarce (dziennik, ulubione, mapa offline) oraz na lokalizację do
-        odległości. Bez reklam. Szczegóły:{" "}
+    <div className="banner-in flex flex-wrap items-center gap-2 rounded-2xl bg-card/95 px-3 py-2 text-[11px] leading-snug text-muted ring-1 ring-border backdrop-blur-sm">
+      <p className="min-w-0 flex-1">
+        Zapis lokalny i GPS. Bez reklam.{" "}
         <button
           type="button"
           className="font-semibold text-primary underline"
@@ -947,24 +971,21 @@ export function ConsentBanner() {
         >
           Ciasteczka
         </button>
-        .
       </p>
-      <div className="mt-2 flex gap-2">
-        <button
-          type="button"
-          className="tap min-h-10 flex-1 rounded-full bg-primary font-semibold text-primary-foreground"
-          onClick={() => setConsent({ cookies: true, geo: true, at: new Date().toISOString() })}
-        >
-          Zgadzam się
-        </button>
-        <button
-          type="button"
-          className="tap min-h-10 flex-1 rounded-full bg-card-2 font-semibold text-foreground ring-1 ring-border"
-          onClick={() => setConsent({ cookies: true, geo: false, at: new Date().toISOString() })}
-        >
-          Tylko niezbędne
-        </button>
-      </div>
+      <button
+        type="button"
+        className="tap h-9 shrink-0 rounded-full bg-primary px-3 font-semibold text-primary-foreground"
+        onClick={() => setConsent({ cookies: true, geo: true, at: new Date().toISOString() })}
+      >
+        Zgadzam się
+      </button>
+      <button
+        type="button"
+        className="tap h-9 shrink-0 rounded-full bg-card-2 px-2.5 font-semibold text-foreground ring-1 ring-border"
+        onClick={() => setConsent({ cookies: true, geo: false, at: new Date().toISOString() })}
+      >
+        Niezbędne
+      </button>
     </div>
   );
 }

@@ -90,11 +90,16 @@ self.addEventListener("fetch", (e) => {
           throw new Error("offline");
         }
       }
-      const hit = await cache.match(e.request);
-      if (hit) return hit;
-      const res = await fetch(e.request);
-      if (res.ok) await cache.put(e.request, res.clone());
-      return res;
+      const cached = await cache.match(e.request);
+      if (!self.navigator.onLine && cached) return cached;
+      try {
+        const res = await fetch(e.request);
+        if (res.ok) void cache.put(e.request, res.clone());
+        return res;
+      } catch {
+        if (cached) return cached;
+        throw new Error("offline");
+      }
     })(),
   );
 });

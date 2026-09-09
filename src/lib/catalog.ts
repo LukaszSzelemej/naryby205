@@ -73,6 +73,12 @@ export const METHOD_LABEL: Record<string, string> = {
   podlodowe: "Pod lód",
 };
 
+export function methodFromWater(w?: Water | null) {
+  const ms = w?.methods ?? [];
+  const hit = ms.find((m) => METHOD_LABEL[m]);
+  return hit ?? "spinning";
+}
+
 export const KIND_COLOR: Record<WaterKind, string> = {
   jezioro: "#1b6e66",
   rzeka: "#2c6280",

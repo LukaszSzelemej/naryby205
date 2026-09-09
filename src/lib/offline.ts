@@ -30,6 +30,50 @@ async function catalogUrls() {
   return [idxUrl, ...shards.map((s) => `${origin}${base}${s}`)];
 }
 
+const PACK_KEY = "atlas.offlinePack";
+
+export type PackInfo = { at: string; files: number };
+
+export function loadPackInfo(): PackInfo | null {
+  try {
+    const raw = localStorage.getItem(PACK_KEY);
+    if (!raw) return null;
+    const v = JSON.parse(raw) as PackInfo;
+    if (typeof v.files === "number" && v.at) return v;
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+function emitPack() {
+  try {
+    window.dispatchEvent(new Event("atlas-offline-pack"));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function savePackInfo(files: number): PackInfo {
+  const info: PackInfo = { at: new Date().toISOString(), files };
+  try {
+    localStorage.setItem(PACK_KEY, JSON.stringify(info));
+  } catch {
+    /* ignore */
+  }
+  emitPack();
+  return info;
+}
+
+export function clearPackInfo() {
+  try {
+    localStorage.removeItem(PACK_KEY);
+  } catch {
+    /* ignore */
+  }
+  emitPack();
+}
+
 export async function downloadOffline(onProgress: (done: number, total: number) => void) {
   if (!("caches" in window)) throw new Error("Cache API niedostępne");
   await registerAtlasSw();
@@ -66,13 +110,16 @@ export async function downloadOffline(onProgress: (done: number, total: number) 
     );
     onProgress(done, jobs.length);
   }
-  return jobs.length;
+  const n = await offlineCount();
+  savePackInfo(n);
+  return n;
 }
 
 export async function clearOffline() {
   if (!("caches" in window)) return;
   await caches.delete(TILE_CACHE);
   await caches.delete(DATA_CACHE);
+  clearPackInfo();
 }
 
 export async function offlineCount() {

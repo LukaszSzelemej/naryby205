@@ -259,6 +259,9 @@ export function MapCanvas({
     let onClick: ((e: { containerPoint?: { x: number; y: number } }) => void) | undefined;
     let onPinLoad: (() => void) | undefined;
     let idle = 0;
+    let veilTimer = 0;
+    let fallbackTimer = 0;
+    let capTimer = 0;
     let ro: ResizeObserver | undefined;
 
     const start = async () => {
@@ -270,7 +273,7 @@ export function MapCanvas({
         zoomControl: false,
         attributionControl: false,
         fadeAnimation: false,
-        zoomAnimation: true,
+        zoomAnimation: false,
         markerZoomAnimation: false,
         preferCanvas: true,
         minZoom: 7,
@@ -280,34 +283,50 @@ export function MapCanvas({
           [BOUNDS.north + 0.35, BOUNDS.east + 0.4],
         ),
         maxBoundsViscosity: 0.7,
-      }).setView(MAP_CENTER, DEFAULT_ZOOM);
+      });
+
+      const here = useAtlas.getState().geo;
+      if (here) map.setView([here.lat, here.lng], 15, { animate: false });
+      else map.setView(MAP_CENTER, DEFAULT_ZOOM, { animate: false });
 
       let usedFallback = false;
+      let gotTile = false;
+      let dropped = false;
       const dropVeil = () => {
-        if (cancelled) return;
+        if (cancelled || dropped) return;
+        dropped = true;
         setVeilOut(true);
-        window.setTimeout(() => setHideVeil(true), 280);
+        veilTimer = window.setTimeout(() => setHideVeil(true), 220);
       };
-      osmRef.current = L.tileLayer(TILE_URL, TILE_OPTS);
+      const addOsm = (url: string) => {
+        const layer = L.tileLayer(url, TILE_OPTS);
+        layer.on("tileload", () => {
+          gotTile = true;
+          dropVeil();
+        });
+        layer.on("load", dropVeil);
+        layer.addTo(map!);
+        layer.bringToBack();
+        return layer;
+      };
+      osmRef.current = addOsm(TILE_URL);
       osmRef.current.on("tileerror", () => {
         if (usedFallback || cancelled) return;
         usedFallback = true;
         const live = mapRef.current;
         if (!live || !osmRef.current) return;
         live.removeLayer(osmRef.current);
-        osmRef.current = L.tileLayer(TILE_FALLBACK_URL, {
-          maxZoom: 19,
-          keepBuffer: 2,
-          updateWhenIdle: false,
-          updateWhenZooming: true,
-          crossOrigin: true,
-        });
-        osmRef.current.on("load", dropVeil);
-        osmRef.current.addTo(live);
-        osmRef.current.bringToBack();
+        osmRef.current = addOsm(TILE_FALLBACK_URL);
       });
-      osmRef.current.on("load", dropVeil);
-      osmRef.current.addTo(map);
+      fallbackTimer = window.setTimeout(() => {
+        if (cancelled || gotTile || usedFallback) return;
+        usedFallback = true;
+        const live = mapRef.current;
+        if (!live || !osmRef.current) return;
+        live.removeLayer(osmRef.current);
+        osmRef.current = addOsm(TILE_FALLBACK_URL);
+      }, 700);
+      capTimer = window.setTimeout(dropVeil, 180);
       mapRef.current = map;
       window.__atlasMap = map;
       if (host.current && typeof ResizeObserver !== "undefined") {
@@ -322,7 +341,6 @@ export function MapCanvas({
       }
       if (useAtlas.getState().mapDark) host.current?.classList.add("is-dark");
       const st = useAtlas.getState();
-      const here = st.geo;
       const favSet = new Set(st.favorites);
       favRef.current = favSet;
       listRef.current = WATERS.filter((w) => {
@@ -332,14 +350,6 @@ export function MapCanvas({
         if (st.mapBoats && !w.boats) return false;
         return true;
       });
-      if (here) {
-        map.setView([here.lat, here.lng], 15);
-      } else {
-        map.fitBounds(
-          L.latLngBounds([BOUNDS.south, BOUNDS.west], [BOUNDS.north, BOUNDS.east]),
-          { padding: [56, 32], animate: false },
-        );
-      }
 
       let raf = 0;
       onMove = () => {
@@ -391,13 +401,10 @@ export function MapCanvas({
       if (pinImg?.complete && pinImg.naturalWidth) kickPins();
       else pinImg?.addEventListener("load", kickPins);
       setReady(true);
-      requestAnimationFrame(redraw);
-      window.setTimeout(() => {
-        if (cancelled || !map) return;
-        map.invalidateSize({ animate: false });
+      requestAnimationFrame(() => {
+        map?.invalidateSize({ animate: false });
         redraw();
-        dropVeil();
-      }, 500);
+      });
     };
 
     const maybeStart = () => {
@@ -409,11 +416,14 @@ export function MapCanvas({
       }
       void start();
     };
-    idle = window.setTimeout(maybeStart, 40);
+    idle = window.setTimeout(maybeStart, 0);
 
     return () => {
       cancelled = true;
       window.clearTimeout(idle);
+      window.clearTimeout(veilTimer);
+      window.clearTimeout(fallbackTimer);
+      window.clearTimeout(capTimer);
       ro?.disconnect();
       if (onPinLoad) pinImg?.removeEventListener("load", onPinLoad);
       if (map && onMove) map.off("move zoom viewreset resize", onMove);
@@ -426,8 +436,8 @@ export function MapCanvas({
 
   useEffect(() => {
     if (!ready) return;
-    const fade = window.setTimeout(() => setVeilOut(true), 420);
-    const hide = window.setTimeout(() => setHideVeil(true), 720);
+    const fade = window.setTimeout(() => setVeilOut(true), 120);
+    const hide = window.setTimeout(() => setHideVeil(true), 320);
     return () => {
       window.clearTimeout(fade);
       window.clearTimeout(hide);

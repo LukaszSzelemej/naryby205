@@ -9,6 +9,7 @@ import {
   FishFab,
   MapSearch,
   OfflinePanel,
+  OfflineReady,
   OnlinePill,
   RightMenu,
   requestLocation,
@@ -165,6 +166,7 @@ export function App() {
             <div className="map-chrome-left">
               <CoffeeAsk />
               <ConsentBanner />
+              <OfflineReady />
               <CoordsBanner />
               <OfflinePanel />
               <FilterBar />

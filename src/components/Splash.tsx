@@ -7,7 +7,7 @@ export function SplashOverlay() {
     const el = document.getElementById("atlas-splash");
     if (!el) return;
     const hide = () => el.classList.add("is-out");
-    const t = window.setTimeout(hide, 1250);
+    const t = window.setTimeout(hide, 900);
     return () => window.clearTimeout(t);
   }, []);
 

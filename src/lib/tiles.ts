@@ -9,10 +9,9 @@ export const TILE_FALLBACK_URL =
   "https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png";
 export const TILE_OPTS = {
   maxZoom: 19,
-  keepBuffer: 2,
+  keepBuffer: 1,
   updateWhenIdle: false,
   updateWhenZooming: true,
-  crossOrigin: true as const,
 };
 
 export function osmTile(z: number, x: number, y: number) {

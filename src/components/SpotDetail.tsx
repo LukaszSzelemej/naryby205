@@ -522,15 +522,18 @@ export function SpotDetail() {
           <button
             type="button"
             onClick={() => openExternal(googleNav(w.lat, w.lng))}
-            className="tap inline-flex min-h-11 flex-1 items-center justify-center rounded-full bg-primary px-3 text-sm font-semibold text-primary-foreground"
+            className="tap inline-flex min-h-12 flex-1 flex-col items-center justify-center rounded-full bg-primary px-3 py-1.5 text-primary-foreground"
           >
-            Nawiguj{dist ? ` · ${dist}` : ""}
+            <span className="text-sm font-semibold leading-none">Nawiguj</span>
+            <span className="mt-1 text-[11px] font-medium leading-none tabular-nums opacity-90">
+              {dist ?? "—"}
+            </span>
           </button>
           {permit && (
             <button
               type="button"
               onClick={() => openExternal(permit)}
-              className="tap inline-flex min-h-11 flex-1 items-center justify-center rounded-full bg-card-2 px-3 text-sm font-semibold ring-1 ring-border"
+              className="tap inline-flex min-h-12 flex-1 items-center justify-center rounded-full bg-card-2 px-3 text-sm font-semibold ring-1 ring-border"
             >
               {mgr.permitLabel ?? "Zezwolenie"}
             </button>
@@ -539,7 +542,7 @@ export function SpotDetail() {
             <button
               type="button"
               onClick={() => openExternal(price)}
-              className="tap inline-flex min-h-11 flex-1 items-center justify-center rounded-full bg-card-2 px-3 text-sm font-semibold ring-1 ring-border"
+              className="tap inline-flex min-h-12 flex-1 items-center justify-center rounded-full bg-card-2 px-3 text-sm font-semibold ring-1 ring-border"
             >
               {mgr.priceLabel ?? "Cennik"}
             </button>

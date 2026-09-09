@@ -16,3 +16,4 @@ screenshots/*.json
 Specyfikacja-Atlas-Wedkarski.md
 Specyfikacja-Atlas-Wedkarski.pdf
 Specyfikacja-Atlas-Wedkarski.txt
+__pycache__/

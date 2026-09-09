@@ -742,6 +742,23 @@
   position: absolute !important;
   inset: 0 !important;
 }
+.spot-full-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: #e8eaed;
+}
+.spot-full-map,
+.spot-full-map.leaflet-container {
+  font-family: var(--font-sans);
+  z-index: 0;
+  touch-action: none;
+  background: #e8eaed;
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
 .leaflet-container img.leaflet-tile {
   max-width: none !important;
 }
@@ -1092,7 +1109,7 @@
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  background: #1a242e;
+  background: #e8eaed;
 }
 .mini-skel::after {
   content: "";

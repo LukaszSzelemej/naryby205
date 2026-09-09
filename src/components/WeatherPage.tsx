@@ -10,6 +10,7 @@ import {
   feedingTone,
   forecastFeeding,
   moonPhase,
+  waterSpeciesHint,
 } from "@/lib/feeding";
 import { weatherIcon, weatherLabel, windArrow, pressureTrendLabel } from "@/lib/weather";
 import type { WeatherNow } from "@/lib/types";
@@ -73,6 +74,49 @@ export function WaterWeek({ weather }: { weather: WeatherNow }) {
         })}
       </div>
       <p className="mt-2 text-[11px] leading-relaxed text-muted">{hint}</p>
+    </section>
+  );
+}
+
+export function WaterSpeciesCard({
+  temp,
+  species,
+  methods,
+  atSea,
+}: {
+  temp: number | null | undefined;
+  species?: string[];
+  methods?: string[];
+  atSea?: boolean;
+}) {
+  const hint = waterSpeciesHint(temp ?? null, species, methods, atSea);
+  if (!hint) return null;
+  return (
+    <section className="mt-3 rounded-2xl bg-card p-3 ring-1 ring-border">
+      <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-faint">
+        Woda vs gatunek
+      </h2>
+      <p className="mt-1 text-[11px] tabular-nums text-muted">{hint.temp.toFixed(1)}°</p>
+      {hint.chips.length ? (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {hint.chips.map((c) => (
+            <span
+              key={c.id}
+              className={
+                c.peak
+                  ? "rounded-full bg-ok/15 px-2.5 py-1 text-xs font-semibold text-ok"
+                  : "rounded-full bg-card-2 px-2.5 py-1 text-xs font-medium text-foreground"
+              }
+            >
+              {c.name}
+            </span>
+          ))}
+        </div>
+      ) : null}
+      <p className="mt-2 text-sm leading-relaxed text-foreground">{hint.text}</p>
+      <p className="mt-1.5 text-[11px] leading-relaxed text-faint">
+        Poglądowo, z temperatury wody — nie gwarancja brań.
+      </p>
     </section>
   );
 }
@@ -188,6 +232,7 @@ export function WeatherPage({ weather }: { weather: WeatherNow | null }) {
         </section>
 
         <WaterWeek weather={weather} />
+        <WaterSpeciesCard temp={weather.waterTemp} />
 
         <section className="mt-4">
           <h2 className="text-sm font-semibold">Żerowanie</h2>

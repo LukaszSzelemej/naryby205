@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import {
   categoryTags,
   CUPLINK,
@@ -43,9 +44,9 @@ import type { Water, WeatherNow, Manager } from "@/lib/types";
 import { cn, copyText, openExternal, phonesIn } from "@/lib/utils";
 import { EmptyState, FeedSkeleton, ScreenFrame, useFlash } from "@/components/States";
 import { fetchHydro, hydroRiverKey, withHydroTrend, type HydroRow } from "@/lib/hydro";
-import { TILE_URL, TILE_OPTS } from "@/lib/tiles";
+import { TILE_URL, TILE_FALLBACK_URL, TILE_OPTS } from "@/lib/tiles";
 import { shareWaterCard } from "@/lib/share-card";
-import { WaterWeek } from "@/components/WeatherPage";
+import { WaterWeek, WaterSpeciesCard } from "@/components/WeatherPage";
 
 function paperOf(w: Water, mgr: Manager) {
   const k = hostKindOf(w);
@@ -211,45 +212,99 @@ function MiniMap({
   full: boolean;
   color: string;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
+  const host = useRef<HTMLDivElement>(null);
   const [on, setOn] = useState(false);
   useEffect(() => {
-    if (!ref.current) return;
+    const el = host.current;
+    if (!el) return;
     let cancelled = false;
     let map: import("leaflet").Map | undefined;
-    (async () => {
+    let layer: import("leaflet").TileLayer | undefined;
+    let boot = 0;
+    let fallbackTimer = 0;
+    let ro: ResizeObserver | undefined;
+    let tries = 0;
+
+    const sync = (recenter = false) => {
+      if (!map) return;
+      map.invalidateSize({ animate: false });
+      if (recenter) map.setView([lat, lng], full ? 15 : 14, { animate: false });
+    };
+
+    const start = async () => {
+      if (cancelled || !host.current) return;
+      if (host.current.clientWidth < 8 || host.current.clientHeight < 8) {
+        if (tries++ < 24) boot = window.setTimeout(() => void start(), 50);
+        return;
+      }
       const L = (await import("leaflet")).default;
       await import("leaflet/dist/leaflet.css");
-      if (cancelled || !ref.current) return;
-      map = L.map(ref.current, {
+      if (cancelled || !host.current) return;
+      map = L.map(host.current, {
         zoomControl: false,
         attributionControl: false,
         dragging: full,
         scrollWheelZoom: full,
-      }).setView([lat, lng], full ? 15 : 14);
-      L.tileLayer(TILE_URL, TILE_OPTS).addTo(map);
+        fadeAnimation: false,
+        zoomAnimation: false,
+      });
+      let usedFallback = false;
+      let gotTile = false;
+      const add = (url: string) => {
+        const t = L.tileLayer(url, TILE_OPTS);
+        t.on("tileload", () => {
+          gotTile = true;
+        });
+        t.addTo(map!);
+        return t;
+      };
+      layer = add(TILE_URL);
+      layer.on("tileerror", () => {
+        if (usedFallback || cancelled || !map || !layer) return;
+        usedFallback = true;
+        map.removeLayer(layer);
+        layer = add(TILE_FALLBACK_URL);
+      });
+      fallbackTimer = window.setTimeout(() => {
+        if (gotTile || usedFallback || cancelled || !map || !layer) return;
+        usedFallback = true;
+        map.removeLayer(layer);
+        layer = add(TILE_FALLBACK_URL);
+      }, 700);
+      const w = 32;
+      const h = Math.round(w * 0.6);
       L.marker([lat, lng], {
         icon: L.divIcon({
           className: "fish-marker",
-          html: FishPinSvg({ color, size: 32 }),
-          iconSize: [32, 20],
-          iconAnchor: [20, 10],
+          html: FishPinSvg({ color, size: w }),
+          iconSize: [w, h],
+          iconAnchor: [w / 2, h / 2],
         }),
+        interactive: false,
       }).addTo(map);
-      setTimeout(() => {
-        map?.invalidateSize();
-        if (!cancelled) setOn(true);
-      }, 80);
-    })();
+      sync(true);
+      requestAnimationFrame(() => sync(true));
+      if (typeof ResizeObserver !== "undefined") {
+        ro = new ResizeObserver(() => sync(false));
+        ro.observe(host.current);
+      }
+      if (!cancelled) setOn(true);
+    };
+
+    boot = window.setTimeout(() => void start(), 0);
     return () => {
       cancelled = true;
+      window.clearTimeout(boot);
+      window.clearTimeout(fallbackTimer);
+      ro?.disconnect();
       map?.remove();
     };
   }, [lat, lng, full, color]);
+
   return (
     <>
       {!on && <div className="mini-skel rounded-[inherit]" />}
-      <div ref={ref} className={full ? "fishing-map" : "spot-mini-map"} />
+      <div ref={host} className={full ? "spot-full-map" : "spot-mini-map"} />
     </>
   );
 }
@@ -361,19 +416,21 @@ export function SpotDetail() {
 
   return (
     <ScreenFrame onBack={close}>
-      {full && (
-        <div className="fixed inset-0 z-[80] bg-background">
-          <MiniMap lat={w.lat} lng={w.lng} full color={color} />
-          <button
-            type="button"
-            onClick={() => setFull(false)}
-            className="tap absolute top-[max(0.7rem,env(safe-area-inset-top))] right-3 z-[81] grid size-10 place-items-center rounded-full bg-black/70 text-lg text-white"
-            aria-label="Zamknij mapę"
-          >
-            ×
-          </button>
-        </div>
-      )}
+      {full &&
+        createPortal(
+          <div className="spot-full-overlay">
+            <MiniMap lat={w.lat} lng={w.lng} full color={color} />
+            <button
+              type="button"
+              onClick={() => setFull(false)}
+              className="tap absolute top-[max(0.7rem,env(safe-area-inset-top))] right-3 z-[81] grid size-10 place-items-center rounded-full bg-black/70 text-lg text-white"
+              aria-label="Zamknij mapę"
+            >
+              ×
+            </button>
+          </div>,
+          document.body,
+        )}
       <div className="mx-auto max-w-lg px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-10">
         <header className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-2">
@@ -482,19 +539,27 @@ export function SpotDetail() {
           <p className="mt-3 text-sm leading-relaxed text-foreground">{w.summary}</p>
         )}
 
-        <button
-          type="button"
+        <div
+          role="button"
+          tabIndex={0}
           onClick={() => setFull(true)}
-          className="relative mt-4 mx-1 block aspect-[16/10] w-[calc(100%-0.5rem)] overflow-hidden rounded-2xl ring-1 ring-border"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setFull(true);
+            }
+          }}
+          className="relative mt-4 mx-1 block aspect-[16/10] w-[calc(100%-0.5rem)] cursor-pointer overflow-hidden rounded-2xl ring-1 ring-border"
+          aria-label="Otwórz mapę łowiska"
         >
           <MiniMap lat={w.lat} lng={w.lng} full={false} color={color} />
           {weather && (
-            <span className="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-0.5 text-[11px] text-white">
+            <span className="pointer-events-none absolute bottom-2 left-2 z-[2] rounded-full bg-black/60 px-2 py-0.5 text-[11px] text-white">
               {Math.round(weather.pressure)} hPa · {windArrow(weather.windDir)}{" "}
               {Math.round(weather.wind)} km/h
             </span>
           )}
-        </button>
+        </div>
 
         <div className="mt-3 grid gap-2">
           <Box title="Wielkość i głębokość">
@@ -742,6 +807,12 @@ export function SpotDetail() {
                 />
               </div>
               <WaterWeek weather={weather} />
+              <WaterSpeciesCard
+                temp={weather.waterTemp}
+                species={w.species}
+                methods={w.methods}
+                atSea={w.kind === "morze"}
+              />
             </section>
 
             <section>

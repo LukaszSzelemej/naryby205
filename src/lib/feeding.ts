@@ -1,4 +1,5 @@
 import type { WeatherNow } from "@/lib/types";
+import { METHOD_LABEL, protectionOf, SPECIES_BY_ID } from "@/lib/catalog";
 
 export type Moon = { frac: number; name: string; illum: number };
 
@@ -238,4 +239,107 @@ export function forecastFeeding(w: WeatherNow) {
     const score = feedingScore(fake, at);
     return { date: d.date, score, text: feedingLabel(score), day: d };
   });
+}
+
+type WaterBand = {
+  id: string;
+  lo: number;
+  hi: number;
+  peakLo: number;
+  peakHi: number;
+  method?: string;
+};
+
+const WATER_BANDS: WaterBand[] = [
+  { id: "mietus", lo: 1, hi: 10, peakLo: 2, peakHi: 7 },
+  { id: "pstrag-potokowy", lo: 4, hi: 16, peakLo: 6, peakHi: 12, method: "mucha" },
+  { id: "szczupak", lo: 4, hi: 18, peakLo: 8, peakHi: 12, method: "spinning" },
+  { id: "okon", lo: 6, hi: 18, peakLo: 8, peakHi: 14, method: "spinning" },
+  { id: "sandacz", lo: 8, hi: 20, peakLo: 10, peakHi: 16, method: "spinning" },
+  { id: "leszcz", lo: 10, hi: 20, peakLo: 12, peakHi: 17, method: "method feeder" },
+  { id: "ploc", lo: 8, hi: 20, peakLo: 10, peakHi: 16, method: "spławik" },
+  { id: "bolen", lo: 10, hi: 22, peakLo: 12, peakHi: 18, method: "spinning" },
+  { id: "lin", lo: 14, hi: 24, peakLo: 16, peakHi: 21, method: "spławik" },
+  { id: "karp", lo: 14, hi: 26, peakLo: 17, peakHi: 23, method: "method feeder" },
+  { id: "wegorz", lo: 14, hi: 24, peakLo: 16, peakHi: 22, method: "grunt" },
+  { id: "amur", lo: 16, hi: 28, peakLo: 18, peakHi: 24, method: "method feeder" },
+  { id: "sum", lo: 16, hi: 28, peakLo: 18, peakHi: 24, method: "grunt" },
+];
+
+function bandScore(t: number, b: WaterBand) {
+  if (t < b.lo || t > b.hi) return 0;
+  if (t >= b.peakLo && t <= b.peakHi) return 2;
+  return 1;
+}
+
+export type WaterSpeciesHint = {
+  temp: number;
+  chips: { id: string; name: string; peak: boolean }[];
+  closed: string[];
+  text: string;
+};
+
+export function waterSpeciesHint(
+  temp: number | null | undefined,
+  species: string[] = [],
+  methods: string[] = [],
+  atSea = false,
+): WaterSpeciesHint | null {
+  if (temp == null || !Number.isFinite(temp)) return null;
+  const pool = species.length ? species : WATER_BANDS.map((b) => b.id);
+  const allow = new Set(methods);
+  const hits = WATER_BANDS.filter((b) => pool.includes(b.id))
+    .map((b) => {
+      const sp = SPECIES_BY_ID[b.id];
+      const closed = sp ? protectionOf(sp, new Date(), atSea).active : false;
+      return {
+        id: b.id,
+        name: sp?.name ?? b.id,
+        score: bandScore(temp, b),
+        closed,
+        method: b.method,
+      };
+    })
+    .filter((h) => h.score > 0);
+  const open = hits
+    .filter((h) => !h.closed)
+    .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name, "pl"));
+  const peak = open.filter((h) => h.score === 2);
+  const chips = (peak.length ? peak : open).slice(0, 4).map((h) => ({
+    id: h.id,
+    name: h.name,
+    peak: h.score === 2,
+  }));
+  const closed = hits
+    .filter((h) => h.closed && h.score === 2)
+    .map((h) => h.name);
+  const names = chips.map((c) => c.name);
+  const bits: string[] = [];
+  if (names.length) {
+    bits.push(
+      chips.some((c) => c.peak)
+        ? `${names.join(", ")} — woda w ich oknie.`
+        : `${names.join(", ")} — raczej biorą, ale to nie szczyt sezonu.`,
+    );
+  } else {
+    bits.push(`Przy ${temp.toFixed(0)}° żaden z gatunków tego łowiska nie jest w typowym oknie.`);
+  }
+  const methodIds = [
+    ...new Set(
+      (peak.length ? peak : open)
+        .slice(0, 4)
+        .map((h) => h.method)
+        .filter((m): m is string => Boolean(m))
+        .filter((m) => !allow.size || allow.has(m)),
+    ),
+  ];
+  if (methodIds.length) {
+    bits.push(methodIds.map((m) => METHOD_LABEL[m] ?? m).join(", ") + ".");
+  }
+  if (pool.includes("karp") && temp < 14 && !hits.find((h) => h.id === "karp" && h.closed)) {
+    bits.push("Karp jeszcze ociężały.");
+  }
+  if (pool.includes("sum") && temp < 16) bits.push("Sum czeka na cieplejszą wodę.");
+  if (closed.length) bits.push(`${closed.join(", ")} w ochronie — nie łów.`);
+  return { temp, chips, closed, text: bits.join(" ") };
 }

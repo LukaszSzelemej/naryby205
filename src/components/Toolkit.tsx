@@ -13,6 +13,8 @@ import {
   protectionOf,
   formatProtect,
   closedEndingDays,
+  closedYearRows,
+  MONTHS_SHORT,
   safeHttpUrl,
   SPECIES,
   SPECIES_LETTERS,
@@ -177,6 +179,57 @@ function ClosedNow() {
   );
 }
 
+function YearTarlo() {
+  const year = new Date().getFullYear();
+  const nowM = new Date().getMonth();
+  const rows = closedYearRows(year);
+  if (!rows.length) return null;
+  return (
+    <section className="mt-3 rounded-2xl bg-card p-3 ring-1 ring-border">
+      <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-faint">
+        Kalendarz tarła {year}
+      </h2>
+      <p className="mt-1 text-[11px] leading-relaxed text-muted">
+        Okres ochronny RAPR na śródlądziu. Czerwień — nie łów. Poglądowo, sprawdź aktualny regulamin.
+      </p>
+      <div className="mt-3 min-w-0 overflow-x-auto">
+        <div className="min-w-[20rem] space-y-1.5">
+        <div className="grid grid-cols-[minmax(4.8rem,1.1fr)_repeat(12,minmax(0,1fr))] gap-0.5 text-[9px] font-semibold text-faint">
+          <span />
+          {MONTHS_SHORT.map((m, i) => (
+            <span
+              key={m}
+              className={cn("text-center", i === nowM && "text-primary")}
+            >
+              {m}
+            </span>
+          ))}
+        </div>
+        {rows.map((r) => (
+          <div key={r.id}>
+            <div className="grid grid-cols-[minmax(4.8rem,1.1fr)_repeat(12,minmax(0,1fr))] items-center gap-0.5">
+              <p className="truncate pr-1 text-[11px] font-medium leading-tight">{r.name}</p>
+              {r.months.map((on, i) => (
+                <span
+                  key={i}
+                  title={`${MONTHS_SHORT[i]} · ${r.name}${on ? " — ochrona" : ""}`}
+                  className={cn(
+                    "h-5 rounded-sm",
+                    on ? "bg-danger/65" : "bg-card-2",
+                    i === nowM && "ring-1 ring-primary/70",
+                  )}
+                />
+              ))}
+            </div>
+            <p className="pl-[0.1rem] text-[10px] text-faint">{r.period}</p>
+          </div>
+        ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function SpeciesList() {
   const setScreen = useAtlas((s) => s.setScreen);
   const [letter, setLetter] = useState<string | null>(null);
@@ -215,6 +268,7 @@ export function SpeciesList() {
 
         <p className="mt-2 text-xs leading-relaxed text-faint">{DISCLAIMER}</p>
         <ClosedNow />
+        <YearTarlo />
 
         <div className="kit-pane mt-4">
           <div className="relative">

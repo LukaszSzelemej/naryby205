@@ -45,6 +45,7 @@ import { EmptyState, FeedSkeleton, ScreenFrame, useFlash } from "@/components/St
 import { fetchHydro, hydroRiverKey, withHydroTrend, type HydroRow } from "@/lib/hydro";
 import { TILE_URL, TILE_OPTS } from "@/lib/tiles";
 import { shareWaterCard } from "@/lib/share-card";
+import { WaterWeek } from "@/components/WeatherPage";
 
 function paperOf(w: Water, mgr: Manager) {
   const k = hostKindOf(w);
@@ -733,9 +734,14 @@ export function SpotDetail() {
                 <SpotTile
                   label="Woda"
                   value={weather.waterTemp != null ? `${weather.waterTemp.toFixed(1)}°` : "brak"}
-                  hint={`powietrze ${weather.temp.toFixed(0)}°`}
+                  hint={
+                    weather.waterSource === "sst"
+                      ? "powierzchnia morza"
+                      : `powietrze ${weather.temp.toFixed(0)}° · szacunek`
+                  }
                 />
               </div>
+              <WaterWeek weather={weather} />
             </section>
 
             <section>

@@ -45,15 +45,19 @@ function fallback(lat: number, lng: number): WeatherNow {
   const daily: WeatherDay[] = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(now);
     d.setDate(d.getDate() + i);
+    const tmax = 18 - i * 0.4;
+    const tmin = 9 - i * 0.2;
     return {
       date: d.toISOString().slice(0, 10),
-      tmax: 18 - i * 0.4,
-      tmin: 9 - i * 0.2,
+      tmax,
+      tmin,
       rain: i === 2 ? 2.1 : 0.1,
       weatherCode: i === 2 ? 61 : 2,
       wind: 12 + i,
+      water: null,
     };
   });
+  const waters = fillWaterTemps(daily, null);
   void lat;
   void lng;
   return {
@@ -65,12 +69,67 @@ function fallback(lat: number, lng: number): WeatherNow {
     windDir: 270,
     weatherCode: 2,
     humidity: 68,
-    waterTemp: null,
+    waterTemp: waters[0] ?? null,
+    waterSource: "estimate",
     sunrise: rise.toISOString(),
     sunset: set.toISOString(),
-    daily,
+    daily: daily.map((d, i) => ({ ...d, water: waters[i] })),
     stale: true,
   };
+}
+
+function isCoastal(lat: number, lng: number) {
+  return lat >= 53.88 || (lat >= 53.3 && lng <= 14.85);
+}
+
+function lagWater(means: number[]) {
+  return means.map((_, i) => {
+    const a = means[i];
+    const b = means[Math.max(0, i - 1)];
+    const c = means[Math.max(0, i - 2)];
+    const raw = 0.45 * a + 0.35 * b + 0.2 * c;
+    return Math.round(Math.max(0.4, raw - 1.1) * 10) / 10;
+  });
+}
+
+function fillWaterTemps(daily: WeatherDay[], sst: (number | null)[] | null) {
+  const means = daily.map((d) => (d.tmax + d.tmin) / 2);
+  const estimate = lagWater(means);
+  if (sst && sst.length) {
+    return daily.map((_, i) => {
+      const v = sst[i];
+      return v != null && Number.isFinite(v) ? Math.round(v * 10) / 10 : estimate[i];
+    });
+  }
+  return estimate;
+}
+
+async function fetchMarineSst(
+  lat: number,
+  lng: number,
+  signal: AbortSignal,
+): Promise<(number | null)[] | null> {
+  if (!isCoastal(lat, lng)) return null;
+  const params = new URLSearchParams({
+    latitude: String(lat),
+    longitude: String(lng),
+    daily: "sea_surface_temperature_max,sea_surface_temperature_min",
+    forecast_days: "7",
+    timezone: "Europe/Warsaw",
+  });
+  const res = await fetch(`https://marine-api.open-meteo.com/v1/marine?${params}`, { signal });
+  if (!res.ok) return null;
+  const a = (await res.json()) as {
+    daily?: { sea_surface_temperature_max?: (number | null)[]; sea_surface_temperature_min?: (number | null)[] };
+  };
+  const hi = a.daily?.sea_surface_temperature_max;
+  const lo = a.daily?.sea_surface_temperature_min;
+  if (!hi?.length) return null;
+  return hi.map((v, i) => {
+    const b = lo?.[i];
+    if (v == null && b == null) return null;
+    return ((v ?? b ?? 0) + (b ?? v ?? 0)) / 2;
+  });
 }
 
 export async function fetchWeather(lat: number, lng: number): Promise<WeatherNow> {
@@ -107,10 +166,10 @@ export async function fetchWeather(lat: number, lng: number): Promise<WeatherNow
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 7000);
   try {
-    const res = await fetch(
-      `https://api.open-meteo.com/v1/forecast?${params}`,
-      { signal: ctrl.signal },
-    );
+    const [res, sst] = await Promise.all([
+      fetch(`https://api.open-meteo.com/v1/forecast?${params}`, { signal: ctrl.signal }),
+      fetchMarineSst(lat, lng, ctrl.signal).catch(() => null),
+    ]);
     if (!res.ok) throw new Error("pogoda");
     const a = (await res.json()) as {
       current: Record<string, number>;
@@ -142,6 +201,8 @@ export async function fetchWeather(lat: number, lng: number): Promise<WeatherNow
       weatherCode: Number(a.daily.weather_code[i] ?? 0),
       wind: Number(a.daily.wind_speed_10m_max[i] ?? 0),
     }));
+    const waters = fillWaterTemps(daily, sst);
+    const useSst = Boolean(sst?.some((v) => v != null));
     const data: WeatherNow = {
       temp: a.current.temperature_2m,
       pressure: a.current.pressure_msl,
@@ -151,10 +212,11 @@ export async function fetchWeather(lat: number, lng: number): Promise<WeatherNow
       windDir: a.current.wind_direction_10m,
       weatherCode: a.current.weather_code,
       humidity: a.current.relative_humidity_2m,
-      waterTemp: null,
+      waterTemp: waters[0] ?? null,
+      waterSource: useSst ? "sst" : "estimate",
       sunrise: String(a.daily.sunrise[0] ?? ""),
       sunset: String(a.daily.sunset[0] ?? ""),
-      daily,
+      daily: daily.map((d, i) => ({ ...d, water: waters[i] })),
     };
     cache.set(k, { at: Date.now(), data });
     return data;

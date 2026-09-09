@@ -47,6 +47,36 @@ function toneClass(tone: "ok" | "primary" | "warn" | "danger") {
   return "bg-danger/15 text-danger";
 }
 
+export function WaterWeek({ weather }: { weather: WeatherNow }) {
+  const days = weather.daily;
+  if (!days.some((d) => d.water != null)) return null;
+  const hint =
+    weather.waterSource === "sst"
+      ? "Powierzchnia morza / zalewu — Open-Meteo Marine."
+      : "Szacunek z powietrza (opóźnienie 2–3 dni), nie pomiar z jeziora.";
+  return (
+    <section className="mt-3 rounded-2xl bg-card p-3 ring-1 ring-border">
+      <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-faint">Woda 7 dni</h2>
+      <div className="mt-2 grid grid-cols-7 gap-1">
+        {days.slice(0, 7).map((d) => {
+          const wd = ["nd", "pn", "wt", "śr", "cz", "pt", "so"][
+            new Date(`${d.date}T12:00:00`).getDay()
+          ];
+          return (
+          <div key={d.date} className="rounded-xl bg-card-2 px-0.5 py-1.5 text-center">
+            <p className="text-[10px] font-medium text-faint">{wd}</p>
+            <p className="mt-1 text-sm font-semibold tabular-nums text-foreground">
+              {d.water != null ? `${d.water.toFixed(0)}°` : "—"}
+            </p>
+          </div>
+          );
+        })}
+      </div>
+      <p className="mt-2 text-[11px] leading-relaxed text-muted">{hint}</p>
+    </section>
+  );
+}
+
 export function WeatherPage({ weather }: { weather: WeatherNow | null }) {
   const back = useAtlas((s) => s.back);
   const geo = useAtlas((s) => s.geo);
@@ -146,12 +176,18 @@ export function WeatherPage({ weather }: { weather: WeatherNow | null }) {
           <Tile
             label="Woda"
             value={weather.waterTemp != null ? `${weather.waterTemp.toFixed(1)}°` : "brak"}
-            hint={`powietrze ${weather.temp.toFixed(0)}°`}
+            hint={
+              weather.waterSource === "sst"
+                ? "powierzchnia morza"
+                : `powietrze ${weather.temp.toFixed(0)}° · szacunek`
+            }
           />
           <Tile label="Księżyc" value={moon.name} hint={`${moon.illum}% tarczy`} />
           <Tile label="Wschód" value={fmtTime(weather.sunrise)} />
           <Tile label="Zachód" value={fmtTime(weather.sunset)} />
         </section>
+
+        <WaterWeek weather={weather} />
 
         <section className="mt-4">
           <h2 className="text-sm font-semibold">Żerowanie</h2>
@@ -217,6 +253,7 @@ export function WeatherPage({ weather }: { weather: WeatherNow | null }) {
                     </p>
                     <p className="text-xs tabular-nums text-muted">
                       {d.rain.toFixed(0)} mm · {d.wind.toFixed(0)} km/h
+                      {d.water != null ? ` · woda ${d.water.toFixed(0)}°` : ""}
                     </p>
                   </div>
                 </div>

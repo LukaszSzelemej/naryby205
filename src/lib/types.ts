@@ -137,6 +137,7 @@ export type WeatherNow = {
   weatherCode: number;
   humidity: number;
   waterTemp: number | null;
+  waterSource?: "sst" | "estimate";
   sunrise: string;
   sunset: string;
   daily: WeatherDay[];
@@ -150,4 +151,5 @@ export type WeatherDay = {
   rain: number;
   weatherCode: number;
   wind: number;
+  water?: number | null;
 };

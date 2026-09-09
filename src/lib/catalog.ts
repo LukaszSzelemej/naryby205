@@ -854,6 +854,41 @@ export function formatProtect(sp: Species, okrag?: string, sea = false) {
   return { size, limit, period: protectionOf(sp, new Date(), sea), fork: Boolean(fork) };
 }
 
+export const MONTHS_SHORT = [
+  "Sty",
+  "Lut",
+  "Mar",
+  "Kwi",
+  "Maj",
+  "Cze",
+  "Lip",
+  "Sie",
+  "Wrz",
+  "Paź",
+  "Lis",
+  "Gru",
+] as const;
+
+export function inlandPeriod(sp: Species) {
+  if (!sp.closed.length) return "";
+  return sp.closed
+    .map((c) => formatPeriod(c.from, c.to) + (c.note ? ` (${c.note})` : ""))
+    .join(", ");
+}
+
+export function closedYearRows(year = new Date().getFullYear()) {
+  return SPECIES.filter((s) => s.closed.length)
+    .map((s) => ({
+      id: s.id,
+      name: s.name,
+      period: inlandPeriod(s) + (s.seaBan ? " · morze" : ""),
+      months: Array.from({ length: 12 }, (_, m) =>
+        protectionOf(s, new Date(year, m, 15), false).active,
+      ),
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, "pl"));
+}
+
 export function closedEndingDays(sp: Species, at: Date = new Date()): number | null {
   const periods = [...sp.closed, ...(sp.seaClosed ?? [])];
   if (!periods.length) return null;
